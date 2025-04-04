@@ -21,7 +21,7 @@ async function bootstrap() {
   });
 
 
-  await app.listen(process.env.PORT ?? 8044);
+  await app.listen(process.env.PORT ?? 8044, '0.0.0.0');
 }
 
 bootstrap();
