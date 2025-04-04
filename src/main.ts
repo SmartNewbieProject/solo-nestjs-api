@@ -1,11 +1,14 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { ValidationPipe } from '@nestjs/common';
-import { AllExceptionsFilter, TransformInterceptor } from '@common/index';
+import { ValidationPipe, Logger } from '@nestjs/common';
+import { AllExceptionsFilter, TransformInterceptor, LoggerMiddleware } from '@common/index';
+import { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+  });
   app.setGlobalPrefix('api');
   app.enableCors({
     origin: ['http://localhost:3000', 'https://project-solo-azure.vercel.app'],
@@ -26,6 +29,10 @@ async function bootstrap() {
 
   app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new TransformInterceptor());
+
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    new LoggerMiddleware().use(req, res, next);
+  });
 
   const config = new DocumentBuilder()
     .setTitle('썸타임 API')

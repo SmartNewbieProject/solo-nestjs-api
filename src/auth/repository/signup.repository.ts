@@ -7,7 +7,6 @@ import { Gender } from '@database/schema/enums';
 import { eq } from 'drizzle-orm';
 import { InjectDrizzle } from '@common/decorators';
 
-// 사용자 생성 요청 인터페이스
 interface CreateUserDto {
   email: string;
   password: string;
@@ -23,7 +22,6 @@ export class SignupRepository {
     private readonly db: NodePgDatabase<typeof schema>,
   ) {}
 
-  // 이메일로 사용자 찾기
   async findUserByEmail(email: string) {
     const result = await this.db.select()
       .from(users)
@@ -42,11 +40,8 @@ export class SignupRepository {
     return result.length > 0;
   }
 
-  // 사용자 및 프로필 생성
   async createUser(createUserDto: CreateUserDto) {
-    // 트랜잭션 시작
     return await this.db.transaction(async (tx) => {
-      // 프로필 먼저 생성
       const [profile] = await tx.insert(profiles)
         .values({
           name: createUserDto.name,
@@ -55,7 +50,6 @@ export class SignupRepository {
         })
         .returning();
 
-      // 사용자 생성
       const [user] = await tx.insert(users)
         .values({
           email: createUserDto.email,
@@ -65,7 +59,6 @@ export class SignupRepository {
         })
         .returning();
 
-      // 프로필 ID를 사용자에 연결
       await tx.update(profiles)
         .set({ userId: user.id })
         .where(eq(profiles.id, profile.id));

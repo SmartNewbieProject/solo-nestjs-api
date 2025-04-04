@@ -8,5 +8,6 @@ export const users = pgTable('users', {
   password: varchar('password', { length: 100 }).notNull(),
   profileId: varchar('profile_id', { length: 36 }),
   oauthProvider: varchar('oauth_provider', { length: 30 }),
+  refreshToken: varchar('refresh_token', { length: 500 }),
   ...timestamps,
 });

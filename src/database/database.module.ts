@@ -1,4 +1,4 @@
-import { Global, Module } from '@nestjs/common';
+import { Global, Module, Logger } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { Pool } from 'pg';
@@ -21,7 +21,21 @@ import { DatabaseService } from './database.service';
           database: configService.get('DATABASE_NAME'),
         });
 
-        return drizzle(pool, { schema, casing: 'snake_case' });
+        const logger = new Logger('SQL');
+        
+        // SQL 쿼리 로깅을 위한 설정
+        return drizzle(pool, { 
+          schema, 
+          casing: 'snake_case',
+          logger: {
+            logQuery: (query, params) => {
+              logger.debug(`쿼리: ${query}`);
+              if (params && params.length > 0) {
+                logger.debug(`파라미터: ${JSON.stringify(params)}`);
+              }
+            },
+          },
+        });
       },
     },
     DatabaseService,
