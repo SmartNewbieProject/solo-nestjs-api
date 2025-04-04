@@ -9,9 +9,11 @@ import {
   checkEmailSuccessResponse,
   checkEmailFailureResponse
 } from '../data/responses';
+import { Public } from '@auth/decorators';
 
 @Controller('auth')
 @ApiTags('인증')
+@Public()
 export class SignupController {
   constructor(private readonly signupService: SignupService) {}
 

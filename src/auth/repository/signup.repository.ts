@@ -43,7 +43,6 @@ export class SignupRepository {
 
   async createUser(createUserDto: CreateUserDto) {
     return await this.db.transaction(async (tx) => {
-      // UUID v7 직접 생성
       const profileId = generateUuidV7();
       const userId = generateUuidV7();
       

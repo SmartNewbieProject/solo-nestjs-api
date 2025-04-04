@@ -42,6 +42,17 @@ async function bootstrap() {
     .setDescription('썸타임 REST API 문서')
     .setVersion('1.0')
     .addTag('썸타임')
+    .addBearerAuth(
+      {
+        type: 'http',
+        scheme: 'bearer',
+        bearerFormat: 'JWT',
+        name: 'JWT',
+        description: 'JWT 토큰을 입력하세요',
+        in: 'header',
+      },
+      'access-token',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

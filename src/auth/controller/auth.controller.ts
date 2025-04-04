@@ -12,6 +12,7 @@ import {
   logoutSuccessResponse,
   logoutFailureResponse
 } from '../data/responses';
+import { Public } from '@auth/decorators';
 
 @Controller('auth')
 @ApiTags('인증')
@@ -40,6 +41,7 @@ export class AuthController {
   @ApiOperation({ summary: '로그인', description: '이메일과 비밀번호로 로그인합니다.' })
   @ApiResponse(loginSuccessResponse)
   @ApiResponse(loginFailureResponse)
+  @Public()
   async login(
     @Body() loginRequest: LoginRequest,
     @Res({ passthrough: true }) response: Response
@@ -79,6 +81,7 @@ export class AuthController {
   @ApiOperation({ summary: '로그아웃', description: '현재 사용자를 로그아웃합니다.' })
   @ApiResponse(logoutSuccessResponse)
   @ApiResponse(logoutFailureResponse)
+  @Public()
   async logout(
     @Body() { userId }: { userId: string },
     @Request() req,

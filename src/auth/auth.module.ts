@@ -21,7 +21,12 @@ import { AuthRepository } from './repository/auth.repository';
     }),
   ],
   controllers: [SignupController, AuthController],
-  providers: [SignupService, SignupRepository, AuthService, AuthRepository],
+  providers: [
+    SignupService, 
+    SignupRepository, 
+    AuthService, 
+    AuthRepository,
+  ],
   exports: [SignupService, AuthService],
 })
 export class AuthModule {}
