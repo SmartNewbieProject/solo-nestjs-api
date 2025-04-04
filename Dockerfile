@@ -14,9 +14,15 @@ ARG DATABASE_HOST
 ARG DATABASE_PORT
 ARG DATABASE_NAME
 RUN mkdir /app
-COPY pnpm-lock.yaml /app
+COPY package.json pnpm-lock.yaml /app/
 WORKDIR /app
-RUN pnpm fetch --prod
+
+RUN pnpm fetch
+
+RUN pnpm install --frozen-lockfile
+RUN pnpm add -g @nestjs/cli
+
+# 소스 코드 복사 및 빌드
 COPY . /app
 RUN pnpm run build
 
