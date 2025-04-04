@@ -13,13 +13,13 @@ export class SignupRequest {
   email: string;
 
   @ApiProperty({
-    example: 'Password123!',
-    description: '비밀번호 (최소 8자, 문자와 숫자 포함)',
+    example: '@Password123!',
+    description: '비밀번호 (최소 8자, 문자와 숫자, 특수문자 포함)',
   })
   @IsString()
   @MinLength(8, { message: '비밀번호는 최소 8자 이상이어야 합니다.' })
-  @Matches(/^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$/, {
-    message: '비밀번호는 최소 8자 이상이며, 문자와 숫자를 포함해야 합니다.',
+  @Matches(/^(?=.*[A-Za-z])(?=.*\d)(?=.*\W)[A-Za-z\d\W_]{8,}$/, {
+    message: '비밀번호는 최소 8자 이상이며, 문자와 숫자, 특수문자를 포함해야 합니다.',
   })
   password: string;
 
