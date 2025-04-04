@@ -1,5 +1,7 @@
 import { IsEmail, IsNotEmpty, IsNumber, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Transform } from 'class-transformer';
+import { Gender } from '@database/schema/enums';
 
 export class SignupRequest {
   @ApiProperty({
@@ -46,5 +48,8 @@ export class SignupRequest {
   @IsString()
   @IsNotEmpty({ message: '성별은 필수 입력 항목입니다.' })
   @Matches(/^(MALE|FEMALE)$/, { message: '성별은 MALE 또는 FEMALE이어야 합니다.' })
-  gender: 'MALE' | 'FEMALE';
+  @Transform(({ value }) => {
+    return value === 'MALE' ? Gender.MALE : Gender.FEMALE;
+  })
+  gender: Gender;
 }
