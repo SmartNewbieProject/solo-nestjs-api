@@ -4,23 +4,22 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.setGlobalPrefix('api');
 
   const config = new DocumentBuilder()
-    .setTitle('SOLO API')
-    .setDescription('SOLO API documentation')
+    .setTitle('썸타임 API')
+    .setDescription('썸타임 REST API 문서')
     .setVersion('1.0')
-    .addTag('SOLO')
+    .addTag('썸타임')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document, {
-    url: '/docs',
+  SwaggerModule.setup('docs', app, document, {
     swaggerOptions: {
       docExpansion: 'list',
     },
   });
 
-  app.setGlobalPrefix('api');
 
   await app.listen(process.env.PORT ?? 8044);
 }
