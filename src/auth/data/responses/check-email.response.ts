@@ -15,9 +15,7 @@ export const checkEmailFailureResponse: ApiResponseOptions = {
   description: '잘못된 요청 데이터',
   schema: {
     example: {
-      statusCode: 400,
-      message: '유효한 이메일 주소를 입력해주세요.',
-      error: 'Bad Request'
+      error: '유효한 이메일 주소를 입력해주세요.',
     }
   }
 };

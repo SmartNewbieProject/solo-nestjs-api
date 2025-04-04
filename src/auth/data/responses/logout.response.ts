@@ -13,9 +13,7 @@ export const logoutFailureResponse: ApiResponseOptions = {
   description: '인증 실패',
   schema: {
     example: {
-      statusCode: 401,
-      message: '인증되지 않은 사용자입니다.',
-      error: 'Unauthorized'
+      error: '인증되지 않은 사용자입니다.',
     }
   }
 };

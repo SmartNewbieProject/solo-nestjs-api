@@ -19,12 +19,7 @@ export const signupValidationFailureResponse: ApiResponseOptions = {
   description: '잘못된 요청 데이터',
   schema: {
     example: {
-      statusCode: 400,
-      message: [
-        '유효한 이메일 주소를 입력해주세요.',
-        '비밀번호는 최소 8자 이상이어야 합니다.'
-      ],
-      error: 'Bad Request'
+      error: '비밀번호는 최소 8자 이상이어야 합니다.'
     }
   }
 };
@@ -34,9 +29,7 @@ export const signupConflictResponse: ApiResponseOptions = {
   description: '이미 등록된 이메일',
   schema: {
     example: {
-      statusCode: 409,
-      message: '이미 등록된 이메일입니다.',
-      error: 'Conflict'
+      error: '이미 등록된 이메일입니다.',
     }
   }
 };

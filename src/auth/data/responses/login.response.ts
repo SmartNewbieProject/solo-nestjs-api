@@ -17,9 +17,7 @@ export const loginFailureResponse: ApiResponseOptions = {
   description: '인증 실패',
   schema: {
     example: {
-      statusCode: 401,
-      message: '이메일 또는 비밀번호가 올바르지 않습니다.',
-      error: 'Unauthorized'
+      error: '이메일 또는 비밀번호가 올바르지 않습니다.',
     }
   }
 };

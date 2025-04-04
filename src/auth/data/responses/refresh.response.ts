@@ -17,9 +17,7 @@ export const refreshFailureResponse: ApiResponseOptions = {
   description: '유효하지 않은 리프레시 토큰',
   schema: {
     example: {
-      statusCode: 401,
-      message: '유효하지 않은 리프레시 토큰입니다.',
-      error: 'Unauthorized'
+      error: '유효하지 않은 리프레시 토큰입니다.',
     }
   }
 };
