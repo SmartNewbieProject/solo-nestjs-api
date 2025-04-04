@@ -45,7 +45,8 @@ export class SignupRepository {
     return await this.db.transaction(async (tx) => {
       const profileId = generateUuidV7();
       const userId = generateUuidV7();
-      
+      const preferenceId = generateUuidV7();
+
       const [profile] = await tx.insert(profiles)
         .values({
           id: profileId,
@@ -55,6 +56,13 @@ export class SignupRepository {
         })
         .returning();
 
+      const [preference] = await tx.insert(schema.userPreferences)
+        .values({
+          id: preferenceId,
+          distanceMax: null,
+        })
+        .returning();
+    
       const [user] = await tx.insert(users)
         .values({
           id: userId,
@@ -68,6 +76,9 @@ export class SignupRepository {
       await tx.update(profiles)
         .set({ userId: user.id })
         .where(eq(profiles.id, profile.id));
+      await tx.update(schema.userPreferences)
+        .set({ userId: user.id })
+        .where(eq(schema.userPreferences.id, preference.id));
 
       return user;
     });
