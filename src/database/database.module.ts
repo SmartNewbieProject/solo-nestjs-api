@@ -14,10 +14,11 @@ import { DatabaseService } from './database.service';
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
         const pool = new Pool({
-          user: 'postgres',
-          host: 'localhost',
-          port: 5432,
-          database: 'solo',
+          user: configService.get('DATABASE_USER'),
+          host: configService.get('DATABASE_HOST'),
+          password: configService.get('DATABASE_PASSWORD'),
+          port: configService.get('DATABASE_PORT'),
+          database: configService.get('DATABASE_NAME'),
         });
 
         return drizzle(pool, { schema });
