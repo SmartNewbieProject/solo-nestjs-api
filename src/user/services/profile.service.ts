@@ -1,12 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import ProfileRepository from "../repository/profile.repository";
+import { PreferenceSave } from "../dto/profile.dto";
 
 type Option = {
   id: string;
   displayName: string;
 }
 
-type PreferenceSet = {
+export type PreferenceSet = {
   typeName: string;
   options: Option[];
   multiple: boolean;
@@ -44,6 +45,10 @@ export class ProfileService {
     });
 
     return list;
+  }
+
+  async updatePreferences(userId: string, preferenceSave: PreferenceSave) {
+    return await this.profileRepository.updatePreferences(userId, preferenceSave.data);
   }
 
   private convertMap(preferences: Preference[]) {

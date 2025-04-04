@@ -7,8 +7,8 @@ import { Role } from '../domain/user-role.enum';
 import { AuthRepository } from '../repository/auth.repository';
 
 interface JwtPayload {
-  sub: string;
   email: string;
+  id: string;
   role: Role;
 }
 
@@ -45,12 +45,12 @@ export class AuthService {
         secret: this.configService.get<string>('JWT_SECRET'),
       });
 
-      const storedToken = await this.authRepository.findRefreshToken(payload.sub, refreshToken);
+      const storedToken = await this.authRepository.findRefreshToken(payload.id, refreshToken);
       if (!storedToken) {
         throw new UnauthorizedException('유효하지 않은 리프레시 토큰입니다.');
       }
 
-      const user = await this.authRepository.findUserById(payload.sub);
+      const user = await this.authRepository.findUserById(payload.id);
       if (!user) {
         throw new UnauthorizedException('사용자를 찾을 수 없습니다.');
       }
@@ -74,8 +74,8 @@ export class AuthService {
 
   private async generateTokens(userId: string, email: string): Promise<TokenResponse> {
     const payload: JwtPayload = {
-      sub: userId,
       email,
+      id: userId,
       role: Role.USER,
     };
 
