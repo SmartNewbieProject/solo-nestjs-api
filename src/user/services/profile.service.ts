@@ -1,6 +1,23 @@
 import { Injectable } from "@nestjs/common";
 import ProfileRepository from "../repository/profile.repository";
 import { PreferenceSave } from "../dto/profile.dto";
+import { NotFoundException } from "@nestjs/common";
+import { ProfileDetails } from "@/types/user";
+
+interface PreferenceOption {
+  id: string;
+  displayName: string;
+}
+
+interface PreferenceTypeGroup {
+  typeName: string;
+  selectedOptions: PreferenceOption[];
+}
+
+export interface UserPreferences extends ProfileDetails {
+  preferences: PreferenceTypeGroup[];
+}
+
 
 type Option = {
   id: string;
@@ -16,9 +33,9 @@ export type PreferenceSet = {
 
 type Preference = {
   typeName: string;
-  optionDisplayName: string; 
   optionId: string;
   multiple: boolean;
+  optionDisplayName: string;
   maximumChoiceCount: number;
 }
 
@@ -27,6 +44,38 @@ export class ProfileService {
   constructor(
     private readonly profileRepository: ProfileRepository,
   ) {}
+
+  async getUserProfiles(userId: string): Promise<UserPreferences> {
+    const profileDetails = await this.profileRepository.getProfileDetails(userId);
+    const userPreferenceOptions = await this.profileRepository.getUserPreferenceOptions(userId);
+    const preferencesByType = new Map<string, PreferenceTypeGroup>();
+
+    if (!profileDetails) {
+      throw new NotFoundException('사용자 프로필을 찾을 수 없습니다.');
+    }
+
+    userPreferenceOptions.forEach(option => {
+      if (!preferencesByType.has(option.typeName)) {
+        preferencesByType.set(option.typeName, {
+          typeName: option.typeName,
+          selectedOptions: []
+        });
+      }
+      
+      const typeData = preferencesByType.get(option.typeName);
+      if (typeData) {
+        typeData.selectedOptions.push({
+          id: option.optionId,
+          displayName: option.optionDisplayName,
+        });
+      }
+    });
+    
+    return {
+      ...profileDetails,
+      preferences: Array.from(preferencesByType.values())
+    };
+  } 
 
   async getAllPreferences() {
     const preferences = await this.profileRepository.getAllPreferences();

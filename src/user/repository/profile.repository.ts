@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectDrizzle } from "@common/decorators";
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "@database/schema";
@@ -12,6 +12,45 @@ export default class ProfileRepository {
       @InjectDrizzle()
       private readonly db: NodePgDatabase<typeof schema>,
     ) {}
+
+  async getProfileDetails(userId: string) {
+    return await this.db.query.profiles.findFirst({
+      where: eq(schema.profiles.userId, userId),
+      with: {
+        universityDetail: true,
+      }
+    });
+  }
+
+  async getUserPreferenceOptions(userId: string) {
+    return await this.db.transaction(async (tx) => {
+      const userPreference = await tx.query.userPreferences.findFirst({
+        where: eq(schema.userPreferences.userId, userId)
+      });
+      
+      if (!userPreference) {
+        throw new NotFoundException('사용자 선호도 정보를 찾을 수 없습니다.');
+      }
+
+      const userPreferenceOptions = await this.db.select({
+        optionId: schema.userPreferenceOptions.preferenceOptionId,
+        optionDisplayName: schema.preferenceOptions.displayName,
+        typeName: schema.preferenceTypes.name,
+      })
+      .from(schema.userPreferenceOptions)
+      .innerJoin(
+        schema.preferenceOptions,
+        eq(schema.userPreferenceOptions.preferenceOptionId, schema.preferenceOptions.id)
+      )
+      .innerJoin(
+        schema.preferenceTypes,
+        eq(schema.preferenceOptions.preferenceTypeId, schema.preferenceTypes.id)
+      )
+      .where(eq(schema.userPreferenceOptions.userPreferenceId, userPreference.id));
+
+      return userPreferenceOptions;
+    });
+  }
   
   async getAllPreferences() {
     return await this.db.select({
