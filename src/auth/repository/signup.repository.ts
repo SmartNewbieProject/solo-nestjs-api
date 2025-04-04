@@ -47,39 +47,34 @@ export class SignupRepository {
       const userId = generateUuidV7();
       const preferenceId = generateUuidV7();
 
-      const [profile] = await tx.insert(profiles)
-        .values({
-          id: profileId,
-          name: createUserDto.name,
-          age: createUserDto.age,
-          gender: createUserDto.gender,
-        })
-        .returning();
-
-      const [preference] = await tx.insert(schema.userPreferences)
-        .values({
-          id: preferenceId,
-          distanceMax: null,
-        })
-        .returning();
-    
       const [user] = await tx.insert(users)
         .values({
           id: userId,
           email: createUserDto.email,
           password: createUserDto.password,
           name: createUserDto.name,
-          profileId: profile.id,
+          profileId,
         })
         .returning();
 
-      await tx.update(profiles)
-        .set({ userId: user.id })
-        .where(eq(profiles.id, profile.id));
-      await tx.update(schema.userPreferences)
-        .set({ userId: user.id })
-        .where(eq(schema.userPreferences.id, preference.id));
+      await tx.insert(profiles)
+        .values({
+          id: profileId,
+          userId: user.id,
+          name: createUserDto.name,
+          age: createUserDto.age,
+          gender: createUserDto.gender,
+        })
+        .execute();
 
+      await tx.insert(schema.userPreferences)
+        .values({
+          userId: user.id,
+          id: preferenceId,
+          distanceMax: null,
+        })
+        .execute();
+    
       return user;
     });
   }

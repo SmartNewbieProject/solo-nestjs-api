@@ -5,7 +5,7 @@ import { users } from './users';
 
 export const profiles = pgTable('profiles', {
   id: uuid(),
-  userId: varchar('user_id', { length: 128 }).references(() => users.id),
+  userId: varchar('user_id', { length: 128 }).references(() => users.id).notNull().unique(),
   age: integer('age'),
   gender: varchar('gender', { length: 10 }).$type<Gender>(),
   name: varchar('name', { length: 15 }),
