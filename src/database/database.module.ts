@@ -21,7 +21,7 @@ import { DatabaseService } from './database.service';
           database: configService.get('DATABASE_NAME'),
         });
 
-        return drizzle(pool, { schema });
+        return drizzle(pool, { schema, casing: 'snake_case' });
       },
     },
     DatabaseService,

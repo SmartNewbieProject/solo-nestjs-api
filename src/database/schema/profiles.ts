@@ -1,0 +1,17 @@
+import { pgTable, varchar, integer } from 'drizzle-orm/pg-core';
+import { uuid, timestamps } from './helper';
+import { Gender } from './enums';
+import { users } from './users';
+
+export const profiles = pgTable('profiles', {
+  id: uuid('id'),
+  userId: varchar('user_id', { length: 128 }).references(() => users.id),
+  age: integer('age'),
+  gender: varchar('gender', { length: 10 }).$type<Gender>(),
+  name: varchar('name', { length: 15 }),
+  title: varchar('title', { length: 100 }),
+  introduction: varchar('introduction', { length: 255 }),
+  statusAt: varchar('status_at', { length: 36 }),
+  universityDetailId: varchar('university_detail_id', { length: 36 }),
+  ...timestamps,
+});

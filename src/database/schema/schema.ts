@@ -1,0 +1,63 @@
+// 모든 스키마 파일을 통합하는 파일
+import { users } from './users';
+import { profiles } from './profiles';
+import { preferenceTypes } from './preference_types';
+import { preferenceOptions } from './preference_options';
+import { payHistories } from './pay_histories';
+import { universities } from './universities';
+import { universityDetails } from './university_details';
+import { images } from './images';
+import { profileImages } from './profile_images';
+import { userPreferences } from './user_preferences';
+import { matches } from './matches';
+import { matchingRequests } from './matching_requests';
+import { reports } from './reports';
+import { userPreferenceOptions } from './user_preference_options';
+import { userRangePreferences } from './user_range_preferences';
+
+// 관계형 매핑 파일 가져오기
+import './relations';
+
+// enum 타입 내보내기
+export * from './enums';
+
+// 관계형 매핑 내보내기
+export * from './relations';
+
+// 모든 테이블 스키마 내보내기
+export {
+  users,
+  profiles,
+  preferenceTypes,
+  preferenceOptions,
+  payHistories,
+  universities,
+  universityDetails,
+  images,
+  profileImages,
+  userPreferences,
+  matches,
+  matchingRequests,
+  reports,
+  userPreferenceOptions,
+  userRangePreferences,
+};
+
+// 모든 테이블 스키마를 배열로 내보내기
+export const schemas = [
+  users,
+  profiles,
+  preferenceTypes,
+  preferenceOptions,
+  payHistories,
+  universities,
+  universityDetails,
+  images,
+  profileImages,
+  userPreferences,
+  matches,
+  matchingRequests,
+  reports,
+  userPreferenceOptions,
+  userRangePreferences,
+];
