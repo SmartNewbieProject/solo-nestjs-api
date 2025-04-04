@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 env:
-  DOCKER_HUB_REPO: ${{ github.repository_owner }}/solo-nestjs-api
+  DOCKER_HUB_REPO: deveungi/sometimes-nestjs-api
   NODE_ENV: production
   PORT: 8044
 
