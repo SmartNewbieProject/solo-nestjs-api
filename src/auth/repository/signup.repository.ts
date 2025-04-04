@@ -6,6 +6,7 @@ import { profiles } from '@database/schema/profiles';
 import { Gender } from '@database/schema/enums';
 import { eq } from 'drizzle-orm';
 import { InjectDrizzle } from '@common/decorators';
+import { generateUuidV7 } from '@database/schema/helper';
 
 interface CreateUserDto {
   email: string;
@@ -42,8 +43,13 @@ export class SignupRepository {
 
   async createUser(createUserDto: CreateUserDto) {
     return await this.db.transaction(async (tx) => {
+      // UUID v7 직접 생성
+      const profileId = generateUuidV7();
+      const userId = generateUuidV7();
+      
       const [profile] = await tx.insert(profiles)
         .values({
+          id: profileId,
           name: createUserDto.name,
           age: createUserDto.age,
           gender: createUserDto.gender,
@@ -52,6 +58,7 @@ export class SignupRepository {
 
       const [user] = await tx.insert(users)
         .values({
+          id: userId,
           email: createUserDto.email,
           password: createUserDto.password,
           name: createUserDto.name,

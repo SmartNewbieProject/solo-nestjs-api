@@ -10,5 +10,6 @@ export const timestamps = {
 export const uuid = (name: string) =>
   varchar(name, { length: 128 })
     .notNull()
-    .primaryKey()
-    .default(uuidv7());
+    .primaryKey();
+    
+export const generateUuidV7 = () => uuidv7();
