@@ -2,9 +2,9 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
-import { AuthRepository } from '../repository/auth.repository';
 import { LoginRequest, TokenResponse } from '../dto';
 import { Role } from '../domain/user-role.enum';
+import { AuthRepository } from '../repository/auth.repository';
 
 interface JwtPayload {
   sub: string;

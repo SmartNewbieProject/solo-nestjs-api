@@ -4,6 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { AllExceptionsFilter, TransformInterceptor, LoggerMiddleware } from '@common/index';
 import { Request, Response, NextFunction } from 'express';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -33,6 +34,8 @@ async function bootstrap() {
   app.use((req: Request, res: Response, next: NextFunction) => {
     new LoggerMiddleware().use(req, res, next);
   });
+
+  app.use(cookieParser());
 
   const config = new DocumentBuilder()
     .setTitle('썸타임 API')
