@@ -1,4 +1,4 @@
-name: Docker 이미지 빌드 및 배포
+name: Sometimes NestJS API Docker 이미지 빌드 및 배포
 
 on:
   push:
@@ -26,7 +26,7 @@ jobs:
       - name: Docker Hub 로그인
         uses: docker/login-action@v2
         with:
-          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          username: deveungi
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
 
       - name: Docker Buildx 설정
