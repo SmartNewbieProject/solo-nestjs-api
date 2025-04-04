@@ -7,8 +7,8 @@ export const timestamps = {
   deletedAt: timestamp('deleted_at'),
 };
 
-export const uuid = (name: string) =>
-  varchar(name, { length: 128 })
+export const uuid = () =>
+  varchar({ length: 128 })
     .notNull()
     .primaryKey();
     

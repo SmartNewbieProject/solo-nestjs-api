@@ -4,7 +4,7 @@ import { Gender } from './enums';
 import { users } from './users';
 
 export const profiles = pgTable('profiles', {
-  id: uuid('id'),
+  id: uuid(),
   userId: varchar('user_id', { length: 128 }).references(() => users.id),
   age: integer('age'),
   gender: varchar('gender', { length: 10 }).$type<Gender>(),

@@ -14,6 +14,8 @@ export default class ProfileRepository {
   async getAllPreferences() {
     return await this.db.select({
       typeName: schema.preferenceTypes.name,
+      multiple: schema.preferenceTypes.multiSelect,
+      maximumChoiceCount: schema.preferenceTypes.maximumChoiceCount,
       optionId: schema.preferenceOptions.id,
       optionDisplayName: schema.preferenceOptions.displayName,
     })

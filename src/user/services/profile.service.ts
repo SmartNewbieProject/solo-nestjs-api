@@ -9,6 +9,16 @@ type Option = {
 type PreferenceSet = {
   typeName: string;
   options: Option[];
+  multiple: boolean;
+  maximumChoiceCount: number;
+}
+
+type Preference = {
+  typeName: string;
+  optionDisplayName: string; 
+  optionId: string;
+  multiple: boolean;
+  maximumChoiceCount: number;
 }
 
 @Injectable()
@@ -18,10 +28,26 @@ export class ProfileService {
   ) {}
 
   async getAllPreferences() {
-    const map = new Map<string, Option[]>();
     const preferences = await this.profileRepository.getAllPreferences();
     const list: PreferenceSet[] = [];
+    const map = this.convertMap(preferences);
 
+    map.forEach((options, typeName) => {
+      const { multiple, maximumChoiceCount } = this.findOne(typeName, preferences);
+
+      list.push({
+        typeName,
+        options,
+        multiple,
+        maximumChoiceCount,
+      });
+    });
+
+    return list;
+  }
+
+  private convertMap(preferences: Preference[]) {
+    const map = new Map<string, Option[]>();
     preferences.forEach(({ typeName, optionDisplayName, optionId }) => {
       if (!map.has(typeName)) {
         map.set(typeName, []);
@@ -29,14 +55,11 @@ export class ProfileService {
       const exists = map.get(typeName) as Option[];
       map.set(typeName, [...exists, { id: optionId, displayName: optionDisplayName }]);
     });
-
-    map.forEach((v, k) => {
-      list.push({
-        typeName: k,
-        options: v,
-      })
-    });
-
-    return list;
+    return map;
   }
+
+  private findOne( typeName: string, preferences: Preference[]) {
+    return preferences.find(p => p.typeName === typeName) as Preference;
+  }
+
 }
