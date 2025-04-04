@@ -10,6 +10,13 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"],
+      "@auth/*": ["src/auth/*"],
+      "@common/*": ["src/common/*"],
+      "@types/*": ["src/types/*"],
+      "@database/*": ["src/database/*"]
+    },
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
