@@ -22,7 +22,7 @@ export default class ProfileRepository {
           with: {
             image: true,
           },
-          where: (profileImages, { isNotNull }) => isNotNull(profileImages.deletedAt),
+          where: (profileImages, { isNull }) => isNull(profileImages.deletedAt),
         }
       }
     });
