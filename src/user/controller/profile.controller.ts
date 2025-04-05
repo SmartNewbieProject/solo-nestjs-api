@@ -1,5 +1,4 @@
 import { Body, Controller, Get, Patch } from "@nestjs/common";
-import { ApiBearerAuth } from "@nestjs/swagger";
 import { ProfileService } from "../services/profile.service";
 import { InstagramId, PreferenceSave } from "../dto/profile.dto";
 import { CurrentUser } from "@/auth/decorators";
@@ -7,6 +6,8 @@ import { AuthenticationUser } from "@/types";
 import { Roles } from "@/auth/decorators";
 import { Role } from "@/auth/domain/user-role.enum";
 import { ProfileDocs } from "../docs/profile.docs";
+import { EventEmitter2 } from "@nestjs/event-emitter";
+import { ProfileUpdatedEvent } from "@/events/profile-updated.event";
 
 @Controller('profile')
 @ProfileDocs.controller()
@@ -14,6 +15,7 @@ import { ProfileDocs } from "../docs/profile.docs";
 export default class ProfileController {
   constructor(
     private readonly profileService: ProfileService,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @Get()
@@ -34,13 +36,22 @@ export default class ProfileController {
     @CurrentUser() user: AuthenticationUser,
     @Body() data: PreferenceSave
   )  {
-    return await this.profileService.updatePreferences(user.id, data);
+    const updatedProfile = await this.profileService.updatePreferences(user.id, data);
+    
+    this.eventEmitter.emit(
+      'profile.updated',
+      new ProfileUpdatedEvent(user.id, updatedProfile)
+    );
+    
+    return updatedProfile;
   }
 
   @ProfileDocs.updateInstagramId()
   @Patch('/instagram')
   async updateInstagramId(@CurrentUser() user: AuthenticationUser, @Body() data: InstagramId) {
-    return await this.profileService.updateInstagramId(user.id, data.instagramId);
+    const updatedProfile = await this.profileService.updateInstagramId(user.id, data.instagramId);
+    
+    return updatedProfile;
   }
 
 }

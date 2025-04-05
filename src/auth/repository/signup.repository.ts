@@ -7,6 +7,7 @@ import { Gender } from '@database/schema/enums';
 import { eq } from 'drizzle-orm';
 import { InjectDrizzle } from '@common/decorators';
 import { generateUuidV7 } from '@database/schema/helper';
+import { Role } from '@/auth/domain/user-role.enum';
 
 interface CreateUserDto {
   email: string;
@@ -54,6 +55,7 @@ export class SignupRepository {
           password: createUserDto.password,
           name: createUserDto.name,
           profileId,
+          role: Role.USER,
         })
         .returning();
 

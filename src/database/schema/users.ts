@@ -1,5 +1,6 @@
 import { pgTable, varchar } from 'drizzle-orm/pg-core';
 import { uuid, timestamps } from './helper';
+import { Role } from '@/auth/domain/user-role.enum';
 
 export const users = pgTable('users', {
   id: uuid(),
@@ -9,5 +10,6 @@ export const users = pgTable('users', {
   profileId: varchar('profile_id', { length: 36 }),
   oauthProvider: varchar('oauth_provider', { length: 30 }),
   refreshToken: varchar('refresh_token', { length: 500 }),
+  role: varchar('role', { length: 10 }).notNull().default(Role.USER).$type<Role>(),
   ...timestamps,
 });

@@ -2,16 +2,8 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import ProfileRepository from "../repository/profile.repository";
 import { PreferenceSave } from "../dto/profile.dto";
 import { NotFoundException } from "@nestjs/common";
+import { UserProfile, UniversityDetail, ProfileImage, Preference, PreferenceOption, PreferenceTypeGroup } from "@/types/user";
 
-interface PreferenceOption {
-  id: string;
-  displayName: string;
-}
-
-export interface PreferenceTypeGroup {
-  typeName: string;
-  selectedOptions: PreferenceOption[];
-}
 
 type Option = {
   id: string;
@@ -23,36 +15,6 @@ export type PreferenceSet = {
   options: Option[];
   multiple: boolean;
   maximumChoiceCount: number;
-}
-
-type Preference = {
-  typeName: string;
-  optionId: string;
-  multiple: boolean;
-  optionDisplayName: string;
-  maximumChoiceCount: number;
-}
-
-interface ProfileImage {
-  id: string;
-  order: number;
-  isMain: boolean;
-  url: string;
-}
-
-interface UniversityDetail {
-  name: string;
-  authentication: boolean;
-  department: string;
-}
-
-export interface UserProfile {
-  name: string;
-  age: number;
-  gender: string;
-  profileImages: ProfileImage[];
-  universityDetails: UniversityDetail | null;
-  preferences: PreferenceTypeGroup[];
 }
 
 @Injectable()
@@ -81,7 +43,12 @@ export class ProfileService {
       universityDetails,
       preferences
     };
-  } 
+  }
+  
+  async getProfilesByIds(ids: string[]): Promise<UserProfile[]> {
+    const promises = ids.map(id => this.getUserProfiles(id));
+    return Promise.all(promises);
+  }
 
   async getAllPreferences() {
     const preferences = await this.profileRepository.getAllPreferences();
@@ -117,7 +84,8 @@ export class ProfileService {
       }
     })
 
-    return await this.profileRepository.updatePreferences(userId, data);
+    await this.profileRepository.updatePreferences(userId, data);
+    return this.getUserProfiles(userId);
   }
 
   async updateInstagramId(userId: string, instagramId: string) {

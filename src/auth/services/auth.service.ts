@@ -33,7 +33,7 @@ export class AuthService {
       throw new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다.');
     }
 
-    const tokens = await this.generateTokens(user.id, user.email);
+    const tokens = await this.generateTokens(user.id, user.email, user.role);
     await this.authRepository.saveRefreshToken(user.id, tokens.refreshToken);
 
     return tokens;
@@ -69,7 +69,7 @@ export class AuthService {
         throw new UnauthorizedException('사용자를 찾을 수 없습니다.');
       }
 
-      const tokens = await this.generateTokens(user.id, user.email);
+      const tokens = await this.generateTokens(user.id, user.email, user.role);
       await this.authRepository.updateRefreshToken(user.id, refreshToken, tokens.refreshToken);
 
       return tokens;
@@ -86,11 +86,11 @@ export class AuthService {
     return bcrypt.compare(plainPassword, hashedPassword);
   }
 
-  private async generateTokens(userId: string, email: string): Promise<TokenResponse> {
+  private async generateTokens(userId: string, email: string, role: Role): Promise<TokenResponse> {
     const payload: JwtPayload = {
       email,
       id: userId,
-      role: Role.USER,
+      role,
     };
 
     const [accessToken, refreshToken] = await Promise.all([
