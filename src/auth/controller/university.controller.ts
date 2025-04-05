@@ -38,7 +38,7 @@ export class UniversityController {
     return await this.universityService.getDepartments(university);
   }
 
-  @ApiOperation({ summary: '대학 인증 요청', description: '대학교 인증을 요청합니다. 어드민에서 확인후 인증처리할 수 있습니다.' })
+  @ApiOperation({ summary: '대학 인증 요청', description: '대학교 인증을 요청합니다. 어드민에서 확인후 인증처리할 수 있습니다.\n 이미 대학정보가 등록되어있을때 기존 정보를 삭제하고 새로운 정보를 업로드합니다. 이때 인증은 무효됩니다.' })
   @Post()
   async registerUniversity(@CurrentUser() user: AuthenticationUser, @Body() university: UniversityRegister) {
     return await this.universityService.registerUniversity(user.id, university);
