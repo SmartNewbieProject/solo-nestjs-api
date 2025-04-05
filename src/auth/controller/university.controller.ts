@@ -37,7 +37,7 @@ export class UniversityController {
     return await this.universityService.getDepartments(university);
   }
 
-  @ApiOperation({ summary: '대학 인증 요청', description: '대학교 인증을 요청합니다. 어드민에서 수행할 수 있습니다.' })
+  @ApiOperation({ summary: '대학 인증 요청', description: '대학교 인증을 요청합니다. 어드민에서 확인후 인증처리할 수 있습니다.' })
   @Post()
   async registerUniversity(@Body() university: UniversityRegister) {
     return await this.universityService.registerUniversity(university);
