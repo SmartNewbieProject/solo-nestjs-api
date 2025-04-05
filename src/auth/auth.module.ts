@@ -8,6 +8,9 @@ import { SignupRepository } from './repository/signup.repository';
 import { AuthController } from './controller/auth.controller';
 import { AuthService } from './services/auth.service';
 import { AuthRepository } from './repository/auth.repository';
+import { UniversityController } from './controller/university.controller';
+import { UniversityService } from './services/university.service';
+import UniversityRepository from './repository/university.repository';
 
 @Module({
   imports: [
@@ -20,13 +23,15 @@ import { AuthRepository } from './repository/auth.repository';
       }),
     }),
   ],
-  controllers: [SignupController, AuthController],
+  controllers: [SignupController, AuthController, UniversityController],
   providers: [
     SignupService, 
-    SignupRepository, 
+    SignupRepository,
     AuthService, 
     AuthRepository,
+    UniversityService,
+    UniversityRepository,
   ],
-  exports: [SignupService, AuthService],
+  exports: [SignupService, AuthService, UniversityService],
 })
 export class AuthModule {}

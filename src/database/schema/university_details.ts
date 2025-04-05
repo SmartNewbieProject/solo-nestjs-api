@@ -3,8 +3,8 @@ import { uuid, timestamps } from './helper';
 
 export const universityDetails = pgTable('university_details', {
   id: uuid().primaryKey(),
-  universityId: varchar('university_id', { length: 36 }).notNull().unique(),
+  universityName: varchar('university_name', { length: 30 }).notNull(),
+  department: varchar('department', { length: 30 }).notNull(),
   authentication: boolean('authentication').default(false).notNull(),
   ...timestamps,
 });
-  

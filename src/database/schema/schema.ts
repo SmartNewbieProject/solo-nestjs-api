@@ -4,7 +4,6 @@ import { profiles } from './profiles';
 import { preferenceTypes } from './preference_types';
 import { preferenceOptions } from './preference_options';
 import { payHistories } from './pay_histories';
-import { universities } from './universities';
 import { universityDetails } from './university_details';
 import { images } from './images';
 import { profileImages } from './profile_images';
@@ -31,7 +30,6 @@ export {
   preferenceTypes,
   preferenceOptions,
   payHistories,
-  universities,
   universityDetails,
   images,
   profileImages,
@@ -50,7 +48,6 @@ export const schemas = [
   preferenceTypes,
   preferenceOptions,
   payHistories,
-  universities,
   universityDetails,
   images,
   profileImages,

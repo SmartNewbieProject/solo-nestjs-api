@@ -2,7 +2,6 @@
 export * from './users.relations';
 export * from './profiles.relations';
 export * from './university_details.relations';
-export * from './universities.relations';
 export * from './profile_images.relations';
 export * from './pay_histories.relations';
 export * from './user_preferences.relations';
