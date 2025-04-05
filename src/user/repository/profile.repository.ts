@@ -25,7 +25,7 @@ export default class ProfileRepository {
           where: (profileImages, { isNull }) => isNull(profileImages.deletedAt),
         }
       }
-    });
+    }).execute();
   }
 
   async getPreferenceTypeByName(typeName: string) {
@@ -44,7 +44,7 @@ export default class ProfileRepository {
         throw new NotFoundException('사용자 선호도 정보를 찾을 수 없습니다.');
       }
 
-      const userPreferenceOptions = await this.db.select({
+      const userPreferenceOptions = await tx.select({
         optionId: schema.userPreferenceOptions.preferenceOptionId,
         optionDisplayName: schema.preferenceOptions.displayName,
         typeName: schema.preferenceTypes.name,

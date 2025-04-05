@@ -27,9 +27,9 @@ export class ProfileService {
     const profileDetails = await this.profileRepository.getProfileDetails(userId);
     
     if (!profileDetails) {
-      throw new NotFoundException('사용자 프로필을 찾을 수 없습니다.');
+      throw new NotFoundException(`사용자 프로필을 찾을 수 없습니다. ${userId}`);
     }
-    
+
     const userPreferenceOptions = await this.profileRepository.getUserPreferenceOptions(userId);
     const profileImages = this.processProfileImages(profileDetails.profileImages);
     const preferences = this.processPreferences(userPreferenceOptions);

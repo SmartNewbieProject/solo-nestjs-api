@@ -1,10 +1,10 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
-import { MatchingService, MatchingResult } from './matching.service';
+import { MatchingService, MatchingResult } from '../services/matching.service';
 import { CurrentUser } from '@/auth/decorators';
 import { AuthenticationUser } from '@/types';
 import { Roles } from '@/auth/decorators';
 import { Role } from '@/auth/domain/user-role.enum';
-import { AdminMatchRequest } from './dto/matching';
+import { AdminMatchRequest } from '../dto/matching';
 
 import { ApiProperty, ApiResponse, ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { ProfileService } from '@/user/services/profile.service';
@@ -76,7 +76,7 @@ export class AdminMatchingController {
     @CurrentUser() user: AuthenticationUser,
     @Query('limit') limit?: string,
     @Body() weights?: MatchingWeightsDto,
-  ): Promise<MatchingResult[]> {
+  ) {
     return await this.matchingService.findMatches(
       user.id,
       limit ? parseInt(limit) : 10,

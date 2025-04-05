@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { MatchingService } from './matching.service';
-import { AdminMatchingController } from './matching.controller';
+import { MatchingService } from './services/matching.service';
+import { AdminMatchingController } from './controllers/admin-matching.controller';
 import { DrizzleModule } from '@/database/drizzle.module';
 import { EmbeddingModule } from '@/embedding/embedding.module';
 import { QdrantModule } from '@/qdrant/qdrant.module';

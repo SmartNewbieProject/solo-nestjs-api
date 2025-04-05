@@ -22,9 +22,6 @@ export class ProfileEmbeddingService {
     private readonly drizzleService: DrizzleService,
   ) {}
 
-  /**
-   * 컬렉션을 초기화합니다.
-   */
   async initializeCollection(): Promise<void> {
     try {
       const exists = await this.qdrantService.collectionExists(this.COLLECTION_NAME);
@@ -40,17 +37,8 @@ export class ProfileEmbeddingService {
     }
   }
 
-  /**
-   * 프로필 정보를 텍스트로 변환합니다.
-   * @param profile 프로필 정보
-   */
-  private formatProfileText(profile: UserProfile): string {
+  formatProfileText(profile: UserProfile): string {
     const parts: string[] = [];
-
-    // 기본 프로필 정보
-    if (profile.name) {
-      parts.push(`이름: ${profile.name}`);
-    }
 
     if (profile.age) {
       parts.push(`나이: ${profile.age}세`);
@@ -60,7 +48,6 @@ export class ProfileEmbeddingService {
       parts.push(`성별: ${profile.gender}`);
     }
 
-    // 대학 정보
     if (profile.universityDetails) {
       parts.push(`대학: ${profile.universityDetails.name}`);
       if (profile.universityDetails.department) {
@@ -91,18 +78,9 @@ export class ProfileEmbeddingService {
       // 컬렉션 초기화
       await this.initializeCollection();
 
-      // 프로필 정보를 텍스트로 변환
       const profileText = this.formatProfileText(profile);
-      
-      if (!profileText) {
-        this.logger.warn(`사용자 ${userId}의 프로필 정보가 없습니다.`);
-        return;
-      }
-
-      // 임베딩 생성
       const embedding = await this.embeddingService.createEmbedding(profileText);
 
-      // Qdrant에 포인트 업서트
       const profileSummary = {
         name: profile.name,
         age: profile.age,
@@ -175,26 +153,11 @@ export class ProfileEmbeddingService {
    */
   async findSimilarProfiles(userId: string, limit: number = 10): Promise<Array<{ userId: string; similarity: number }>> {
     try {
-
       const db = this.drizzleService.db;
       const [profile] = await db.select().from(profiles).where(eq(profiles.userId, userId)).execute();
-      if (!profile) {
-        throw new NotFoundException(`사용자 ${userId}의 프로필을 찾을 수 없습니다.`);
-      }
-
       const gender = profile.gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
-  
-      const collections = await this.qdrantService.getClient().getCollections();
-      const collectionExists = collections.collections.some(c => c.name === this.COLLECTION_NAME);
-      
-      if (!collectionExists) {
-        this.logger.warn(`${this.COLLECTION_NAME} 컬렉션이 존재하지 않습니다. 컬렉션을 초기화합니다.`);
-        await this.initializeCollection();
-        return [];
-      }
       
       try {
-        // 사용자 프로필 임베딩 가져오기
         const client = this.qdrantService.getClient();
         const result = await client.retrieve(this.COLLECTION_NAME, {
           ids: [userId],
@@ -207,17 +170,14 @@ export class ProfileEmbeddingService {
           return [];
         }
 
-        // 벡터 타입 검사 및 변환
         const vector = result[0].vector;
         if (!vector || !Array.isArray(vector)) {
           this.logger.error(`사용자 ${userId}의 프로필 벡터가 유효하지 않습니다.`);
           return [];
         }
 
-        // 사용자의 MBTI 정보 가져오기
         const userMbti = this.getUserMbti(result[0].payload?.profileSummary);
 
-        // 검색 필터 구성
         const filter: any = {
           must: [
             {
