@@ -4,14 +4,12 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '@database/schema';
 import { eq, and, isNull } from 'drizzle-orm';
 import { generateUuidV7 } from '@database/schema/helper';
-import { S3Service } from '@/common/services/s3.service';
 
 @Injectable()
 export class ImageService {
   constructor(
     @InjectDrizzle()
     private readonly db: NodePgDatabase<typeof schema>,
-    private readonly s3Service: S3Service,
   ) {}
 
   async saveProfileImage(
