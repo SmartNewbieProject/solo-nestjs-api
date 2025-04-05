@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '@database/schema';
 import { users } from '@database/schema/users';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import { InjectDrizzle } from '@common/decorators';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class AuthRepository {
   async findUserByEmail(email: string) {
     const result = await this.db.select()
       .from(users)
-      .where(eq(users.email, email))
+      .where(and(eq(users.email, email), isNull(users.deletedAt)))
       .limit(1);
     
     return result.length > 0 ? result[0] : null;
@@ -23,7 +23,7 @@ export class AuthRepository {
   async findUserById(id: string) {
     const result = await this.db.select()
       .from(users)
-      .where(eq(users.id, id))
+      .where(and(eq(users.id, id), isNull(users.deletedAt)))
       .limit(1);
     
     return result.length > 0 ? result[0] : null;
