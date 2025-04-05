@@ -1,6 +1,5 @@
 import { Controller, Post, Delete, Param, Body, UseInterceptors, UploadedFiles, BadRequestException, HttpCode, HttpStatus } from '@nestjs/common';
 import * as multer from 'multer';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiConsumes, ApiParam } from '@nestjs/swagger';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Roles } from '@/auth/decorators';
 import { Role } from '@/auth/domain/user-role.enum';
@@ -8,11 +7,11 @@ import { CurrentUser } from '@/auth/decorators';
 import { AuthenticationUser } from '@/types';
 import { S3Service } from '@/common/services/s3.service';
 import { ImageService } from '../services/image.service';
-import { FileUploadResponse } from '@/common/dto/file-upload.dto';
-import { ApiBody } from '@nestjs/swagger';
+import { ImageDocs } from '../docs/image.docs';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('profile/images')
-@ApiTags('프로필 이미지')
+@ImageDocs.controller()
 @ApiBearerAuth('access-token')
 @Roles(Role.USER)
 export class ImageController {
@@ -23,32 +22,7 @@ export class ImageController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: '프로필 이미지 업로드 (다중)', description: '여러 프로필 이미지를 업로드하고 사용자 프로필에 연결합니다.' })
-  @ApiConsumes('multipart/form-data')
-  @ApiResponse({ 
-    status: 201, 
-    description: '프로필 이미지 업로드 성공',
-    type: [FileUploadResponse]
-  })
-  @ApiBody({
-    schema: {
-      type: 'object',
-      properties: {
-        files: {
-          type: 'array',
-          items: {
-            type: 'string',
-            format: 'binary'
-          }
-        },
-        isMain: {
-          type: 'string',
-          description: '대표 이미지로 설정할 파일의 인덱스 (0부터 시작, 선택적)',
-          example: '0'
-        }
-      }
-    }
-  })
+  @ImageDocs.uploadProfileImage()
   @UseInterceptors(FilesInterceptor('files', 3))
   async uploadProfileImage(
     @UploadedFiles() files: multer.File[],
@@ -82,12 +56,7 @@ export class ImageController {
   }
 
   @Delete(':id')
-  @ApiOperation({ summary: '프로필 이미지 삭제', description: '프로필 이미지를 삭제합니다.' })
-  @ApiParam({ name: 'id', description: '프로필 이미지 ID' })
-  @ApiResponse({ 
-    status: 200, 
-    description: '이미지 삭제 성공'
-  })
+  @ImageDocs.deleteProfileImage()
   async deleteProfileImage(
     @Param('id') profileImageId: string,
     @CurrentUser() user: AuthenticationUser,
@@ -96,12 +65,7 @@ export class ImageController {
   }
 
   @Post(':id/main')
-  @ApiOperation({ summary: '대표 프로필 이미지 설정', description: '특정 이미지를 대표 프로필 이미지로 설정합니다.' })
-  @ApiParam({ name: 'id', description: '프로필 이미지 ID' })
-  @ApiResponse({ 
-    status: 200, 
-    description: '대표 이미지 설정 성공',
-  })
+  @ImageDocs.setMainProfileImage()
   async setMainProfileImage(
     @Param('id') profileImageId: string,
     @CurrentUser() user: AuthenticationUser,

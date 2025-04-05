@@ -1,22 +1,14 @@
 import { Body, Controller, Post, HttpCode, HttpStatus, Request, Res, Delete } from '@nestjs/common';
 import { Response } from 'express';
-import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from '../services/auth.service';
 import { LoginRequest, TokenResponse, WithdrawRequest } from '../dto';
 import { UnauthorizedException } from '@nestjs/common';
-import {
-  loginSuccessResponse,
-  loginFailureResponse,
-  refreshSuccessResponse,
-  refreshFailureResponse,
-  logoutSuccessResponse,
-  logoutFailureResponse
-} from '../data/responses';
 import { CurrentUser, Public } from '@auth/decorators';
 import { AuthenticationUser } from '@/types';
+import { AuthDocs } from '../docs/login.docs';
 
 @Controller('auth')
-@ApiTags('인증')
+@AuthDocs.controller()
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
   
@@ -39,9 +31,7 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '로그인', description: '이메일과 비밀번호로 로그인합니다.' })
-  @ApiResponse(loginSuccessResponse)
-  @ApiResponse(loginFailureResponse)
+  @AuthDocs.login()
   @Public()
   async login(
     @Body() loginRequest: LoginRequest,
@@ -57,9 +47,7 @@ export class AuthController {
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: '토큰 갱신', description: '쿠키에 저장된 리프레시 토큰을 사용하여 새로운 액세스 토큰을 발급받습니다.' })
-  @ApiResponse(refreshSuccessResponse)
-  @ApiResponse(refreshFailureResponse)
+  @AuthDocs.refresh()
   async refresh(
     @Request() req,
     @Res({ passthrough: true }) response: Response
@@ -79,9 +67,7 @@ export class AuthController {
 
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
-  @ApiOperation({ summary: '로그아웃', description: '현재 사용자를 로그아웃합니다.' })
-  @ApiResponse(logoutSuccessResponse)
-  @ApiResponse(logoutFailureResponse)
+  @AuthDocs.logout()
   @Public()
   async logout(
     @Body() { userId }: { userId: string },
@@ -99,7 +85,7 @@ export class AuthController {
 
   @Delete('withdraw')
   @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({ summary: '회원 탈퇴', description: '사용자를 탈퇴합니다. 비밀번호를 받아 유효성검증을 수행합니다.' })
+  @AuthDocs.withdraw()
   async withdraw(@CurrentUser() user: AuthenticationUser, @Body() withdrawRequest: WithdrawRequest) {
     return await this.authService.withdraw(user.id, withdrawRequest.password);
   }
