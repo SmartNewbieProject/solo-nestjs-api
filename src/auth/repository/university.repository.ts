@@ -19,6 +19,8 @@ export default class UniversityRepository {
           universityName: university.universityName,
           department: university.department,
           authentication: false,
+          grade: university.grade,
+          studentNumber: university.studentNumber,
         })
         .execute();
     });

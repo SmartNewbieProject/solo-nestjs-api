@@ -27,6 +27,20 @@ export const universities = [
 ];
 
 /**
+ * 학번 목록
+ */
+export const studentIds: string[] = [
+  '19학번', '20학번', '21학번', '22학번', '23학번', '24학번', '25학번', '26학번', '27학번', '28학번', '29학번', '30학번'
+];
+
+/**
+ * 학년 목록
+ */
+export const grades: string[] = [
+  '1학년', '2학년', '3학년', '4학년', '5학년'
+];
+
+/**
  * 대학별 학과 정보
  */
 export const departmentsByUniversity: DepartmentsByUniversity = {
@@ -140,4 +154,20 @@ export function getDepartmentsByUniversity(universityName: string): string[] {
  */
 export function getAllUniversitiesAndDepartments(): DepartmentsByUniversity {
   return departmentsByUniversity;
+}
+
+/**
+ * 학번 목록을 반환하는 함수
+ * @returns 학번 목록
+ */
+export function getStudentIds(): string[] {
+  return studentIds;
+}
+
+/**
+ * 학년 목록을 반환하는 함수
+ * @returns 학년 목록
+ */
+export function getGrades(): string[] {
+  return grades;
 }
