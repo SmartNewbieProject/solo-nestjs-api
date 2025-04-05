@@ -6,7 +6,7 @@ import { Roles } from '@/auth/decorators';
 import { Role } from '@/auth/domain/user-role.enum';
 import { AdminMatchRequest } from './dto/matching';
 
-import { ApiProperty, ApiResponse, ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiProperty, ApiResponse, ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { ProfileService } from '@/user/services/profile.service';
 
 export class MatchingWeightsDto {
@@ -59,6 +59,7 @@ export class AdminMatchingController {
   constructor(private readonly matchingService: MatchingService, private readonly profileService: ProfileService) {}
 
   @Post('/user/read')
+  @ApiOperation({ summary: '어드민 - 사용자 매칭 결과만 보기', description: '특정 사용자의 매칭을 수행해서 결과만 조회합니다. (실제로 매칭이 수행되지않습니다.)' })
   @ApiResponse({ status: 200, description: '특정 사용자의 매칭을 수행해서 결과만 조회합니다. (실제로 매칭이 수행되지않습니다.)' })
   async findMatches(
     @Body() matchingRequest: AdminMatchRequest,

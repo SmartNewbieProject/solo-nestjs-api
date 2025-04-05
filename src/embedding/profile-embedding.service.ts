@@ -1,17 +1,21 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { EmbeddingService } from './embedding.service';
 import { QdrantService } from '@/qdrant/qdrant.service';
 import { DrizzleService } from '@/database/drizzle.service';
 import { ProfileUpdatedEvent } from '@/events/profile-updated.event';
 import { UserProfile } from '@/types/user';
+import { profiles, users } from '@/database/schema';
+import { eq } from 'drizzle-orm';
+import { profile } from 'console';
+import { Gender } from '@/types/enum';
 
 @Injectable()
 export class ProfileEmbeddingService {
   private readonly logger = new Logger(ProfileEmbeddingService.name);
   private readonly COLLECTION_NAME = 'profiles';
   private readonly VECTOR_SIZE = 1536; // OpenAI text-embedding-3-small 모델의 벡터 크기
-
+  
   constructor(
     private readonly embeddingService: EmbeddingService,
     private readonly qdrantService: QdrantService,
@@ -167,10 +171,19 @@ export class ProfileEmbeddingService {
    * 유사한 프로필을 검색합니다.
    * @param userId 사용자 ID
    * @param limit 결과 제한 수
+   * @param gender 성별 필터 (선택적)
    */
   async findSimilarProfiles(userId: string, limit: number = 10): Promise<Array<{ userId: string; similarity: number }>> {
     try {
-      // 컬렉션 존재 여부 확인
+
+      const db = this.drizzleService.db;
+      const [profile] = await db.select().from(profiles).where(eq(profiles.userId, userId)).execute();
+      if (!profile) {
+        throw new NotFoundException(`사용자 ${userId}의 프로필을 찾을 수 없습니다.`);
+      }
+
+      const gender = profile.gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
+  
       const collections = await this.qdrantService.getClient().getCollections();
       const collectionExists = collections.collections.some(c => c.name === this.COLLECTION_NAME);
       
@@ -204,29 +217,41 @@ export class ProfileEmbeddingService {
         // 사용자의 MBTI 정보 가져오기
         const userMbti = this.getUserMbti(result[0].payload?.profileSummary);
 
+        // 검색 필터 구성
+        const filter: any = {
+          must: [
+            {
+              key: 'type',
+              match: {
+                value: 'profile',
+              },
+            },
+          ],
+          must_not: [
+            {
+              key: 'userId',
+              match: {
+                value: userId,
+              },
+            },
+          ],
+        };
+
+        if (gender) {
+          filter.must.push({
+            key: 'profileSummary.gender',
+            match: {
+              value: gender,
+            },
+          });
+        }
+
         // 유사한 프로필 검색
         const searchResults = await this.qdrantService.searchPoints(
           this.COLLECTION_NAME,
           vector as number[],
           limit + 1, // 자기 자신도 포함될 수 있으므로 +1
-          {
-            must: [
-              {
-                key: 'type',
-                match: {
-                  value: 'profile',
-                },
-              },
-            ],
-            must_not: [
-              {
-                key: 'userId',
-                match: {
-                  value: userId,
-                },
-              },
-            ],
-          }
+          filter
         );
 
         // 결과 변환 (상성 점수 반영)
