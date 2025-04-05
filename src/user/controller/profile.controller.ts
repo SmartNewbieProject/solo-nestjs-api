@@ -1,7 +1,7 @@
 import { Body, Controller, Get, Patch } from "@nestjs/common";
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
 import { ProfileService } from "../services/profile.service";
-import { PreferenceSave } from "../dto/profile.dto";
+import { InstagramId, PreferenceSave } from "../dto/profile.dto";
 import { CurrentUser } from "@/auth/decorators";
 import { AuthenticationUser } from "@/types";
 import { Roles } from "@/auth/decorators";
@@ -85,6 +85,12 @@ export default class ProfileController {
     @Body() data: PreferenceSave
   )  {
     return await this.profileService.updatePreferences(user.id, data);
+  }
+
+  @ApiOperation({ summary: '프로필 인스타그램 ID 갱신', description: '사용자의 인스타그램 ID를 저장합니다.' })
+  @Patch('/instagram')
+  async updateInstagramId(@CurrentUser() user: AuthenticationUser, @Body() data: InstagramId) {
+    return await this.profileService.updateInstagramId(user.id, data.instagramId);
   }
 
 }

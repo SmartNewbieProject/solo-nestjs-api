@@ -59,3 +59,13 @@ export class PreferenceSave {
 export default class ProfileDto {
   static PreferenceSave = PreferenceSave;
 }
+
+export class InstagramId {
+  @ApiProperty({
+    example: '@.somqai3',
+    description: '인스타그램 ID'
+  })
+  @IsString()
+  @IsNotEmpty()
+  instagramId: string;
+}

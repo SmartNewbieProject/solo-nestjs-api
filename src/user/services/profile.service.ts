@@ -106,6 +106,10 @@ export class ProfileService {
     return await this.profileRepository.updatePreferences(userId, preferenceSave.data);
   }
 
+  async updateInstagramId(userId: string, instagramId: string) {
+    return await this.profileRepository.updateInstagramId(userId, instagramId);
+  }
+
   private convertMap(preferences: Preference[]) {
     const map = new Map<string, Option[]>();
     preferences.forEach(({ typeName, optionDisplayName, optionId }) => {

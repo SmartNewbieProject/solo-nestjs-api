@@ -10,6 +10,7 @@ export const profiles = pgTable('profiles', {
   gender: varchar('gender', { length: 10 }).$type<Gender>().notNull(),
   name: varchar('name', { length: 15 }).notNull(),
   title: varchar('title', { length: 100 }),
+  instagramId: varchar('instagram_id', { length: 100 }),
   introduction: varchar('introduction', { length: 255 }),
   statusAt: varchar('status_at', { length: 36 }),
   universityDetailId: varchar('university_detail_id', { length: 36 }),

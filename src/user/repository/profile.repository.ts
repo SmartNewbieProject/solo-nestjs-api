@@ -56,6 +56,12 @@ export default class ProfileRepository {
       return userPreferenceOptions;
     });
   }
+
+  async updateInstagramId(userId: string, instagramId: string) {
+    return await this.db.update(schema.profiles)
+      .set({ instagramId })
+      .where(eq(schema.profiles.userId, userId));
+  }
   
   async getAllPreferences() {
     return await this.db.select({
