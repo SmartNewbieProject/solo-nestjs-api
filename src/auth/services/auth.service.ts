@@ -39,6 +39,20 @@ export class AuthService {
     return tokens;
   }
 
+  async withdraw(userId: string, password: string) {
+    const user = await this.authRepository.findUserById(userId);
+    if (!user) {
+      throw new UnauthorizedException('사용자를 찾을 수 없습니다.');
+    }
+
+    const isPasswordValid = await this.verifyPassword(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('비밀번호가 올바르지 않습니다.');
+    }
+
+    await this.authRepository.deleteUser(userId);
+  }
+
   async refreshToken(refreshToken: string): Promise<TokenResponse> {
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(refreshToken, {

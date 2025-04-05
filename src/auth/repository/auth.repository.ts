@@ -69,4 +69,9 @@ export class AuthRepository {
         )
       );
   }
+
+  async deleteUser(userId: string) {
+    await this.db.delete(users)
+      .where(eq(users.id, userId));
+  }
 }

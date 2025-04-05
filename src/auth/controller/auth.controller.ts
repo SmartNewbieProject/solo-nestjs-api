@@ -1,8 +1,8 @@
-import { Body, Controller, Post, HttpCode, HttpStatus, Request, Res } from '@nestjs/common';
+import { Body, Controller, Post, HttpCode, HttpStatus, Request, Res, Delete } from '@nestjs/common';
 import { Response } from 'express';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { AuthService } from '../services/auth.service';
-import { LoginRequest, TokenResponse } from '../dto';
+import { LoginRequest, TokenResponse, WithdrawRequest } from '../dto';
 import { UnauthorizedException } from '@nestjs/common';
 import {
   loginSuccessResponse,
@@ -12,7 +12,8 @@ import {
   logoutSuccessResponse,
   logoutFailureResponse
 } from '../data/responses';
-import { Public } from '@auth/decorators';
+import { CurrentUser, Public } from '@auth/decorators';
+import { AuthenticationUser } from '@/types';
 
 @Controller('auth')
 @ApiTags('인증')
@@ -95,4 +96,12 @@ export class AuthController {
     
     this.clearRefreshTokenCookie(response);
   }
+
+  @Delete('withdraw')
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: '회원 탈퇴', description: '사용자를 탈퇴합니다. 비밀번호를 받아 유효성검증을 수행합니다.' })
+  async withdraw(@CurrentUser() user: AuthenticationUser, @Body() withdrawRequest: WithdrawRequest) {
+    return await this.authService.withdraw(user.id, withdrawRequest.password);
+  }
+
 }
