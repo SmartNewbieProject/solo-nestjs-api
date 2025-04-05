@@ -27,6 +27,12 @@ export default class ProfileRepository {
     });
   }
 
+  async getPreferenceTypeByName(typeName: string) {
+    return await this.db.query.preferenceTypes.findFirst({
+      where: eq(schema.preferenceTypes.name, typeName)
+    });
+  }
+
   async getUserPreferenceOptions(userId: string) {
     return await this.db.transaction(async (tx) => {
       const userPreference = await tx.query.userPreferences.findFirst({
