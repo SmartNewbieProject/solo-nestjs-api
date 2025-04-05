@@ -32,7 +32,7 @@ export class AuthRepository {
   async saveRefreshToken(userId: string, refreshToken: string) {
     await this.db.update(users)
       .set({ refreshToken })
-      .where(eq(users.id, userId));
+      .where(and(eq(users.id, userId), isNull(users.deletedAt)));
   }
 
   async findRefreshToken(userId: string, refreshToken: string) {

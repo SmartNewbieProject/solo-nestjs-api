@@ -11,7 +11,7 @@ export class LoginRequest {
   email: string;
 
   @ApiProperty({
-    example: 'Password123!',
+    example: '@Password123!',
     description: '비밀번호',
   })
   @IsString()

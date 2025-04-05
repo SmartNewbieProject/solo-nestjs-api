@@ -20,8 +20,9 @@ export default class ProfileRepository {
         universityDetail: true,
         profileImages: {
           with: {
-            image: true
-          }
+            image: true,
+          },
+          where: (profileImages, { isNotNull }) => isNotNull(profileImages.deletedAt),
         }
       }
     });

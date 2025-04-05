@@ -2,7 +2,6 @@ import { BadRequestException, Injectable } from "@nestjs/common";
 import ProfileRepository from "../repository/profile.repository";
 import { PreferenceSave } from "../dto/profile.dto";
 import { NotFoundException } from "@nestjs/common";
-import { TransformationType } from "class-transformer";
 
 interface PreferenceOption {
   id: string;
