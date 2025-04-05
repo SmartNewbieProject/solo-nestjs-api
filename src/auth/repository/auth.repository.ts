@@ -71,7 +71,8 @@ export class AuthRepository {
   }
 
   async deleteUser(userId: string) {
-    await this.db.delete(users)
+    await this.db.update(users)
+      .set({ deletedAt: new Date() })
       .where(eq(users.id, userId));
   }
 }
