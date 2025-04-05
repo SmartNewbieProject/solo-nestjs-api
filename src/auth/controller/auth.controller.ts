@@ -41,8 +41,8 @@ export class AuthController {
     
     this.setRefreshTokenCookie(response, result.refreshToken);
     
-    const { refreshToken, ...tokenResponse } = result;
-    return tokenResponse;
+    const { refreshToken, role, ...tokenResponse } = result;
+    return { ...tokenResponse, role };
   }
 
   @Post('refresh')

@@ -24,4 +24,10 @@ export class TokenResponse {
     example: 3600,
   })
   expiresIn: number;
+
+  @ApiProperty({
+    description: '권한',
+    example: 'user',
+  })
+  role: 'user' | 'admin';
 }

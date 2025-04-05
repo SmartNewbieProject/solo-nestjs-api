@@ -6,10 +6,11 @@ import { AuthRepository } from "@/auth/repository/auth.repository";
 import { CommonModule } from "@/common/common.module";
 import { ImageService } from "./services/image.service";
 import { ImageController } from "./controller/image.controller";
+import UserController from "./controller/user.controller";
 
 @Module({
   imports: [CommonModule],
-  controllers: [ProfileController, ImageController],
+  controllers: [ProfileController, ImageController, UserController],
   providers: [
     AuthRepository,
     ProfileRepository,

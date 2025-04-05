@@ -36,7 +36,7 @@ export class AuthService {
     const tokens = await this.generateTokens(user.id, user.email, user.role);
     await this.authRepository.saveRefreshToken(user.id, tokens.refreshToken);
 
-    return tokens;
+    return { ...tokens, role: user.role };
   }
 
   async withdraw(userId: string, password: string) {
@@ -109,6 +109,7 @@ export class AuthService {
       refreshToken,
       tokenType: 'Bearer',
       expiresIn: 3600,
+      role,
     };
   }
 }
