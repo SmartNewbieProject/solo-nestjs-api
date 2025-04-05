@@ -5,6 +5,8 @@ import { InterestEmbeddingService } from './interest-embedding.service';
 import { ProfileEmbeddingService } from './profile-embedding.service';
 import { DrizzleModule } from '@/database/drizzle.module';
 import { QdrantModule } from '@/qdrant/qdrant.module';
+import { ProfileService } from '@/user/services/profile.service';
+import ProfileRepository from '@/user/repository/profile.repository';
 
 @Module({
   imports: [
@@ -16,6 +18,8 @@ import { QdrantModule } from '@/qdrant/qdrant.module';
     EmbeddingService,
     InterestEmbeddingService,
     ProfileEmbeddingService,
+    ProfileService,
+    ProfileRepository,
   ],
   exports: [
     EmbeddingService,

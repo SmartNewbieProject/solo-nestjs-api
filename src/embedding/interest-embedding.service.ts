@@ -51,25 +51,24 @@ export class InterestEmbeddingService {
     await this.initializeCollection();
     
     // 각 관심사에 대한 임베딩 생성
-    const points = [];
+    const points = [] as any[];
     
     for (const option of interestOptions) {
       try {
         // 임베딩 생성
         const embedding = await this.embeddingService.createEmbedding(option.displayName);
         
-        // 포인트 추가
-        // points.push({
-        //   id: option.id.toString(), // ID를 문자열로 변환
-        //   vector: embedding,
-        //   payload: {
-        //     optionId: option.id,
-        //     displayName: option.displayName,
-        //     value: option.value,
-        //     preferenceTypeId: option.preferenceTypeId,
-        //     createdAt: new Date().toISOString(),
-        //   },
-        // });
+        points.push({
+          id: option.id.toString(),
+          vector: embedding,
+          payload: {
+            optionId: option.id,
+            displayName: option.displayName,
+            value: option.value,
+            preferenceTypeId: option.preferenceTypeId,
+            createdAt: new Date().toISOString(),
+          },
+        });
         
         this.logger.log(`관심사 '${option.displayName}'의 임베딩이 생성되었습니다.`);
       } catch (error) {

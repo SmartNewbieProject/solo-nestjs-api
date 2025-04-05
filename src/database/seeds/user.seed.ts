@@ -152,7 +152,7 @@ export class UserSeeder {
               ];
               
               let selectedOptions;
-              if (singleOptionTypeIds.includes(preferenceType.id as string)) {
+              if (singleOptionTypeIds.includes(preferenceType.id)) {
                 // 특정 타입은 무조건 1개만 선택
                 selectedOptions = [faker.helpers.arrayElement(typeOptions)];
                 console.log(`${preferenceType.name} 타입은 1개 옵션만 선택: ${selectedOptions[0].displayName}`);
