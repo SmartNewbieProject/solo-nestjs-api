@@ -1,8 +1,9 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { UniversityService } from '../services/university.service';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Public } from '../decorators';
+import { CurrentUser, Public } from '../decorators';
 import { UniversityRegister } from '../dto/university';
+import { AuthenticationUser } from '@/types';
 
 @Controller('universities')
 @ApiTags('인증')
@@ -39,8 +40,8 @@ export class UniversityController {
 
   @ApiOperation({ summary: '대학 인증 요청', description: '대학교 인증을 요청합니다. 어드민에서 확인후 인증처리할 수 있습니다.' })
   @Post()
-  async registerUniversity(@Body() university: UniversityRegister) {
-    return await this.universityService.registerUniversity(university);
+  async registerUniversity(@CurrentUser() user: AuthenticationUser, @Body() university: UniversityRegister) {
+    return await this.universityService.registerUniversity(user.id, university);
   }
 
 }

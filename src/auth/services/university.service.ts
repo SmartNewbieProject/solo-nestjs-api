@@ -24,7 +24,8 @@ export class UniversityService {
     return departments;
   }
 
-  async registerUniversity(university: UniversityRegister) {
-    return await this.universityRepository.registerUniversity(university);
+  async registerUniversity(userId: string, university: UniversityRegister) {
+    await this.universityRepository.removeUniversity(userId);
+    return await this.universityRepository.registerUniversity(userId, university);
   }
 }
