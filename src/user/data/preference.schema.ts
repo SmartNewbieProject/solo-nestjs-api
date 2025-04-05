@@ -82,6 +82,44 @@ export const preferenceTypeExamples = {
   }
 };
 
+// 선호도 목록 응답 예시 데이터
+export const preferenceListResponseExample = [
+  {
+    typeName: '성격',
+    options: [
+      { id: '01HFGXS6YW1111111111AAAAA', displayName: '활발함' },
+      { id: '01HFGXS6YW2222222222BBBBB', displayName: '조용함' },
+      { id: '01HFGXS6YW3333333333CCCCC', displayName: '배려심' },
+      { id: '01HFGXS6YW4444444444DDDDD', displayName: '솔직함' },
+      { id: '01HFGXS6YW5555555555EEEEE', displayName: '유머러스' }
+    ],
+    multiple: true,
+    maximumChoiceCount: 3
+  },
+  {
+    typeName: '연애 스타일',
+    options: [
+      { id: '01HFGXS6YW6666666666FFFFF', displayName: '적극적' },
+      { id: '01HFGXS6YW7777777777GGGGG', displayName: '다정다감' },
+      { id: '01HFGXS6YW8888888888HHHHH', displayName: '츤데레' },
+      { id: '01HFGXS6YW9999999999IIIII', displayName: '로맨틱' }
+    ],
+    multiple: true,
+    maximumChoiceCount: 2
+  },
+  {
+    typeName: 'MBTI',
+    options: [
+      { id: '01HFGXS6YWAAAAAAAAAJJJJJ', displayName: 'ISTJ' },
+      { id: '01HFGXS6YWBBBBBBBBBKKKKK', displayName: 'ISFJ' },
+      { id: '01HFGXS6YWCCCCCCCCCLLLL', displayName: 'INFJ' },
+      { id: '01HFGXS6YWDDDDDDDDDMMMMM', displayName: 'INTJ' }
+    ],
+    multiple: false,
+    maximumChoiceCount: 1
+  }
+];
+
 // 선호도 저장 요청 예시 데이터
 export const preferenceSaveExample = {
   data: [
@@ -94,4 +132,10 @@ export const preferenceSaveExample = {
       preferenceOptionIds: ['01HFGXS6YW3333333333CCCCC']
     }
   ]
+};
+
+// 선호도 저장 응답 예시 데이터
+export const preferenceSaveResponseExample = {
+  success: true,
+  message: '선호도가 성공적으로 저장되었습니다.'
 };

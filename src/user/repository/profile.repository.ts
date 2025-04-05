@@ -18,6 +18,11 @@ export default class ProfileRepository {
       where: eq(schema.profiles.userId, userId),
       with: {
         universityDetail: true,
+        profileImages: {
+          with: {
+            image: true
+          }
+        }
       }
     });
   }

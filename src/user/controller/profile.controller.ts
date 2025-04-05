@@ -6,8 +6,16 @@ import { CurrentUser } from "@/auth/decorators";
 import { AuthenticationUser } from "@/types";
 import { Roles } from "@/auth/decorators";
 import { Role } from "@/auth/domain/user-role.enum";
-import { profileResponseExample, unauthorizedResponseExample, notFoundResponseExample } from "../data/profile-response.schema";
-import { preferenceSaveExample } from "../data/preference.schema";
+import { 
+  ProfileResponseDto,
+  UnauthorizedResponseDto,
+  NotFoundResponseDto
+} from "../dto/profile-response.dto";
+import { 
+  PreferenceTypeDto,
+  PreferenceSaveResponseDto,
+  BadRequestResponseDto
+} from "../dto/preference-response.dto";
 
 @Controller('profile')
 @ApiTags('프로필')
@@ -23,32 +31,34 @@ export default class ProfileController {
   @ApiResponse({ 
     status: 200, 
     description: '프로필 조회 성공',
-    schema: {
-      example: profileResponseExample
-    }
+    type: ProfileResponseDto
   })
   @ApiResponse({ 
     status: 401, 
     description: '인증 실패',
-    schema: {
-      example: unauthorizedResponseExample
-    }
+    type: UnauthorizedResponseDto
   })
   @ApiResponse({ 
     status: 404, 
     description: '프로필을 찾을 수 없음',
-    schema: {
-      example: notFoundResponseExample
-    }
+    type: NotFoundResponseDto
   })
   async getProfile(@CurrentUser() user: AuthenticationUser) {
     return await this.profileService.getUserProfiles(user.id);
   }
 
   @Get('preferences')
-  @ApiOperation({ summary: '프로필 선택 옵션 조회' })
-  @ApiResponse({ status: 200, description: '선호도 옵션 조회 성공' })
-
+  @ApiOperation({ summary: '프로필 선택 옵션 조회', description: '사용자가 선택할 수 있는 모든 선호도 옵션을 조회합니다.' })
+  @ApiResponse({ 
+    status: 200, 
+    description: '선호도 옵션 조회 성공',
+    type: [PreferenceTypeDto]
+  })
+  @ApiResponse({ 
+    status: 401, 
+    description: '인증 실패',
+    type: UnauthorizedResponseDto
+  })
   async getPreferences() {
     return await this.profileService.getAllPreferences();
   }
@@ -58,34 +68,20 @@ export default class ProfileController {
   @ApiResponse({ 
     status: 200, 
     description: '프로필 선호도 저장 성공',
-    schema: {
-      example: {
-        success: true
-      }
-    }
+    type: PreferenceSaveResponseDto
   })
   @ApiResponse({ 
     status: 400, 
     description: '잘못된 요청 형식',
-    schema: {
-      example: {
-        statusCode: 400,
-        message: [
-          "data must be an array"
-        ],
-        error: "Bad Request"
-      }
-    }
+    type: BadRequestResponseDto
   })
   @ApiResponse({ 
     status: 401, 
     description: '인증 실패',
-    schema: {
-      example: unauthorizedResponseExample
-    }
+    type: UnauthorizedResponseDto
   })
-  async savePreferences(
-    @CurrentUser() user: AuthenticationUser, 
+  async updatePreferences(
+    @CurrentUser() user: AuthenticationUser,
     @Body() data: PreferenceSave
   )  {
     return await this.profileService.updatePreferences(user.id, data);
