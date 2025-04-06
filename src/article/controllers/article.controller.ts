@@ -1,8 +1,8 @@
-import { Body, Controller, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
 import { ArticleService } from '../services/article.service';
 import { ArticleUpload } from '../dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { createArticleApiResponse, getArticleByIdApiResponse, getArticlesApiResponse } from '../docs/article.docs';
+import { createArticleApiResponse, deleteArticleApiResponse, getArticleByIdApiResponse, getArticlesApiResponse } from '../docs/article.docs';
 import { CurrentUser, Roles } from '@/auth/decorators';
 import { Role } from '@/types/enum';
 import { AuthenticationUser } from '@/types/auth';
@@ -36,5 +36,13 @@ export class ArticleController {
   @ApiResponse(getArticleByIdApiResponse)
   async getArticleById(@Param('id') id: string) {
     return await this.articleService.getArticleById(id);
+  }
+
+  @Delete(':id')
+  @ApiOperation({ summary: '게시글 삭제', description: '특정 게시글을 삭제합니다. 작성자 본인 또는 관리자만 삭제할 수 있습니다.' })
+  @ApiResponse(deleteArticleApiResponse)
+  async deleteArticle(@Param('id') id: string, @CurrentUser() user: AuthenticationUser) {
+    const isAdmin = user.role === Role.ADMIN;
+    return await this.articleService.deleteArticle(id, user.id, isAdmin);
   }
 }

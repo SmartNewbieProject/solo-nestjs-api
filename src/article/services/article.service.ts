@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { ArticleRepository } from '../repository/article.repository';
 import { ArticleUpload } from '../dto';
 
@@ -19,7 +19,7 @@ export class ArticleService {
       meta: {
         currentPage: page,
         itemsPerPage: limit,
-        totalItems: articles.length, // 실제로는 총 개수를 조회하는 쿼리가 필요합니다
+        totalItems: articles.length,
         hasNextPage: articles.length === limit,
         hasPreviousPage: page > 1
       }
@@ -32,5 +32,23 @@ export class ArticleService {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
     return article;
+  }
+
+  async deleteArticle(id: string, userId: string, isAdmin: boolean) {
+    // 게시글 존재 여부 확인
+    const article = await this.articleRepository.getArticleById(id);
+    if (!article) {
+      throw new NotFoundException('게시글을 찾을 수 없습니다.');
+    }
+
+    // 작성자 본인 또는 관리자인지 확인
+    const authorId = await this.articleRepository.getArticleAuthorId(id);
+    if (!isAdmin && authorId !== userId) {
+      throw new ForbiddenException('게시글 삭제 권한이 없습니다.');
+    }
+
+    // 게시글 삭제
+    const deletedArticle = await this.articleRepository.deleteArticle(id);
+    return deletedArticle;
   }
 }

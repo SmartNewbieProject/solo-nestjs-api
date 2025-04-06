@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { articles } from '@/database/schema';
 import { ArticleUpload } from '../dto';
-import { sql } from 'drizzle-orm';
+import { sql, eq, and, isNull } from 'drizzle-orm';
 import { generateUuidV7 } from '@/database/schema/helper';
 import * as schema from '@database/schema';
 
@@ -52,5 +52,24 @@ export class ArticleRepository {
         }
       }
     });
+  }
+
+  async deleteArticle(id: string) {
+    const now = new Date();
+    const result = await this.db.update(articles)
+      .set({ deletedAt: now })
+      .where(and(eq(articles.id, id), isNull(articles.deletedAt)))
+      .returning();
+    
+    return result.length > 0 ? result[0] : null;
+  }
+  
+  async getArticleAuthorId(id: string) {
+    const result = await this.db.select({ authorId: articles.authorId })
+      .from(articles)
+      .where(and(eq(articles.id, id), isNull(articles.deletedAt)))
+      .limit(1);
+    
+    return result.length > 0 ? result[0].authorId : null;
   }
 }
