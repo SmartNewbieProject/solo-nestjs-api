@@ -1,8 +1,8 @@
-import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ArticleService } from '../services/article.service';
 import { ArticleUpload } from '../dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { createArticleApiResponse, deleteArticleApiResponse, getArticleByIdApiResponse, getArticlesApiResponse } from '../docs/article.docs';
+import { createArticleApiResponse, deleteArticleApiResponse, getArticleByIdApiResponse, getArticlesApiResponse, updateArticleApiResponse } from '../docs/article.docs';
 import { CurrentUser, Roles } from '@/auth/decorators';
 import { Role } from '@/types/enum';
 import { AuthenticationUser } from '@/types/auth';
@@ -36,6 +36,18 @@ export class ArticleController {
   @ApiResponse(getArticleByIdApiResponse)
   async getArticleById(@Param('id') id: string) {
     return await this.articleService.getArticleById(id);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: '게시글 수정', description: '특정 게시글을 수정합니다. 작성자 본인 또는 관리자만 수정할 수 있습니다.' })
+  @ApiResponse(updateArticleApiResponse)
+  async updateArticle(
+    @Param('id') id: string, 
+    @Body() data: ArticleUpload, 
+    @CurrentUser() user: AuthenticationUser
+  ) {
+    const isAdmin = user.role === Role.ADMIN;
+    return await this.articleService.updateArticle(id, user.id, isAdmin, data);
   }
 
   @Delete(':id')

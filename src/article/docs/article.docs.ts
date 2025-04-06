@@ -75,6 +75,25 @@ export const getArticlesApiResponse: ApiResponseOptions = {
   }
 };
 
+export const updateArticleApiResponse: ApiResponseOptions = {
+  status: 200,
+  description: '게시글 수정 성공',
+  schema: {
+    type: 'object',
+    properties: {
+      id: { type: 'string', example: 'a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6' },
+      authorId: { type: 'string', example: 'u1v2w3x4-y5z6-a7b8-c9d0-e1f2g3h4i5j6' },
+      content: { type: 'string', example: '수정된 게시글 내용입니다!' },
+      anonymous: { type: 'string', example: '귀여운 고양이' },
+      emoji: { type: 'string', example: '😊' },
+      likeCount: { type: 'number', example: 0 },
+      createdAt: { type: 'string', format: 'date-time', example: '2025-04-06T04:04:07.000Z' },
+      updatedAt: { type: 'string', format: 'date-time', example: '2025-04-06T05:04:07.000Z' },
+      deletedAt: { type: 'string', format: 'date-time', example: null }
+    }
+  }
+};
+
 export const deleteArticleApiResponse: ApiResponseOptions = {
   status: 200,
   description: '게시글 삭제 성공',

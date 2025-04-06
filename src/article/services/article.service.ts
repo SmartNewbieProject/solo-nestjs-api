@@ -34,20 +34,32 @@ export class ArticleService {
     return article;
   }
 
-  async deleteArticle(id: string, userId: string, isAdmin: boolean) {
-    // 게시글 존재 여부 확인
+  async updateArticle(id: string, userId: string, isAdmin: boolean, data: Partial<ArticleUpload>) {
     const article = await this.articleRepository.getArticleById(id);
     if (!article) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
 
-    // 작성자 본인 또는 관리자인지 확인
+    const authorId = await this.articleRepository.getArticleAuthorId(id);
+    if (!isAdmin && authorId !== userId) {
+      throw new ForbiddenException('게시글 수정 권한이 없습니다.');
+    }
+
+    const updatedArticle = await this.articleRepository.updateArticle(id, data);
+    return updatedArticle;
+  }
+
+  async deleteArticle(id: string, userId: string, isAdmin: boolean) {
+    const article = await this.articleRepository.getArticleById(id);
+    if (!article) {
+      throw new NotFoundException('게시글을 찾을 수 없습니다.');
+    }
+
     const authorId = await this.articleRepository.getArticleAuthorId(id);
     if (!isAdmin && authorId !== userId) {
       throw new ForbiddenException('게시글 삭제 권한이 없습니다.');
     }
 
-    // 게시글 삭제
     const deletedArticle = await this.articleRepository.deleteArticle(id);
     return deletedArticle;
   }

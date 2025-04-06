@@ -67,9 +67,27 @@ export class ArticleRepository {
   async getArticleAuthorId(id: string) {
     const result = await this.db.select({ authorId: articles.authorId })
       .from(articles)
-      .where(and(eq(articles.id, id), isNull(articles.deletedAt)))
-      .limit(1);
+      .where(and(
+        eq(articles.id, id),
+        isNull(articles.deletedAt)
+      ));
     
     return result.length > 0 ? result[0].authorId : null;
+  }
+
+  async updateArticle(id: string, data: Partial<ArticleUpload>) {
+    const result = await this.db.update(articles)
+      .set({
+        content: data.content,
+        emoji: data.emoji,
+        updatedAt: new Date(),
+      })
+      .where(and(
+        eq(articles.id, id),
+        isNull(articles.deletedAt)
+      ))
+      .returning();
+    
+    return result.length > 0 ? result[0] : null;
   }
 }
