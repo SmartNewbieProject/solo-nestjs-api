@@ -8,6 +8,7 @@ import { CommentRepository } from './repository/comment.repository';
 import { ReportController } from './controllers/report.controller';
 import { ReportService } from './services/report.service';
 import { ReportRepository } from './repository/report.repository';
+import { LikeRepository } from './repository/like.repository';
 
 @Module({
   imports: [],
@@ -19,6 +20,7 @@ import { ReportRepository } from './repository/report.repository';
     CommentRepository,
     ReportService,
     ReportRepository,
+    LikeRepository,
   ],
   exports: [ArticleService]
 })

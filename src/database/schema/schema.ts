@@ -15,6 +15,7 @@ import { userPreferenceOptions } from './user_preference_options';
 import { userRangePreferences } from './user_range_preferences';
 import { articles } from './articles';
 import { comments } from './comments';
+import { likes } from './likes';
 
 // 관계형 매핑 파일 가져오기
 import './relations';
@@ -43,6 +44,7 @@ export {
   userRangePreferences,
   articles,
   comments,
+  likes,
 };
 
 // 모든 테이블 스키마를 배열로 내보내기
@@ -63,4 +65,5 @@ export const schemas = [
   userRangePreferences,
   articles,
   comments,
+  likes,
 ];

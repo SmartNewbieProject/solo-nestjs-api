@@ -59,3 +59,12 @@ export class ReportUpload {
   @IsEnum(ReportReason, { message: '신고 사유는 올바르게 선택해주세요.' })
   reason: ReportReason;
 }
+
+export class LikeArticle {
+  @ApiProperty({
+    description: '좋아요 여부',
+    example: true
+  })
+  @IsBoolean()
+  like: boolean;
+}

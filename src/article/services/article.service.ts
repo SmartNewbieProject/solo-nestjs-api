@@ -1,37 +1,50 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { ArticleRepository } from '../repository/article.repository';
-import { ArticleUpload } from '../dto';
+import { ArticleUpload, LikeArticle } from '../dto';
+import { LikeRepository } from '../repository/like.repository';
 
 @Injectable()
 export class ArticleService {
-  constructor(private readonly articleRepository: ArticleRepository) {}
+  constructor(
+    private readonly articleRepository: ArticleRepository,
+    private readonly likeRepository: LikeRepository
+  ) {}
 
   async createArticle(userId: string, articleData: ArticleUpload) {
     return await this.articleRepository.createArticle(userId, articleData);
   }
 
-  async getArticles(page: number = 1, limit: number = 10) {
+  async getArticles(page: number = 1, limit: number = 10, userId: string) {
     const offset = (page - 1) * limit;
     const articles = await this.articleRepository.getArticles(limit, offset);
     
-    return {
-      items: articles,
-      meta: {
-        currentPage: page,
-        itemsPerPage: limit,
-        totalItems: articles.length,
-        hasNextPage: articles.length === limit,
-        hasPreviousPage: page > 1
-      }
-    };
+    const articleIds = articles.map(article => article.id);
+    const likedMap = await this.likeRepository.hasUserLikedArticles(userId, articleIds);
+    const articlesWithLikedInfo = articles.map(article => ({
+      ...article,
+      isLiked: !!likedMap[article.id]
+    }));
+      
+      return {
+        items: articlesWithLikedInfo,
+        meta: {
+          currentPage: page,
+          itemsPerPage: limit,
+          totalItems: articles.length,
+          hasNextPage: articles.length === limit,
+          hasPreviousPage: page > 1
+        }
+      };
   }
 
-  async getArticleById(id: string) {
+  async getArticleById(id: string, userId: string) {
     const article = await this.articleRepository.getArticleById(id);
     if (!article) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
-    return article;
+    
+    const isLiked = await this.likeRepository.hasUserLikedArticle(userId, id);
+    return { ...article, isLiked };
   }
 
   async updateArticle(id: string, userId: string, isAdmin: boolean, data: Partial<ArticleUpload>) {
@@ -62,5 +75,15 @@ export class ArticleService {
 
     const deletedArticle = await this.articleRepository.deleteArticle(id);
     return deletedArticle;
+  }
+
+  async updateLikeCount(id: string, userId: string, likeData: LikeArticle) {
+    const article = await this.articleRepository.getArticleById(id);
+    if (!article) {
+      throw new NotFoundException('게시글을 찾을 수 없습니다.');
+    }
+
+    const updatedArticle = await this.articleRepository.updateLikeCount(id, likeData.like);
+    return updatedArticle;
   }
 }

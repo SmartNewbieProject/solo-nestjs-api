@@ -16,13 +16,9 @@ export const profilesRelations = relations(profiles, ({ one, many }) => ({
     fields: [profiles.universityDetailId],
     references: [universityDetails.id],
   }),
-  profileImages: many(profileImages),
+  profileImages: many(profileImages, {
+    relationName: 'profile',
+  }),
   userPreference: one(userPreferences),
   matchingRequests: many(matchingRequests),
-  maleMatches: many(matches, {
-    relationName: 'maleMatches'
-  }),
-  femaleMatches: many(matches, {
-    relationName: 'femaleMatches'
-  })
 }));

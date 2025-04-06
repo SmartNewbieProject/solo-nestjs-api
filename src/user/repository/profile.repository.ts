@@ -14,18 +14,31 @@ export default class ProfileRepository {
     ) {}
 
   async getProfileDetails(userId: string) {
-    return await this.db.query.profiles.findFirst({
+    const profile = await this.db.query.profiles.findFirst({
       where: eq(schema.profiles.userId, userId),
       with: {
         universityDetail: true,
-        profileImages: {
-          with: {
-            image: true,
-          },
-          where: (profileImages, { isNull }) => isNull(profileImages.deletedAt),
-        }
       }
     }).execute();
+    
+    if (!profile) return null;
+    
+    try {
+      const profileImages = await this.db.select()
+        .from(schema.profileImages)
+        .where(eq(schema.profileImages.profileId, profile.id))
+        .innerJoin(schema.images, eq(schema.profileImages.imageId, schema.images.id))
+        .execute();
+      return {
+        ...profile,
+        profileImages: profileImages.map(row => row.images.s3Url),
+      };
+    } catch (error) {
+      return {
+        ...profile,
+        profileImages: []
+      };
+    }
   }
 
   async getPreferenceTypeByName(typeName: string) {

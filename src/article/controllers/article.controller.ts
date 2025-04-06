@@ -1,8 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { ArticleService } from '../services/article.service';
-import { ArticleUpload } from '../dto';
+import { ArticleUpload, LikeArticle } from '../dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { createArticleApiResponse, deleteArticleApiResponse, getArticleByIdApiResponse, getArticlesApiResponse, updateArticleApiResponse } from '../docs/article.docs';
+import { createArticleApiResponse, deleteArticleApiResponse, getArticleByIdApiResponse, getArticlesApiResponse, likeArticleApiResponse, updateArticleApiResponse } from '../docs/article.docs';
 import { CurrentUser, Roles } from '@/auth/decorators';
 import { Role } from '@/types/enum';
 import { AuthenticationUser } from '@/types/auth';
@@ -26,16 +26,17 @@ export class ArticleController {
   @ApiResponse(getArticlesApiResponse)
   async getArticles(
     @Query('page') page: number = 1,
-    @Query('limit') limit: number = 10
+    @Query('limit') limit: number = 10,
+    @CurrentUser() user: AuthenticationUser
   ) {
-    return await this.articleService.getArticles(page, limit);
+    return await this.articleService.getArticles(page, limit, user.id);
   }
 
   @Get(':id')
   @ApiOperation({ summary: '게시글 상세 조회', description: '특정 게시글의 상세 정보를 조회합니다.' })
   @ApiResponse(getArticleByIdApiResponse)
-  async getArticleById(@Param('id') id: string) {
-    return await this.articleService.getArticleById(id);
+  async getArticleById(@Param('id') id: string, @CurrentUser() user: AuthenticationUser) {
+    return await this.articleService.getArticleById(id, user.id);
   }
 
   @Patch(':id')
@@ -56,5 +57,16 @@ export class ArticleController {
   async deleteArticle(@Param('id') id: string, @CurrentUser() user: AuthenticationUser) {
     const isAdmin = user.role === Role.ADMIN;
     return await this.articleService.deleteArticle(id, user.id, isAdmin);
+  }
+
+  @Patch(':id/like')
+  @ApiOperation({ summary: '게시글 좋아요', description: '게시글에 좋아요를 추가하거나 취소합니다.' })
+  @ApiResponse(likeArticleApiResponse)
+  async likeArticle(
+    @Param('id') id: string,
+    @Body() likeData: LikeArticle,
+    @CurrentUser() user: AuthenticationUser
+  ) {
+    return await this.articleService.updateLikeCount(id, user.id, likeData);
   }
 }

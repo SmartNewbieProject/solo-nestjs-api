@@ -31,7 +31,8 @@ export class ProfileService {
     }
 
     const userPreferenceOptions = await this.profileRepository.getUserPreferenceOptions(userId);
-    const profileImages = this.processProfileImages(profileDetails.profileImages);
+    // profileImages가 없는 경우 빈 배열로 처리
+    const profileImages = this.processProfileImages(profileDetails.profileImages || []);
     const preferences = this.processPreferences(userPreferenceOptions);
     const universityDetails = this.processUniversityDetails(profileDetails.universityDetail);
     

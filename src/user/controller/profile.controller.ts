@@ -11,7 +11,7 @@ import { ProfileUpdatedEvent } from "@/events/profile-updated.event";
 
 @Controller('profile')
 @ProfileDocs.controller()
-@Roles(Role.USER)
+@Roles(Role.USER, Role.ADMIN)
 export default class ProfileController {
   constructor(
     private readonly profileService: ProfileService,
