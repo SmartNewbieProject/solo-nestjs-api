@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectDrizzle } from "@common/decorators";
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "@database/schema";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { PreferenceSave } from "../dto/profile.dto";
 import { generateUuidV7 } from "@database/schema/helper";
 import { ProfileRawDetails } from "@/types/user";
@@ -27,7 +27,7 @@ export default class ProfileRepository {
     try {
       const profileImages = await this.db.select()
         .from(schema.profileImages)
-        .where(eq(schema.profileImages.profileId, profile.id))
+        .where(and(eq(schema.profileImages.profileId, profile.id), isNull(schema.profileImages.deletedAt)))
         .innerJoin(schema.images, eq(schema.profileImages.imageId, schema.images.id))
         .execute();
       return {
