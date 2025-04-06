@@ -1,7 +1,7 @@
 import { IsEmail, IsNotEmpty, IsNumber, IsString, Matches, MaxLength, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { Gender } from '@database/schema/enums';
+import { Gender } from '@/types/enum';
 
 export class SignupRequest {
   @ApiProperty({

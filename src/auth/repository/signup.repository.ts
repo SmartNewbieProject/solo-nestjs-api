@@ -3,11 +3,11 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '@database/schema';
 import { users } from '@database/schema/users';
 import { profiles } from '@database/schema/profiles';
-import { Gender } from '@database/schema/enums';
 import { eq } from 'drizzle-orm';
 import { InjectDrizzle } from '@common/decorators';
 import { generateUuidV7 } from '@database/schema/helper';
 import { Role } from '@/auth/domain/user-role.enum';
+import { Gender } from '@/types/enum';
 
 interface CreateUserDto {
   email: string;

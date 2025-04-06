@@ -4,8 +4,8 @@ import { DrizzleService } from '@/database/drizzle.service';
 import { preferenceTypes, preferenceOptions } from '@/database/schema';
 import { v4 as uuidv4 } from 'uuid';
 import * as bcrypt from 'bcryptjs';
-import { Gender } from '@/database/schema/enums';
 import { Pool, PoolClient } from 'pg';
+import { Gender } from '@/types/enum';
 
 const PREFERENCE_TYPE_IDS = {
   PERSONALITY: 'ed4a1fa2-8f26-4862-8567-878a069ee524',

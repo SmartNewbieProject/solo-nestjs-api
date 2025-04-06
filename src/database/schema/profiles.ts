@@ -1,7 +1,7 @@
 import { pgTable, varchar, integer } from 'drizzle-orm/pg-core';
 import { uuid, timestamps } from './helper';
-import { Gender } from './enums';
 import { users } from './users';
+import { Gender } from '@/types/enum';
 
 export const profiles = pgTable('profiles', {
   id: uuid(),

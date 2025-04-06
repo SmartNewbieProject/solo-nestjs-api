@@ -13,6 +13,8 @@ import { matchingRequests } from './matching_requests';
 import { reports } from './reports';
 import { userPreferenceOptions } from './user_preference_options';
 import { userRangePreferences } from './user_range_preferences';
+import { articles } from './articles';
+import { comments } from './comments';
 
 // 관계형 매핑 파일 가져오기
 import './relations';
@@ -39,6 +41,8 @@ export {
   reports,
   userPreferenceOptions,
   userRangePreferences,
+  articles,
+  comments,
 };
 
 // 모든 테이블 스키마를 배열로 내보내기
@@ -57,4 +61,6 @@ export const schemas = [
   reports,
   userPreferenceOptions,
   userRangePreferences,
+  articles,
+  comments,
 ];
