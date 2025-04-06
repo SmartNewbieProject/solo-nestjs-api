@@ -11,14 +11,14 @@ export default class MatchRepository {
       private readonly db: NodePgDatabase<typeof schema>,
     ) {}
 
-    async createMatch(maleUserId: string, femaleUserId: string, score: string) {
+    async createMatch(myId: string, matcherId: string, score: string, scheduledAt: Date) {
       return await this.db.insert(schema.matches).values({
         id: generateUuidV7(),
-        maleUserId,
-        femaleUserId,
+        myId,
+        matcherId,
         score,
         publishedAt: null,
-        scheduledAt: null,
+        scheduledAt,
       }).execute();
     }
 }

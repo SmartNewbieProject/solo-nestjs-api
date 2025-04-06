@@ -112,3 +112,9 @@ export enum AgePreference {
   SAME_AGE = 'SAME_AGE', // 동갑
   NO_PREFERENCE = 'NO_PREFERENCE' // 상관없음
 }
+
+// 사용자 역할 enum
+export enum Role {
+  USER = 'user',
+  ADMIN = 'admin'
+}

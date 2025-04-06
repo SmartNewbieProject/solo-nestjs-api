@@ -53,7 +53,7 @@ export class MatchResultDto {
 
 @Controller('admin/matching')
 @Roles(Role.ADMIN)
-@ApiTags('매칭(어드민)')
+@ApiTags('어드민')
 @ApiBearerAuth('access-token')
 export class AdminMatchingController {
   constructor(private readonly matchingService: MatchingService, private readonly profileService: ProfileService) {}
