@@ -5,25 +5,27 @@ import { AuthModule } from './auth/auth.module';
 import { AdminModule } from './admin/admin.module';
 import GlobalSecurityModule from './config/security.module';
 import { UserModule } from './user/user.module';
-import { QdrantModule } from './qdrant/qdrant.module';
+import { QdrantModule } from './config/qdrant/qdrant.module';
 import { EmbeddingModule } from './embedding/embedding.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { MatchingModule } from './matching/matching.module';
+import { ArticleModule } from './article/article.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    EventEmitterModule.forRoot(),
-    DatabaseModule,
     GlobalSecurityModule,
-    QdrantModule,
-    EmbeddingModule,
+    DatabaseModule,
     AuthModule,
     UserModule,
+    QdrantModule,
+    EmbeddingModule,
+    EventEmitterModule.forRoot(),
     MatchingModule,
     AdminModule,
+    ArticleModule,
   ],
 })
 export class AppModule {}

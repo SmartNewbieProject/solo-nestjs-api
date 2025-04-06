@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { EmbeddingService } from './embedding.service';
 import { DrizzleService } from '@/database/drizzle.service';
-import { QdrantService } from '@/qdrant/qdrant.service';
+import { QdrantService } from '@/config/qdrant/qdrant.service';
 import { preferenceOptions } from '@/database/schema';
 import { eq, and } from 'drizzle-orm';
 

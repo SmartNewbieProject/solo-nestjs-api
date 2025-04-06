@@ -3,7 +3,7 @@ import { MatchingService } from './services/matching.service';
 import { AdminMatchingController } from '../admin/controllers/admin-matching.controller';
 import { DrizzleModule } from '@/database/drizzle.module';
 import { EmbeddingModule } from '@/embedding/embedding.module';
-import { QdrantModule } from '@/qdrant/qdrant.module';
+import { QdrantModule } from '@/config/qdrant/qdrant.module';
 import ProfileRepository from '@/user/repository/profile.repository';
 import { ProfileService } from '@/user/services/profile.service';
 

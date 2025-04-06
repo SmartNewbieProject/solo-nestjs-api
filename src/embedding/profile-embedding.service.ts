@@ -1,7 +1,7 @@
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { EmbeddingService } from './embedding.service';
-import { QdrantService } from '@/qdrant/qdrant.service';
+import { QdrantService } from '@/config/qdrant/qdrant.service';
 import { DrizzleService } from '@/database/drizzle.service';
 import { ProfileUpdatedEvent } from '@/events/profile-updated.event';
 import { UserProfile } from '@/types/user';
