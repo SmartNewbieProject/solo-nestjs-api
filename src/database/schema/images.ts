@@ -3,7 +3,7 @@ import { uuid, timestamps } from './helper';
 
 export const images = pgTable('images', {
   id: uuid(),
-  s3Url: varchar('s3_url', { length: 255 }),
+  s3Url: varchar('s3_url', { length: 255 }).notNull(),
   s3Key: varchar('s3_key', { length: 255 }),
   originalFilename: varchar('original_filename', { length: 255 }),
   mimeType: varchar('mime_type', { length: 100 }),

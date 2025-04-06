@@ -24,6 +24,24 @@ export interface PreferenceOption {
   displayName: string;
 }
 
+export interface ProfileRawDetails {
+  id: string;
+  name: string;
+  updatedAt: Date | null;
+  createdAt: Date;
+  deletedAt: Date | null;
+  userId: string;
+  age: number;
+  gender: Gender;
+  title: string | null;
+  universityDetail: {
+    name: string;
+    authentication: boolean;
+    department: string;
+  } | null;
+  profileImages: ProfileImage[];
+}
+
 export type Preference = {
   typeName: string;
   optionId: string;

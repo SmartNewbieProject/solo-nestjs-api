@@ -5,6 +5,7 @@ import * as schema from "@database/schema";
 import { eq } from "drizzle-orm";
 import { PreferenceSave } from "../dto/profile.dto";
 import { generateUuidV7 } from "@database/schema/helper";
+import { ProfileRawDetails } from "@/types/user";
 
 @Injectable()
 export default class ProfileRepository {
@@ -13,7 +14,7 @@ export default class ProfileRepository {
       private readonly db: NodePgDatabase<typeof schema>,
     ) {}
 
-  async getProfileDetails(userId: string) {
+  async getProfileDetails(userId: string): Promise<ProfileRawDetails | null> {
     const profile = await this.db.query.profiles.findFirst({
       where: eq(schema.profiles.userId, userId),
       with: {
@@ -31,11 +32,26 @@ export default class ProfileRepository {
         .execute();
       return {
         ...profile,
-        profileImages: profileImages.map(row => row.images.s3Url),
+        universityDetail: profile.universityDetail ? {
+          name: profile.universityDetail.universityName,
+          authentication: profile.universityDetail.authentication,
+          department: profile.universityDetail.department
+        } : null,
+        profileImages: profileImages.map(({ images: { s3Url }, profile_images: { imageOrder, isMain, id } }) => ({
+          id,
+          order: imageOrder,
+          isMain,
+          url: s3Url,
+        }))
       };
     } catch (error) {
       return {
         ...profile,
+        universityDetail: profile.universityDetail ? {
+          name: profile.universityDetail.universityName,
+          authentication: profile.universityDetail.authentication,
+          department: profile.universityDetail.department
+        } : null,
         profileImages: []
       };
     }

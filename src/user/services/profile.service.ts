@@ -32,7 +32,6 @@ export class ProfileService {
 
     const userPreferenceOptions = await this.profileRepository.getUserPreferenceOptions(userId);
     // profileImages가 없는 경우 빈 배열로 처리
-    const profileImages = this.processProfileImages(profileDetails.profileImages || []);
     const preferences = this.processPreferences(userPreferenceOptions);
     const universityDetails = this.processUniversityDetails(profileDetails.universityDetail);
     
@@ -40,7 +39,7 @@ export class ProfileService {
       name: profileDetails.name,
       age: profileDetails.age,
       gender: profileDetails.gender,
-      profileImages,
+      profileImages: profileDetails.profileImages,
       universityDetails,
       preferences
     };
@@ -107,20 +106,6 @@ export class ProfileService {
 
   private findOne(typeName: string, preferences: Preference[]) {
     return preferences.find(p => p.typeName === typeName) as Preference;
-  }
-  
-  /**
-   * 프로필 이미지 정보를 가공합니다.
-   * @param profileImages 프로필 이미지 원본 데이터
-   * @returns 가공된 프로필 이미지 정보
-   */
-  private processProfileImages(profileImages: any[] = []): ProfileImage[] {
-    return profileImages.map(profileImage => ({
-      id: profileImage.id,
-      order: profileImage.imageOrder,
-      isMain: profileImage.isMain,
-      url: profileImage.image.s3Url,
-    }));
   }
   
   /**
