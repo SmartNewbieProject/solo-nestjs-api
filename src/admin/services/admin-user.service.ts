@@ -5,7 +5,7 @@ import { UserProfile } from '@/types/user';
 import { ProfileService } from '@/user/services/profile.service';
 
 @Injectable()
-export class AdminService {
+export class AdminUserService {
   constructor(
     private readonly adminRepository: AdminRepository,
     private readonly profileService: ProfileService,

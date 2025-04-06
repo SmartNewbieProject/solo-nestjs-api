@@ -4,16 +4,16 @@ import { UserModule } from '@/user/user.module';
 import { AdminRepository } from './repositories/admin.repository';
 import { ProfileService } from '@/user/services/profile.service';
 import ProfileRepository from '@/user/repository/profile.repository';
-import { AdminController } from './controllers/admin.controller';
-import { AdminService } from './services/admin.service';
+import { AdminUserController } from './controllers/admin-user.controller';
+import { AdminUserService } from './services/admin-user.service';
 
 @Module({
   imports: [
     DrizzleModule,
     UserModule
   ],
-  controllers: [AdminController],
-  providers: [AdminService, AdminRepository, ProfileService, ProfileRepository],
-  exports: [AdminService]
+  controllers: [AdminUserController],
+  providers: [AdminUserService, AdminRepository, ProfileService, ProfileRepository],
+  exports: [AdminUserService]
 })
 export class AdminModule {}

@@ -1,5 +1,5 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
-import { AdminService } from '../services/admin.service';
+import { AdminUserService } from '../services/admin-user.service';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { getUsersListApiResponse } from '../docs/user-list.docs';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
@@ -15,8 +15,8 @@ import { AdminUserListRequest } from '../dto/user';
 @Roles(Role.ADMIN)
 @ApiTags('어드민')
 @ApiBearerAuth('access-token')
-export class AdminController {
-  constructor(private readonly adminService: AdminService) {}
+export class AdminUserController {
+  constructor(private readonly adminService: AdminUserService) {}
 
   @Get()
   @ApiOperation({ summary: '회원 목록 조회', description: '모든 회원 목록을 페이지네이션으로 조회합니다.' })

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { DrizzleService } from '@/database/drizzle.service';
-import { users, profiles } from '@/database/schema';
-import { eq, count, desc, asc, sql } from 'drizzle-orm';
+import { users } from '@/database/schema';
+import { count, desc, sql } from 'drizzle-orm';
 import { PaginationParams } from '@/types/pagination';
 
 @Injectable()

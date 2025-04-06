@@ -1,38 +1,13 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
-import { MatchingService, MatchingResult } from '../services/matching.service';
-import { CurrentUser } from '@/auth/decorators';
-import { AuthenticationUser } from '@/types';
+import { Body, Controller, Post } from '@nestjs/common';
+import { MatchingService } from '../../matching/services/matching.service';
 import { Roles } from '@/auth/decorators';
 import { Role } from '@/auth/domain/user-role.enum';
-import { AdminMatchRequest } from '../dto/matching';
+import { AdminMatchRequest } from '../../matching/dto/matching';
 
 import { ApiProperty, ApiResponse, ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { ProfileService } from '@/user/services/profile.service';
 
-export class MatchingWeightsDto {
-  @ApiProperty({ description: '나이 가중치', required: false })
-  age?: number;
-  
-  @ApiProperty({ description: '성별 가중치', required: false })
-  gender?: number;
-  
-  @ApiProperty({ description: '관심사 가중치', required: false })
-  interests?: number;
-  
-  @ApiProperty({ description: '성격 가중치', required: false })
-  personalities?: number;
-  
-  @ApiProperty({ description: '라이프스타일 가중치', required: false })
-  lifestyles?: number;
-  
-  @ApiProperty({ description: 'MBTI 가중치', required: false })
-  mbti?: number;
-  
-  @ApiProperty({ description: '임베딩 가중치', required: false })
-  embedding?: number;
-}
-
-export class MatchResultDto {
+export class MatchResult {
   @ApiProperty({ description: '사용자 ID' })
   userId: string;
   
@@ -70,17 +45,4 @@ export class AdminMatchingController {
     return { profiles, similarUsers };
   }
 
-  @Post('weighted')
-  @ApiResponse({ status: 200, description: '가중치를 적용한 매칭을 수행합니다.', type: [MatchResultDto] })
-  async findWeightedMatches(
-    @CurrentUser() user: AuthenticationUser,
-    @Query('limit') limit?: string,
-    @Body() weights?: MatchingWeightsDto,
-  ) {
-    return await this.matchingService.findMatches(
-      user.id,
-      limit ? parseInt(limit) : 10,
-      weights,
-    );
-  }
 }

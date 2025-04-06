@@ -1,20 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DrizzleService } from '@/database/drizzle.service';
 import { ProfileEmbeddingService } from '@/embedding/profile-embedding.service';
-import { eq, sql } from 'drizzle-orm';
-import { 
-  users, 
-  userPreferenceOptions, 
-  userPreferences, 
-  profiles, 
-  preferenceOptions, 
-} from '@/database/schema';
 import matchingPreferenceWeighter from '../domain/matching-preference-weighter';
 import { ProfileService } from '@/user/services/profile.service';
 import { UserPreferenceSummary } from '@/types/match';
-const { consts: { 
-  MBTI_COMPATIBILITY
-} } = matchingPreferenceWeighter;
 
 export interface MatchingWeights {
   age: number;
@@ -48,9 +36,7 @@ export interface MatchingResult {
 export class MatchingService {
   private readonly logger = new Logger(MatchingService.name);
   
-  // MBTI 궁합 점수 (0~1 사이 값, 1이 가장 좋은 궁합)
   constructor(
-    private readonly drizzleService: DrizzleService,
     private readonly profileEmbeddingService: ProfileEmbeddingService,
     private readonly profileService: ProfileService,
   ) {}
@@ -66,57 +52,18 @@ export class MatchingService {
     limit: number = 10,
     weights?: Partial<MatchingWeights>
   ) {
-    try {
-      const { score: calculator, getWeights } = matchingPreferenceWeighter;
-      const finalWeights: MatchingWeights = getWeights(weights);
+    const { getWeights } = matchingPreferenceWeighter;
+    const finalWeights: MatchingWeights = getWeights(weights);
       
-      const weightSum = Object.values(finalWeights).reduce((sum, weight) => sum + weight, 0);
-      Object.keys(finalWeights).forEach(key => {
+    const weightSum = Object.values(finalWeights).reduce((sum, weight) => sum + weight, 0);
+    Object.keys(finalWeights).forEach(key => {
         finalWeights[key as keyof MatchingWeights] /= weightSum;
       });
       
-      const userPreferenceSummary = await this.getUserPreferenceSummary(userId);
-      const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3);
-      console.log(similarProfiles);
+    const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3);
+    console.log(similarProfiles);
 
-      return similarProfiles;
-      
-      // const matchResults = await Promise.all(
-      //   similarProfiles.map(async (candidate) => {
-      //     const candidatePreferenceSummary = await this.getUserPreferenceSummary(candidate.userId);
-      //     const details = calculator.total(userPreferenceSummary, candidatePreferenceSummary, candidate.similarity);
-      //     const score = 
-      //       details.age * finalWeights.age +
-      //       details.interests * finalWeights.interests +
-      //       details.personalities * finalWeights.personalities +
-      //       details.lifestyles * finalWeights.lifestyles +
-      //       details.mbti * finalWeights.mbti +
-      //       details.embedding * finalWeights.embedding;
-      //     return {
-      //       userId: candidate.userId,
-      //       score,
-      //       details: {
-      //         ageScore: details.age,
-      //         interestsScore: details.interests,
-      //         personalitiesScore: details.personalities,
-      //         lifestylesScore: details.lifestyles,
-      //         mbtiScore: details.mbti,
-      //         embeddingScore: details.embedding,
-      //         tattooScore: details.tattoo,
-      //         drinkingScore: details.drinking,
-      //         smokingScore: details.smoking,
-      //       }
-      //     };
-      //   })
-      // );
-      
-      // return matchResults
-        // .sort((a, b) => b.score - a.score)
-        // .slice(0, limit);
-    } catch (error) {
-      this.logger.error(`매칭 검색 중 오류 발생: ${error.message}`, error.stack);
-      return [];
-    }
+    return similarProfiles;
   }
   
   private async getUserPreferenceSummary(userId: string): Promise<UserPreferenceSummary> {
@@ -138,5 +85,5 @@ export class MatchingService {
       smoking: getFirstOption('흡연 선호도'),
     };
   }
-  
+
 }
