@@ -118,3 +118,11 @@ export enum Role {
   USER = 'user',
   ADMIN = 'admin'
 }
+
+// 신고 상태 enum
+export enum ReportStatus {
+  PENDING = 'pending',
+  ACCEPTED = 'accepted',
+  REJECTED = 'rejected',
+  RESOLVED = 'resolved'
+}

@@ -5,15 +5,20 @@ import { ArticleRepository } from './repository/article.repository';
 import { CommentController } from './controllers/comment.controller';
 import { CommentService } from './services/comment.service';
 import { CommentRepository } from './repository/comment.repository';
+import { ReportController } from './controllers/report.controller';
+import { ReportService } from './services/report.service';
+import { ReportRepository } from './repository/report.repository';
 
 @Module({
   imports: [],
-  controllers: [ArticleController, CommentController],
+  controllers: [ArticleController, CommentController, ReportController],
   providers: [
     ArticleService, 
     ArticleRepository, 
     CommentService, 
     CommentRepository,
+    ReportService,
+    ReportRepository,
   ],
   exports: [ArticleService]
 })
