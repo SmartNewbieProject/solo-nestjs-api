@@ -33,6 +33,7 @@ export class ArticleRepository {
       with: {
         comments: {
           limit: 3,
+          where: ({ deletedAt }) => isNull(deletedAt),
         },
       },
       where: sql`${articles.deletedAt} IS NULL`,
@@ -49,6 +50,7 @@ export class ArticleRepository {
         author: true,
         comments: {
           limit: 3,
+          where: ({ deletedAt }) => isNull(deletedAt),
         }
       }
     });
