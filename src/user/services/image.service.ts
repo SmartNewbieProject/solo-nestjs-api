@@ -27,7 +27,7 @@ export class ImageService {
         throw new NotFoundException('사용자 프로필을 찾을 수 없습니다.');
       }
       const existingImages = await tx.query.profileImages.findMany({
-        where: eq(schema.profileImages.profileId, profile.id),
+        where: and(eq(schema.profileImages.profileId, profile.id), isNull(schema.profileImages.deletedAt)),
       });
 
       if (existingImages.length >= 3) {
