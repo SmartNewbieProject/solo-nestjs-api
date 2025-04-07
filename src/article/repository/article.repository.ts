@@ -36,7 +36,7 @@ export class ArticleRepository {
           where: ({ deletedAt }) => isNull(deletedAt),
         },
       },
-      where: sql`${articles.deletedAt} IS NULL`,
+      where: ({ deletedAt }) => isNull(deletedAt),
       limit,
       offset,
       orderBy: [sql`${articles.createdAt} DESC`]

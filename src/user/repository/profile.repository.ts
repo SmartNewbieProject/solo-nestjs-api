@@ -136,6 +136,12 @@ export default class ProfileRepository {
     
     return userPreference.id;
   }
+
+  async updateNickname(userId: string, nickname: string) {
+    return await this.db.update(schema.profiles)
+      .set({ name: nickname })
+      .where(eq(schema.profiles.userId, userId));
+  }
   
   private async deleteExistingOptions(tx: any, userPreferenceId: string): Promise<void> {
     await tx.delete(schema.userPreferenceOptions)

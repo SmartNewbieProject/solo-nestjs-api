@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Patch } from "@nestjs/common";
+import { Body, Controller, Get, Patch, Post } from "@nestjs/common";
 import { ProfileService } from "../services/profile.service";
 import { InstagramId, PreferenceSave } from "../dto/profile.dto";
 import { CurrentUser } from "@/auth/decorators";
@@ -8,6 +8,7 @@ import { Role } from "@/auth/domain/user-role.enum";
 import { ProfileDocs } from "../docs/profile.docs";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { ProfileUpdatedEvent } from "@/events/profile-updated.event";
+import { NameUpdated } from "../dto/user";
 
 @Controller('profile')
 @ProfileDocs.controller()
@@ -28,6 +29,14 @@ export default class ProfileController {
   @ProfileDocs.getPreferences()
   async getPreferences() {
     return await this.profileService.getAllPreferences();
+  }
+  
+  @Post('nickname')
+  @ProfileDocs.updateNickname()
+  async updateNickname(@CurrentUser() user: AuthenticationUser, @Body() data: NameUpdated) {
+    return {
+      nickname: await this.profileService.changeNickname(user.id, data.nickname),
+    };
   }
 
   @Patch('preferences')

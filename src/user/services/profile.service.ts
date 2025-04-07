@@ -136,11 +136,11 @@ export class ProfileService {
     return Array.from(preferencesByType.values());
   }
   
-  /**
-   * 대학 정보를 가공합니다.
-   * @param universityDetail 대학 정보 원본 데이터
-   * @returns 가공된 대학 정보
-   */
+  async changeNickname(userId: string, nickname: string) {
+    await this.profileRepository.updateNickname(userId, nickname);
+    return nickname;
+  }
+
   private processUniversityDetails(universityDetail: any): UniversityDetail | null {
     if (!universityDetail) return null;
     

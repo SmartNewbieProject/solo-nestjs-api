@@ -6,11 +6,28 @@ import { QdrantClient } from '@qdrant/qdrant-js';
 export class QdrantService implements OnModuleInit {
   private readonly logger = new Logger(QdrantService.name);
   private client: QdrantClient;
+  private readonly MAX_RETRIES = 3;
+  private readonly RETRY_DELAY = 5000; // 5초
 
   constructor(private readonly configService: ConfigService) {}
 
   async onModuleInit() {
-    await this.connect();
+    await this.connectWithRetry();
+  }
+
+  private async connectWithRetry(retryCount = 0) {
+    try {
+      await this.connect();
+    } catch (error) {
+      if (retryCount < this.MAX_RETRIES) {
+        this.logger.warn(`Qdrant 연결 실패. ${this.RETRY_DELAY/1000}초 후 재시도합니다. (시도 ${retryCount + 1}/${this.MAX_RETRIES})`);
+        await new Promise(resolve => setTimeout(resolve, this.RETRY_DELAY));
+        await this.connectWithRetry(retryCount + 1);
+      } else {
+        this.logger.error(`Qdrant 연결이 ${this.MAX_RETRIES}번의 시도 후에도 실패했습니다.`);
+        throw error;
+      }
+    }
   }
 
   private async connect() {
@@ -20,19 +37,25 @@ export class QdrantService implements OnModuleInit {
       const apiKey = this.configService.get<string>('QDRANT_API_KEY');
       const https = this.configService.get<boolean>('QDRANT_HTTPS', false);
 
-      this.logger.log(`Qdrant 연결 시도: ${host}:${port}`);
+      this.logger.log(`Qdrant 연결 설정: host=${host}, port=${port}, https=${https}, apiKey=${apiKey ? '설정됨' : '미설정'}`);
+
+      // URL 기반 설정으로 변경
+      const url = `http://${host}:${port}`;
+      this.logger.log(`Qdrant URL: ${url}`);
 
       this.client = new QdrantClient({
-        host,
-        port,
-        https,
+        url,
+        timeout: 10000, // 10초 타임아웃 설정
       });
 
+      this.logger.log('Qdrant 클라이언트 인스턴스 생성 완료');
+
       // 연결 테스트
-      await this.client.getCollections();
-      this.logger.log('Qdrant 연결 성공');
+      const collections = await this.client.getCollections();
+      this.logger.log(`Qdrant 연결 성공. 컬렉션 목록: ${JSON.stringify(collections)}`);
     } catch (error) {
       this.logger.error(`Qdrant 연결 실패: ${error.message}`, error.stack);
+      this.logger.error(`상세 오류 정보: ${JSON.stringify(error)}`);
       throw new Error(`Qdrant 연결 실패: ${error.message}`);
     }
   }
@@ -186,6 +209,17 @@ export class QdrantService implements OnModuleInit {
         error.stack
       );
       throw new Error(`포인트 삭제 실패: ${error.message}`);
+    }
+  }
+
+  async testConnection(): Promise<boolean> {
+    try {
+      const collections = await this.client.getCollections();
+      this.logger.log(`Qdrant 연결 테스트 성공. 컬렉션: ${JSON.stringify(collections)}`);
+      return true;
+    } catch (error) {
+      this.logger.error(`Qdrant 연결 테스트 실패: ${error.message}`, error.stack);
+      return false;
     }
   }
 }

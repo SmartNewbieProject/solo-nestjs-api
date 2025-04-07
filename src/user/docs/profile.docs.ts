@@ -1,5 +1,5 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags, ApiBody } from '@nestjs/swagger';
 import { 
   ProfileResponseDto,
   UnauthorizedResponseDto,
@@ -47,6 +47,49 @@ export const ProfileDocs = {
       status: 401, 
       description: '인증 실패',
       type: UnauthorizedResponseDto
+    })
+  ),
+  
+  updateNickname: () => applyDecorators(
+    ApiOperation({ summary: '닉네임 변경', description: '사용자의 닉네임을 변경합니다.' }),
+    ApiResponse({
+      status: 200,
+      description: '닉네임 변경 성공',
+      schema: {
+        type: 'object',
+        properties: {
+          nickname: {
+            type: 'string',
+            description: '변경된 닉네임',
+            example: '홍길동'
+          }
+        }
+      }
+    }),
+    ApiResponse({
+      status: 400,
+      description: '잘못된 요청 형식',
+      type: BadRequestResponseDto
+    }),
+    ApiResponse({
+      status: 401,
+      description: '인증 실패',
+      type: UnauthorizedResponseDto
+    }),
+    ApiBody({
+      schema: {
+        type: 'object',
+        required: ['nickname'],
+        properties: {
+          nickname: {
+            type: 'string',
+            description: '변경할 닉네임 (3-15자)',
+            minLength: 3,
+            maxLength: 15,
+            example: '홍길동'
+          }
+        }
+      }
     })
   ),
   
