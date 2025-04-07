@@ -12,6 +12,13 @@ export interface ProfileDetails {
   universityDetailId: string | null;
 }
 
+export type ProfileSummary = Omit<
+  ProfileDetails,
+  'userId' |
+  'universityDetailId' |
+  'statusAt'
+>;
+
 export interface ProfileImage {
   id: string;
   order: number;

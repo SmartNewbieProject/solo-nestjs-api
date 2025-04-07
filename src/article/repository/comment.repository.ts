@@ -15,19 +15,17 @@ export class CommentRepository {
     @InjectDrizzle() private readonly db: NodePgDatabase<typeof schema>,
   ) {}
 
-  async createComment(postId: string, authorId: string, data: CommentUpload) {
+  async createComment(postId: string, authorId: string, authorNickname: string, data: CommentUpload) {
     const id = generateUuidV7();
-    const anonymous = data.anonymous
-      ? generateConsistentAnonymousName(authorId)
-      : null;
+    const { anonymous, content, emoji } = data;
 
     const result = await this.db.insert(comments).values({
       id,
       postId,
       authorId,
-      content: data.content,
-      anonymous,
-      emoji: data.emoji,
+      nickname: anonymous ? generateConsistentAnonymousName(authorId) : authorNickname,
+      content,
+      emoji,
     }).returning();
 
     return result[0];
@@ -39,7 +37,7 @@ export class CommentRepository {
       postId: comments.postId,
       content: comments.content,
       emoji: comments.emoji,
-      anonymous: comments.anonymous,
+      nickname: comments.nickname,
       createdAt: comments.createdAt,
       updatedAt: comments.updatedAt,
       author: {

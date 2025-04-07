@@ -5,7 +5,7 @@ import * as schema from "@database/schema";
 import { eq, and, isNull } from "drizzle-orm";
 import { PreferenceSave } from "../dto/profile.dto";
 import { generateUuidV7 } from "@database/schema/helper";
-import { ProfileRawDetails } from "@/types/user";
+import { ProfileRawDetails, ProfileSummary } from "@/types/user";
 
 @Injectable()
 export default class ProfileRepository {
@@ -13,6 +13,34 @@ export default class ProfileRepository {
       @InjectDrizzle()
       private readonly db: NodePgDatabase<typeof schema>,
     ) {}
+
+  async getProfileSummary(userId: string): Promise<ProfileSummary> {
+    const result = await this.db.select({
+      id: schema.profiles.id,
+      name: schema.profiles.name,
+      age: schema.profiles.age,
+      gender: schema.profiles.gender,
+      title: schema.profiles.title,
+      introduction: schema.profiles.introduction,
+    })
+    .from(schema.profiles)
+    .where(eq(schema.profiles.userId, userId))
+    .execute();
+
+    if (result.length === 0) {
+      throw new NotFoundException('프로필 정보를 찾을 수 없습니다.');
+    }
+
+
+    return {
+      id: result[0].id,
+      name: result[0].name,
+      age: result[0].age,
+      gender: result[0].gender,
+      title: result[0].title,
+      introduction: result[0].introduction,
+    };
+  }
 
   async getProfileDetails(userId: string): Promise<ProfileRawDetails | null> {
     const profile = await this.db.query.profiles.findFirst({

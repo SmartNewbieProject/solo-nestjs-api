@@ -22,6 +22,10 @@ export class ArticleService {
     const likedMap = await this.likeRepository.hasUserLikedArticles(userId, articleIds);
     const articlesWithLikedInfo = articles.map(article => ({
       ...article,
+      author: {
+        id: article.author.id,
+        name: article.anonymous ? article.anonymous : article.author.name,
+      },
       isLiked: !!likedMap[article.id]
     }));
       

@@ -9,6 +9,7 @@ import { ReportController } from './controllers/report.controller';
 import { ReportService } from './services/report.service';
 import { ReportRepository } from './repository/report.repository';
 import { LikeRepository } from './repository/like.repository';
+import ProfileRepository from '@/user/repository/profile.repository';
 
 @Module({
   imports: [],
@@ -21,6 +22,7 @@ import { LikeRepository } from './repository/like.repository';
     ReportService,
     ReportRepository,
     LikeRepository,
+    ProfileRepository,
   ],
   exports: [ArticleService]
 })
