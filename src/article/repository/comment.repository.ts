@@ -7,7 +7,6 @@ import * as schema from '@database/schema';
 import { InjectDrizzle } from '@/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { generateConsistentAnonymousName } from '../domain';
-import { AuthorDetails } from '@/types/community';
 
 @Injectable()
 export class CommentRepository {
@@ -41,14 +40,11 @@ export class CommentRepository {
       createdAt: comments.createdAt,
       updatedAt: comments.updatedAt,
       author: {
-        id: schema.users.id,
-        email: schema.users.email,
-        name: schema.profiles.name,
+        id: comments.authorId,
+        name: comments.nickname,
       },
     })
     .from(comments)
-    .leftJoin(schema.users, eq(comments.authorId, schema.users.id))
-    .leftJoin(schema.profiles, eq(schema.users.id, schema.profiles.userId))
     .where(and(
       eq(comments.postId, postId),
       isNull(comments.deletedAt),

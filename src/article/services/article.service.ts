@@ -26,6 +26,14 @@ export class ArticleService {
         id: article.author.id,
         name: article.anonymous ? article.anonymous : article.author.name,
       },
+      comments: article.comments.map(comment => ({
+        id: comment.id,
+        content: comment.content,
+        author: {
+          id: comment.authorId,
+          name: comment.nickname,
+        }
+      })),
       isLiked: !!likedMap[article.id]
     }));
       
