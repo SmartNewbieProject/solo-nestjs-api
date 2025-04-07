@@ -4,6 +4,7 @@ import * as schema from '@database/schema';
 import { users } from '@database/schema/users';
 import { eq, and, isNull } from 'drizzle-orm';
 import { InjectDrizzle } from '@common/decorators';
+import { profiles } from '@database/schema';
 
 @Injectable()
 export class AuthRepository {
@@ -18,6 +19,17 @@ export class AuthRepository {
       .limit(1);
     
     return result.length > 0 ? result[0] : null;
+  }
+
+  async findGenderByUserId(userId: string) {
+    const result = await this.db.select({
+      gender: profiles.gender
+    })
+      .from(schema.profiles)
+      .where(eq(profiles.userId, userId))
+      .limit(1);
+
+      return result.length > 0 ? result[0] : null;
   }
 
   async findUserById(id: string) {

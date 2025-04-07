@@ -27,8 +27,8 @@ export default class ProfileController {
 
   @Get('preferences')
   @ProfileDocs.getPreferences()
-  async getPreferences() {
-    return await this.profileService.getAllPreferences();
+  async getPreferences(@CurrentUser() user: AuthenticationUser) {
+    return await this.profileService.getAllPreferences(user.gender);
   }
   
   @Patch('nickname')

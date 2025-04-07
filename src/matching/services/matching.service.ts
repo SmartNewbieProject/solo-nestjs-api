@@ -61,7 +61,6 @@ export class MatchingService {
       });
       
     const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3);
-    console.log(similarProfiles);
 
     return similarProfiles;
   }

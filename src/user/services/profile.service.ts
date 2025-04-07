@@ -3,7 +3,7 @@ import ProfileRepository from "../repository/profile.repository";
 import { PreferenceSave } from "../dto/profile.dto";
 import { NotFoundException } from "@nestjs/common";
 import { UserProfile, UniversityDetail, ProfileImage, Preference, PreferenceOption, PreferenceTypeGroup } from "@/types/user";
-
+import { Gender } from "@/types/enum";
 
 type Option = {
   id: string;
@@ -50,10 +50,17 @@ export class ProfileService {
     return Promise.all(promises);
   }
 
-  async getAllPreferences() {
+  async getAllPreferences(gender: Gender) {
     const preferences = await this.profileRepository.getAllPreferences();
     const list: PreferenceSet[] = [];
     const map = this.convertMap(preferences);
+
+    if (gender === Gender.MALE) {
+      map.delete("군필 여부 선호도");
+    } 
+    if (gender === Gender.FEMALE) {
+      map.delete("군필 여부");
+    }
 
     map.forEach((options, typeName) => {
       const { multiple, maximumChoiceCount } = this.findOne(typeName, preferences);
