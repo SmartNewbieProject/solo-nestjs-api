@@ -35,6 +35,12 @@ export class ArticleRepository {
           limit: 3,
           where: ({ deletedAt }) => isNull(deletedAt),
         },
+        author: {
+          columns: {
+            id: true,
+            name: true,
+          },
+        },
       },
       where: ({ deletedAt }) => isNull(deletedAt),
       limit,

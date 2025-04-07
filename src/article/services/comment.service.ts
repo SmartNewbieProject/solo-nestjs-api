@@ -2,6 +2,8 @@ import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/commo
 import { CommentRepository } from '../repository/comment.repository';
 import { CommentUpload } from '../dto';
 import { ArticleRepository } from '../repository/article.repository';
+import { AuthorDetails } from '@/types/community';
+import AnonymityHandler from '../domain/anonymous';
 
 @Injectable()
 export class CommentService {
@@ -27,7 +29,14 @@ export class CommentService {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
 
-    return await this.commentRepository.getCommentsByPostId(postId);
+    const comments = await this.commentRepository.getCommentsByPostId(postId);
+    return comments.map(comment => ({
+      ...comment,
+      author: AnonymityHandler.comment(comment.anonymous, {
+        id: comment.author.id,
+        name: comment.author.name,
+      } as AuthorDetails),
+    }));
   }
 
 

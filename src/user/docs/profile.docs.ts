@@ -1,5 +1,5 @@
 import { applyDecorators } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags, ApiBody } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { 
   ProfileResponseDto,
   UnauthorizedResponseDto,

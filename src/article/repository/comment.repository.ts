@@ -7,6 +7,7 @@ import * as schema from '@database/schema';
 import { InjectDrizzle } from '@/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { generateConsistentAnonymousName } from '../domain';
+import { AuthorDetails } from '@/types/community';
 
 @Injectable()
 export class CommentRepository {
@@ -33,13 +34,28 @@ export class CommentRepository {
   }
 
   async getCommentsByPostId(postId: string) {
-    return await this.db.select()
-      .from(comments)
-      .where(and(
-        eq(comments.postId, postId),
-        isNull(comments.deletedAt)
-      ))
-      .orderBy(comments.createdAt);
+    return await this.db.select({
+      id: comments.id,
+      postId: comments.postId,
+      content: comments.content,
+      emoji: comments.emoji,
+      anonymous: comments.anonymous,
+      createdAt: comments.createdAt,
+      updatedAt: comments.updatedAt,
+      author: {
+        id: schema.users.id,
+        email: schema.users.email,
+        name: schema.profiles.name,
+      },
+    })
+    .from(comments)
+    .leftJoin(schema.users, eq(comments.authorId, schema.users.id))
+    .leftJoin(schema.profiles, eq(schema.users.id, schema.profiles.userId))
+    .where(and(
+      eq(comments.postId, postId),
+      isNull(comments.deletedAt),
+    ))
+    .orderBy(comments.createdAt);
   }
 
   async updateComment(id: string, data: Partial<CommentUpload>) {
