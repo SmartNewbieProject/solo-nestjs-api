@@ -12,10 +12,10 @@ export class ArticleUpload {
   content: string;
 
   @ApiProperty({
-    description: '게시글 이모티콘',
-    example: '게시글 이모티콘'
+    description: '익명 처리 여부',
+    example: true
   })
-  @IsBoolean()
+  @IsBoolean({ message: '익명 처리 여부는 불리언 값이어야 합니다.' })
   anonymous: boolean;
 
   @ApiProperty({
