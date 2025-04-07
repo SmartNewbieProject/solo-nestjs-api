@@ -31,7 +31,7 @@ export default class ProfileController {
     return await this.profileService.getAllPreferences();
   }
   
-  @Post('nickname')
+  @Patch('nickname')
   @ProfileDocs.updateNickname()
   async updateNickname(@CurrentUser() user: AuthenticationUser, @Body() data: NameUpdated) {
     return {
