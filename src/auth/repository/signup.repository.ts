@@ -3,7 +3,7 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '@database/schema';
 import { users } from '@database/schema/users';
 import { profiles } from '@database/schema/profiles';
-import { eq } from 'drizzle-orm';
+import { and, eq, isNull } from 'drizzle-orm';
 import { InjectDrizzle } from '@common/decorators';
 import { generateUuidV7 } from '@database/schema/helper';
 import { Role } from '@/auth/domain/user-role.enum';
@@ -36,7 +36,7 @@ export class SignupRepository {
   async checkEmailExists(email: string): Promise<boolean> {
     const result = await this.db.select()
       .from(users)
-      .where(eq(users.email, email))
+      .where(and(eq(users.email, email), isNull(users.deletedAt)))
       .limit(1);
     
     return result.length > 0;
