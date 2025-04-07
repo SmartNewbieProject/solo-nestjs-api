@@ -1,12 +1,16 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { UniversityService } from '../services/university.service';
-import { CurrentUser, Public } from '../decorators';
+import { CurrentUser, Public, Roles } from '../decorators';
 import { UniversityRegister } from '../dto/university';
 import { AuthenticationUser } from '@/types';
 import { UniversityDocs } from '../docs/university.docs';
+import { Role } from '@/types/enum';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('universities')
 @UniversityDocs.controller()
+@ApiBearerAuth('access-token')
+@Roles(Role.USER, Role.ADMIN)
 export class UniversityController {
   constructor(private readonly universityService: UniversityService) {}
 

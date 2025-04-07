@@ -13,19 +13,10 @@ export default class UniversityRepository {
   ) {}
 
   async registerUniversity(userId: string, university: UniversityRegister) {
-    await this.db.transaction(async (tx) => {
-      await tx.insert(universityDetails)
-        .values({
-          id: generateUuidV7(),
-          userId,
-          universityName: university.universityName,
-          department: university.department,
-          authentication: false,
-          grade: university.grade,
-          studentNumber: university.studentNumber,
-        })
-        .execute();
-    });
+    this.db.update(universityDetails)
+    .set(university)
+    .where(eq(universityDetails.userId, userId))
+    .execute();
   }
 
   async removeUniversity(userId: string) {

@@ -43,27 +43,30 @@ export default class ProfileRepository {
   }
 
   async getProfileDetails(userId: string): Promise<ProfileRawDetails | null> {
-    const profile = await this.db.query.profiles.findFirst({
-      where: eq(schema.profiles.userId, userId),
-      with: {
-        universityDetail: true,
-      }
-    }).execute();
-    
-    if (!profile) return null;
-    
+    const profileResults = await this.db.select()
+    .from(schema.profiles)
+    .leftJoin(schema.universityDetails, eq(schema.universityDetails.userId, userId))
+    .where(eq(schema.profiles.userId, userId))
+    .execute();
+
+    if (profileResults.length === 0) return null;
+
+    const union = profileResults[0];
+
     try {
       const profileImages = await this.db.select()
         .from(schema.profileImages)
-        .where(and(eq(schema.profileImages.profileId, profile.id), isNull(schema.profileImages.deletedAt)))
+        .where(and(eq(schema.profileImages.profileId, union.profiles.id), isNull(schema.profileImages.deletedAt)))
         .innerJoin(schema.images, eq(schema.profileImages.imageId, schema.images.id))
         .execute();
+
+    
       return {
-        ...profile,
-        universityDetail: profile.universityDetail ? {
-          name: profile.universityDetail.universityName,
-          authentication: profile.universityDetail.authentication,
-          department: profile.universityDetail.department
+        ...union.profiles,
+        universityDetail: union.university_details ? {
+          name: union.university_details.universityName,
+          authentication: union.university_details.authentication,
+          department: union.university_details.department
         } : null,
         profileImages: profileImages.map(({ images: { s3Url }, profile_images: { imageOrder, isMain, id } }) => ({
           id,
@@ -74,11 +77,11 @@ export default class ProfileRepository {
       };
     } catch (error) {
       return {
-        ...profile,
-        universityDetail: profile.universityDetail ? {
-          name: profile.universityDetail.universityName,
-          authentication: profile.universityDetail.authentication,
-          department: profile.universityDetail.department
+        ...union.profiles,
+        universityDetail: union.university_details ? {
+          name: union.university_details.universityName,
+          authentication: union.university_details.authentication,
+          department: union.university_details.department
         } : null,
         profileImages: []
       };
