@@ -26,7 +26,7 @@ export class AuthRepository {
       gender: profiles.gender
     })
       .from(schema.profiles)
-      .where(eq(profiles.userId, userId))
+      .where(and(eq(profiles.userId, userId), isNull(profiles.deletedAt)))
       .limit(1);
 
       return result.length > 0 ? result[0] : null;
@@ -53,7 +53,8 @@ export class AuthRepository {
       .where(
         and(
           eq(users.id, userId),
-          eq(users.refreshToken, refreshToken)
+          eq(users.refreshToken, refreshToken),
+          isNull(users.deletedAt)
         )
       )
       .limit(1);
@@ -66,7 +67,8 @@ export class AuthRepository {
       .where(
         and(
           eq(users.id, userId),
-          eq(users.refreshToken, oldToken)
+          eq(users.refreshToken, oldToken),
+          isNull(users.deletedAt)
         )
       );
   }
@@ -77,7 +79,8 @@ export class AuthRepository {
       .where(
         and(
           eq(users.id, userId),
-          eq(users.refreshToken, refreshToken)
+          eq(users.refreshToken, refreshToken),
+          isNull(users.deletedAt)
         )
       );
   }

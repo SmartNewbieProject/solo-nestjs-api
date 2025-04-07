@@ -31,16 +31,14 @@ export class ProfileService {
     }
 
     const userPreferenceOptions = await this.profileRepository.getUserPreferenceOptions(userId);
-    // profileImages가 없는 경우 빈 배열로 처리
     const preferences = this.processPreferences(userPreferenceOptions);
-    const universityDetails = this.processUniversityDetails(profileDetails.universityDetail);
     
     return {
       name: profileDetails.name,
       age: profileDetails.age,
       gender: profileDetails.gender,
       profileImages: profileDetails.profileImages,
-      universityDetails,
+      universityDetails: profileDetails.universityDetail,
       preferences
     };
   }
@@ -115,11 +113,6 @@ export class ProfileService {
     return preferences.find(p => p.typeName === typeName) as Preference;
   }
   
-  /**
-   * 사용자 선호도 정보를 가공합니다.
-   * @param userPreferenceOptions 사용자 선호도 원본 데이터
-   * @returns 가공된 사용자 선호도 정보
-   */
   private processPreferences(userPreferenceOptions: any[]): PreferenceTypeGroup[] {
     const preferencesByType = new Map<string, PreferenceTypeGroup>();
     
@@ -146,16 +139,6 @@ export class ProfileService {
   async changeNickname(userId: string, nickname: string) {
     await this.profileRepository.updateNickname(userId, nickname);
     return nickname;
-  }
-
-  private processUniversityDetails(universityDetail: any): UniversityDetail | null {
-    if (!universityDetail) return null;
-    
-    return {
-      name: universityDetail.universityName,
-      authentication: universityDetail.authentication,
-      department: universityDetail.department
-    };
   }
 
 }

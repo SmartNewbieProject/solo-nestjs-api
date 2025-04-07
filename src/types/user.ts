@@ -45,6 +45,8 @@ export interface ProfileRawDetails {
     name: string;
     authentication: boolean;
     department: string;
+    grade: string;
+    studentNumber: string;
   } | null;
   profileImages: ProfileImage[];
 }

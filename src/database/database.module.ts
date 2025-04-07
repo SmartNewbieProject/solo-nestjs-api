@@ -23,7 +23,6 @@ import { DatabaseService } from './database.service';
 
         const logger = new Logger('SQL');
         
-        // SQL 쿼리 로깅을 위한 설정
         return drizzle(pool, { 
           schema, 
           casing: 'snake_case',

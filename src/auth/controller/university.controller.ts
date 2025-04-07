@@ -8,8 +8,8 @@ import { Role } from '@/types/enum';
 import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('universities')
-@UniversityDocs.controller()
 @ApiBearerAuth('access-token')
+@UniversityDocs.controller()
 export class UniversityController {
   constructor(private readonly universityService: UniversityService) {}
 
@@ -29,7 +29,7 @@ export class UniversityController {
 
   @UniversityDocs.registerUniversity()
   @Post()
-  @Roles(Role.USER, Role.ADMIN)
+  @Roles(Role.USER)
   async registerUniversity(@CurrentUser() user: AuthenticationUser, @Body() university: UniversityRegister) {
     return await this.universityService.registerUniversity(user.id, university);
   }

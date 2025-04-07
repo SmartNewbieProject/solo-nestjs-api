@@ -44,16 +44,15 @@ export default class ProfileRepository {
 
   async getProfileDetails(userId: string): Promise<ProfileRawDetails | null> {
     const profileResults = await this.db.select()
-    .from(schema.profiles)
-    .leftJoin(schema.universityDetails, eq(schema.universityDetails.userId, userId))
-    .where(eq(schema.profiles.userId, userId))
-    .execute();
+      .from(schema.profiles)
+      .leftJoin(schema.universityDetails, eq(schema.universityDetails.userId, userId))
+      .where(eq(schema.profiles.userId, userId))
+      .execute();
 
     if (profileResults.length === 0) return null;
 
     const union = profileResults[0];
-
-    try {
+    console.log(union)
       const profileImages = await this.db.select()
         .from(schema.profileImages)
         .where(and(eq(schema.profileImages.profileId, union.profiles.id), isNull(schema.profileImages.deletedAt)))
@@ -66,7 +65,9 @@ export default class ProfileRepository {
         universityDetail: union.university_details ? {
           name: union.university_details.universityName,
           authentication: union.university_details.authentication,
-          department: union.university_details.department
+          department: union.university_details.department,
+          grade: union.university_details.grade,
+          studentNumber: union.university_details.studentNumber,
         } : null,
         profileImages: profileImages.map(({ images: { s3Url }, profile_images: { imageOrder, isMain, id } }) => ({
           id,
@@ -75,17 +76,6 @@ export default class ProfileRepository {
           url: s3Url,
         }))
       };
-    } catch (error) {
-      return {
-        ...union.profiles,
-        universityDetail: union.university_details ? {
-          name: union.university_details.universityName,
-          authentication: union.university_details.authentication,
-          department: union.university_details.department
-        } : null,
-        profileImages: []
-      };
-    }
   }
 
   async getPreferenceTypeByName(typeName: string) {
