@@ -26,6 +26,7 @@ export class ArticleService {
         id: article.author.id,
         name: article.anonymous ? article.anonymous : article.author.name,
       },
+      likeCount: article.likes.length,
       comments: article.comments.map(comment => ({
         id: comment.id,
         content: comment.content,
@@ -89,13 +90,7 @@ export class ArticleService {
     return deletedArticle;
   }
 
-  async updateLikeCount(id: string, userId: string, likeData: LikeArticle) {
-    const article = await this.articleRepository.getArticleById(id);
-    if (!article) {
-      throw new NotFoundException('게시글을 찾을 수 없습니다.');
-    }
-
-    const updatedArticle = await this.articleRepository.updateLikeCount(id, likeData.like);
-    return updatedArticle;
+  async updateLikeCount(id: string, userId: string) {
+    await this.likeRepository.like(userId, id);
   }
 }

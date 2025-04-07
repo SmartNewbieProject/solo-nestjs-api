@@ -41,6 +41,12 @@ export class ArticleRepository {
             name: true,
           },
         },
+        likes: {
+          columns: {
+            id: true,
+          },
+          where: ({ up }) => eq(up, true)
+        }
       },
       where: ({ deletedAt }) => isNull(deletedAt),
       limit,
@@ -88,23 +94,6 @@ export class ArticleRepository {
       .set({
         content: data.content,
         emoji: data.emoji,
-        updatedAt: new Date(),
-      })
-      .where(and(
-        eq(articles.id, id),
-        isNull(articles.deletedAt)
-      ))
-      .returning();
-    
-    return result.length > 0 ? result[0] : null;
-  }
-
-  async updateLikeCount(id: string, increment: boolean) {
-    const result = await this.db.update(articles)
-      .set({
-        likeCount: increment
-          ? sql`${articles.likeCount} + 1` 
-          : sql`GREATEST(${articles.likeCount} - 1, 0)`,
         updatedAt: new Date(),
       })
       .where(and(

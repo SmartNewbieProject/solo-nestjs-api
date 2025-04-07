@@ -64,9 +64,8 @@ export class ArticleController {
   @ApiResponse(likeArticleApiResponse)
   async likeArticle(
     @Param('id') id: string,
-    @Body() likeData: LikeArticle,
     @CurrentUser() user: AuthenticationUser
   ) {
-    return await this.articleService.updateLikeCount(id, user.id, likeData);
+    return await this.articleService.updateLikeCount(id, user.id);
   }
 }

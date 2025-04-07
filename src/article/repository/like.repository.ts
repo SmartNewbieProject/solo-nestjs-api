@@ -10,25 +10,38 @@ import { and, eq, sql } from 'drizzle-orm';
 export class LikeRepository {
   constructor(@InjectDrizzle() private readonly db: NodePgDatabase<typeof schema>) {}
 
-  async createLike(userId: string, articleId: string) {
-    const result = await this.db.insert(likes).values({
-      id: generateUuidV7(),
-      userId,
-      articleId,
-    }).returning();
+  async like(userId: string, articleId: string) {
+    const existsLike = await this.db.select()
+    .from(likes)
+    .where(and(
+      eq(likes.userId, userId),
+      eq(likes.articleId, articleId)
+    ))
+    .limit(1)
+    .then(result => {
+      if (result.length === 0) {
+        return null;
+      }
+      return result[0];
+    });
 
-    return result[0];
-  }
+    if (!existsLike) {
+      await this.db.insert(likes).values({
+        id: generateUuidV7(),
+        userId,
+        articleId,
+        up: true,
+      }).execute();
+      return;
+    }
 
-  async removeLike(userId: string, articleId: string) {
-    const result = await this.db.delete(likes)
+    await this.db.update(likes)
+      .set({ up: !existsLike.up })
       .where(and(
         eq(likes.userId, userId),
         eq(likes.articleId, articleId)
       ))
-      .returning();
-    
-    return result.length > 0;
+      .execute();
   }
 
   async hasUserLikedArticle(userId: string, articleId: string) {
@@ -36,7 +49,8 @@ export class LikeRepository {
       .from(likes)
       .where(and(
         eq(likes.userId, userId),
-        eq(likes.articleId, articleId)
+        eq(likes.articleId, articleId),
+        eq(likes.up, true),
       ));
     
     return result.length > 0;
@@ -49,6 +63,7 @@ export class LikeRepository {
       .from(likes)
       .where(and(
         eq(likes.userId, userId),
+        eq(likes.up, true),
         sql`${likes.articleId} IN (${sql.join(articleIds, sql`, `)})`
       ));
     
