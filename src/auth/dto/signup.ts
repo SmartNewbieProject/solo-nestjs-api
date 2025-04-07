@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsNumber, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsNumber, IsString, Matches, MaxLength, MinLength, Min, Max } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { Gender } from '@/types/enum';
@@ -34,10 +34,14 @@ export class SignupRequest {
 
   @ApiProperty({
     example: 25,
-    description: '사용자 나이',
+    description: '사용자 나이 (19-27세)',
+    minimum: 19,
+    maximum: 27
   })
   @IsNumber({}, { message: '나이는 숫자로 입력해주세요.' })
   @IsNotEmpty({ message: '나이는 필수 입력 항목입니다.' })
+  @Min(19, { message: '19세 이상만 가입이 가능합니다.' })
+  @Max(27, { message: '27세 이하만 가입이 가능합니다.' })
   age: number;
 
   @ApiProperty({
