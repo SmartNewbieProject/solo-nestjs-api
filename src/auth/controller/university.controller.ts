@@ -10,7 +10,6 @@ import { ApiBearerAuth } from '@nestjs/swagger';
 @Controller('universities')
 @UniversityDocs.controller()
 @ApiBearerAuth('access-token')
-@Roles(Role.USER, Role.ADMIN)
 export class UniversityController {
   constructor(private readonly universityService: UniversityService) {}
 
@@ -30,6 +29,7 @@ export class UniversityController {
 
   @UniversityDocs.registerUniversity()
   @Post()
+  @Roles(Role.USER, Role.ADMIN)
   async registerUniversity(@CurrentUser() user: AuthenticationUser, @Body() university: UniversityRegister) {
     return await this.universityService.registerUniversity(user.id, university);
   }
