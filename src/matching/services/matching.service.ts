@@ -3,6 +3,7 @@ import { ProfileEmbeddingService } from '@/embedding/profile-embedding.service';
 import matchingPreferenceWeighter from '../domain/matching-preference-weighter';
 import { ProfileService } from '@/user/services/profile.service';
 import { UserPreferenceSummary, Similarity } from '@/types/match';
+import MatchRepository from '../repository/match.repository';
 
 export interface MatchingWeights {
   age: number;
@@ -39,6 +40,7 @@ export class MatchingService {
   constructor(
     private readonly profileEmbeddingService: ProfileEmbeddingService,
     private readonly profileService: ProfileService,
+    private readonly matchRepository: MatchRepository,  
   ) {}
 
   /**
@@ -63,6 +65,10 @@ export class MatchingService {
     const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3);
 
     return similarProfiles;
+  }
+
+  getLatestPartner(userId: string) {
+    return this.matchRepository.findLatestPartner(userId);
   }
   
   private async getUserPreferenceSummary(userId: string): Promise<UserPreferenceSummary> {
