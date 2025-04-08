@@ -69,6 +69,8 @@ export interface UniversityDetail {
   name: string;
   authentication: boolean;
   department: string;
+  grade: string;
+  studentNumber: string;
 }
 
 export interface UserProfile {

@@ -6,6 +6,7 @@ import { generateUuidV7 } from "@database/schema/helper";
 import { MatchType } from "@database/schema/matches";
 import { eq, isNull, isNotNull, and, sql } from "drizzle-orm";
 import { Gender } from "@/types/enum";
+import { PreferenceTypeGroup } from "@/types/user";
 
 @Injectable()
 export default class MatchRepository {
@@ -85,11 +86,14 @@ export default class MatchRepository {
       });
 
       const preferences = (() => {
-        const results = [] as { type: string, options: { id: string, name: string }[] }[];
+        const results = [] as PreferenceTypeGroup[];
         for (const [key, value] of preferenceMap.entries()) {
           results.push({
-            type: key,
-            options: value,
+            typeName: key,
+            selectedOptions: value.map(v => ({
+              id: v.id,
+              displayName: v.name,
+            })),
           });
         }
         return results;

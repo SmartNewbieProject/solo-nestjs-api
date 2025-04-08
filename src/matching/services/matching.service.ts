@@ -2,8 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ProfileEmbeddingService } from '@/embedding/profile-embedding.service';
 import matchingPreferenceWeighter from '../domain/matching-preference-weighter';
 import { ProfileService } from '@/user/services/profile.service';
-import { UserPreferenceSummary, Similarity } from '@/types/match';
+import { UserPreferenceSummary, Similarity, PartnerDetails } from '@/types/match';
 import MatchRepository from '../repository/match.repository';
+import { UniversityDetail } from '@/types/user';
 
 export interface MatchingWeights {
   age: number;
@@ -67,8 +68,22 @@ export class MatchingService {
     return similarProfiles;
   }
 
-  getLatestPartner(userId: string) {
-    return this.matchRepository.findLatestPartner(userId);
+  async getLatestPartner(userId: string): Promise<PartnerDetails | null> {
+    const partner = await this.matchRepository.findLatestPartner(userId);
+
+    if (!partner) {
+      return null;
+    }
+
+    return {
+      ...partner,
+      university: partner.university ? {
+        department: partner.university.department,
+        name: partner.university.universityName,
+        grade: partner.university.grade,
+        studentNumber: partner.university.studentNumber,
+      } : null,
+    }
   }
   
   private async getUserPreferenceSummary(userId: string): Promise<UserPreferenceSummary> {

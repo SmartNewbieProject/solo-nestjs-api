@@ -1,4 +1,5 @@
 import { Gender } from "./enum";
+import { PreferenceTypeGroup } from "./user";
 
 export type UserPreferenceSummary = {
   id: string;
@@ -37,4 +38,18 @@ export type UnmatchedUser = {
   name: string;
   age: number;
   gender: Gender;
+}
+
+export type PartnerDetails = {
+  id: string;
+  name: string;
+  age: number;
+  gender: Gender;
+  university: {
+    department: string;
+    name: string;
+    grade: string;
+    studentNumber: string;
+  } | null;
+  preferences: PreferenceTypeGroup[];
 }
