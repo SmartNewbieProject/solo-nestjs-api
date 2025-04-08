@@ -18,7 +18,7 @@ export class PaymentController {
   @Post('history')
   async history(@CurrentUser() user: AuthenticationUser, @Body() payBeforeHistory: PaymentBeforeHistory) {
     return this.payService.createHistory({
-      userId: user.id,
+      userId: user.id, 
       ...payBeforeHistory
     });
   }

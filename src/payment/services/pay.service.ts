@@ -25,7 +25,8 @@ export default class PayService {
     return await axiosHandler(async () => {
       await tossPayment.confirm(payment, this.clientKey);
     }, (error) => {
-      const errorBody = JSON.parse(error.response?.data as string);
+      console.log(error);
+      const errorBody = JSON.parse((error.response?.data as any).message as string);
       throw new HttpException(errorBody, error.response?.status || HttpStatus.INTERNAL_SERVER_ERROR);
     });
   }
