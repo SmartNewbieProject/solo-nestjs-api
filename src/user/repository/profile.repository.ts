@@ -52,7 +52,6 @@ export default class ProfileRepository {
     if (profileResults.length === 0) return null;
 
     const union = profileResults[0];
-    console.log(union)
       const profileImages = await this.db.select()
         .from(schema.profileImages)
         .where(and(eq(schema.profileImages.profileId, union.profiles.id), isNull(schema.profileImages.deletedAt)))
