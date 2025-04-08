@@ -46,6 +46,7 @@ export class QdrantService implements OnModuleInit {
       this.client = new QdrantClient({
         url,
         timeout: 10000, // 10초 타임아웃 설정
+        apiKey,
       });
 
       this.logger.log('Qdrant 클라이언트 인스턴스 생성 완료');
