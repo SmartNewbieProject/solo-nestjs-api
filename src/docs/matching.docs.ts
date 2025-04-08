@@ -43,19 +43,32 @@ export class UniversityInfo {
   studentNumber: string;
 }
 
+export class PreferenceOption {
+  @ApiProperty({
+    description: '선호도 옵션 ID',
+    example: '01HNGW1234567890ABCDEF001'
+  })
+  id: string;
+
+  @ApiProperty({
+    description: '선호도 옵션 표시 이름',
+    example: '군필'
+  })
+  displayName: string;
+}
+
 export class PreferenceTypeGroup {
   @ApiProperty({
     description: '선호도 타입 이름',
-    example: 'PERSONALITY'
+    example: '군필 여부'
   })
   typeName: string;
 
   @ApiProperty({
-    description: '선호도 옵션들',
-    type: [String],
-    example: ['활발한', '차분한']
+    description: '선택된 선호도 옵션들',
+    type: [PreferenceOption]
   })
-  options: string[];
+  selectedOptions: PreferenceOption[];
 }
 
 export class PartnerResponse {
@@ -67,40 +80,81 @@ export class PartnerResponse {
       id: {
         type: 'string',
         description: '파트너 ID',
-        example: 'partner-id-1'
+        example: 'd88723de-4658-41d9-8b04-26eded1d26e1'
       },
       name: {
         type: 'string',
         description: '파트너 이름',
-        example: '홍길동'
+        example: '임도아'
       },
       age: {
         type: 'number',
         description: '파트너 나이',
-        example: 25
+        example: 34
       },
       gender: {
         type: 'string',
         enum: Object.values(Gender),
         description: '파트너 성별',
-        example: Gender.MALE
+        example: Gender.FEMALE
       },
       university: {
-        type: UniversityInfo,
+        type: 'object',
         description: '대학교 정보',
-        nullable: true
+        nullable: true,
+        properties: {
+          department: {
+            type: 'string',
+            description: '학과명'
+          },
+          name: {
+            type: 'string',
+            description: '대학교명'
+          },
+          grade: {
+            type: 'string',
+            description: '학년'
+          },
+          studentNumber: {
+            type: 'string',
+            description: '학번'
+          }
+        }
       },
       preferences: {
         type: [PreferenceTypeGroup],
         description: '선호도 정보 목록',
         example: [
           {
-            typeName: 'PERSONALITY',
-            options: ['활발한', '차분한']
+            typeName: '군필 여부',
+            selectedOptions: [
+              {
+                id: '01HNGW1234567890ABCDEF001',
+                displayName: '군필'
+              }
+            ]
           },
           {
-            typeName: 'INTEREST',
-            options: ['영화', '음악', '여행']
+            typeName: '음주 선호도',
+            selectedOptions: [
+              {
+                id: 'b2f06b1f-8111-467a-a4e9-514897152aa9',
+                displayName: '전혀 안 마시는 사람이면 좋겠음'
+              }
+            ]
+          },
+          {
+            typeName: '관심사',
+            selectedOptions: [
+              {
+                id: 'e0d5555f-35b8-45d1-ba34-8ac103c0535d',
+                displayName: '반려동물'
+              },
+              {
+                id: '0a7feaae-48f6-4a16-846d-a99079f4fba8',
+                displayName: '카페'
+              }
+            ]
           }
         ]
       }
