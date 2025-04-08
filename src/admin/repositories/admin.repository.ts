@@ -26,12 +26,6 @@ export class AdminRepository {
       with: {
         profile: {
           with: {
-            profileImages: {
-              with: {
-                image: true,
-              },
-              where: (profileImages, { isNull }) => isNull(profileImages.deletedAt),
-            },
             universityDetail: true,
           },
         },
