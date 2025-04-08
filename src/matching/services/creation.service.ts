@@ -8,8 +8,8 @@ import { MatchType } from "@/database/schema/matches";
 import { Cron } from "@nestjs/schedule";
 
 enum CronFrequency {
-  // MATCHING_DAY = '0 0 * * 2,4',
-  MATCHING_DAY = '*/1 * * * *',
+  MATCHING_DAY = '0 0 * * 2,4',
+  // MATCHING_DAY = '*/1 * * * *',
 }
 
 @Injectable()
@@ -22,20 +22,25 @@ export default class MatchingCreationService {
   ) {}
 
 
-  @Cron(CronFrequency.MATCHING_DAY)
-  processMatchCentral() {
-    this.findAllMatchingUsers();
+  // @Cron(CronFrequency.MATCHING_DAY)
+  async processMatchCentral() {
+    const userIds = await this.findAllMatchingUsers();
+    await this.batch(userIds);
   }
 
   async createPartner(userId: string, type: MatchType) {
-    const partners = await this.matchingService.findMatches(userId, 30);
+    const partners = await this.matchingService.findMatches(userId, 10);
+    if (partners.length === 0) {
+      this.logger.debug(`대상 ID: ${userId}, 파트너 ID: 없음, 유사도: 0`);
+      return;
+    }
     const partner = this.getOnePartner(partners);
     this.logger.debug(`대상 ID: ${userId}, 파트너 ID: ${partner.userId}, 유사도: ${partner.similarity}`);
     await this.createMatch(userId, partner, type);
   }
 
   private async createMatch(userId: string, partner: Similarity, type: MatchType) {
-    const publishedDate = weekDateService.createPublishDate(new Date());
+    const publishedDate = weekDateService.createPublishDate(weekDateService.createDayjs());
     await this.matchRepository.createMatch(
       userId,
       partner.userId,
@@ -49,15 +54,16 @@ export default class MatchingCreationService {
     return choiceRandom(partners);
   }
 
-  private async findAllMatchingUsers() {
+  findAllMatchingUsers() {
+    return this.matchRepository.findAllMatchingUsers();
+  }
+
+  async batch(userIds: string[]) {
     const BATCH_SIZE = 100;  // 배치 크기
-    const DELAY_MS = 1000;   // 배치간 지연시간 (1초)
-    
-    const users = await this.matchRepository.findAllMatchingUsers();
-    
+    const DELAY_MS = 3000;   // 배치간 지연시간 (1초)
     // 배치 단위로 분할
-    for (let i = 0; i < users.length; i += BATCH_SIZE) {
-      const userBatch = users.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < userIds.length; i += BATCH_SIZE) {
+      const userBatch = userIds.slice(i, i + BATCH_SIZE);
       
       // 현재 배치 처리
       const matchingFns = userBatch.map(async (userId) => {
@@ -68,7 +74,7 @@ export default class MatchingCreationService {
       await Promise.allSettled(matchingFns);
       
       // 마지막 배치가 아니면 지연 추가
-      if (i + BATCH_SIZE < users.length) {
+      if (i + BATCH_SIZE < userIds.length) {
         await new Promise(resolve => setTimeout(resolve, DELAY_MS));
       }
     }
