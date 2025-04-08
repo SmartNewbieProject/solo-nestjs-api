@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ProfileEmbeddingService } from '@/embedding/profile-embedding.service';
 import matchingPreferenceWeighter from '../domain/matching-preference-weighter';
 import { ProfileService } from '@/user/services/profile.service';
-import { UserPreferenceSummary } from '@/types/match';
+import { UserPreferenceSummary, Similarity } from '@/types/match';
 
 export interface MatchingWeights {
   age: number;
@@ -51,7 +51,7 @@ export class MatchingService {
     userId: string, 
     limit: number = 10,
     weights?: Partial<MatchingWeights>
-  ) {
+  ): Promise<Similarity[]> {
     const { getWeights } = matchingPreferenceWeighter;
     const finalWeights: MatchingWeights = getWeights(weights);
       

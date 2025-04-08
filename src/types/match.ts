@@ -25,3 +25,9 @@ export type UserVectorPayload = {
     }[];
   }
 }
+
+
+export type Similarity = {
+  userId: string;
+  similarity: number;
+};

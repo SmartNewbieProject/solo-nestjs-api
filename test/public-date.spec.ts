@@ -1,5 +1,5 @@
-import dayjs from 'dayjs';
-import 'dayjs/locale/ko';
+import weekDateService from '@/matching/domain/date';
+import * as dayjs from 'dayjs';
 
 // 한국어 로케일 설정
 dayjs.locale('ko');
@@ -18,5 +18,10 @@ describe('날짜 공개 객체 테스트', () => {
 
     expect(weekStart.format('YYYY-MM-DD')).toBe('2024-04-07'); // 일요일
     expect(weekEnd.format('YYYY-MM-DD')).toBe('2024-04-13'); // 토요일
+  });
+
+  test('week 서비스 출력 테스트', () => {
+    const weekDates = weekDateService.getWeekDates();
+    console.log(weekDates);
   });
 });
