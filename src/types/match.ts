@@ -31,3 +31,10 @@ export type Similarity = {
   userId: string;
   similarity: number;
 };
+
+export type UnmatchedUser = {
+  id: string;
+  name: string;
+  age: number;
+  gender: Gender;
+}

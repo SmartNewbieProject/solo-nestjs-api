@@ -1,6 +1,6 @@
+import { BadRequestException } from '@nestjs/common';
 import * as dayjs from 'dayjs';
 import 'dayjs/locale/ko';
-
 dayjs.locale('ko');
 
 export type WeekDates = {
@@ -10,8 +10,10 @@ export type WeekDates = {
   thursday: Date;
 }
 
+const createDayjs = () => dayjs();
+
 const getWeekDates = (): WeekDates => {
-  const date = dayjs();
+  const date = createDayjs();
   const start = date.startOf('week').add(2, 'day');
   const end = date.endOf('week');
 
@@ -53,12 +55,29 @@ const isPublishDay = (date: Date) => {
   return false;
 };
 
-const createPublishDate = (date: Date) => {
-  const d = dayjs(date);
-  d.set('hour', 21);
-  d.set('minute', 0);
-  d.set('second', 0);
-  d.set('millisecond', 0);
+const getCheckedDates = () => {
+  const d = dayjs();
+  const { tuesday, thursday, end } = getWeekDates();
+
+  if (d.isBefore(tuesday)) {
+    throw new BadRequestException('금주 매칭 이벤트 이전입니다.');
+  }
+
+  if ((d.isSame(d) || d.isAfter(d)) && d.isBefore(thursday)) {
+    return { start: tuesday, end: thursday };
+  }
+
+  return { start: thursday, end };
+};
+
+const createPublishDate = (date: dayjs.Dayjs) => {
+  console.log(date.format('YYYY-MM-DD HH:mm:ss'));
+  const d = date
+  .set('hour', 21)
+  .set('minute', 0)
+  .set('second', 0)
+  .set('millisecond', 0);
+  console.log(d.format('YYYY-MM-DD HH:mm:ss'));
   return d.toDate();
 }
 
@@ -66,6 +85,8 @@ const weekDateService = {
   getWeekDates,
   isPublishDay,
   createPublishDate,
+  createDayjs,
+  getCheckedDates,
 };
 
 export default weekDateService;

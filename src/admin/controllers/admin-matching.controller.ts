@@ -1,11 +1,10 @@
-import { Body, Controller, Post } from '@nestjs/common';
-import { MatchingService } from '../../matching/services/matching.service';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { Roles } from '@/auth/decorators';
 import { Role } from '@/auth/domain/user-role.enum';
-import { AdminMatchRequest } from '../../matching/dto/matching';
-
-import { ApiProperty, ApiResponse, ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
-import { ProfileService } from '@/user/services/profile.service';
+import { AdminMatchRequest, AdminMatchSingleRequest } from '@/matching/dto/matching';
+import { ApiProperty, ApiResponse, ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
+import AdminMatchService from '../services/match.service';
+import MatchingCreationService from '@/matching/services/creation.service';
 
 export class MatchResult {
   @ApiProperty({ description: '사용자 ID' })
@@ -31,18 +30,40 @@ export class MatchResult {
 @ApiTags('어드민')
 @ApiBearerAuth('access-token')
 export class AdminMatchingController {
-  constructor(private readonly matchingService: MatchingService, private readonly profileService: ProfileService) {}
+  constructor(
+    private readonly adminMatchService: AdminMatchService,
+    private readonly matchingCreationService: MatchingCreationService,
+  ) {}
 
   @Post('/user/read')
   @ApiOperation({ summary: '어드민 - 사용자 매칭 결과만 보기', description: '특정 사용자의 매칭을 수행해서 결과만 조회합니다. (실제로 매칭이 수행되지않습니다.)' })
   @ApiResponse({ status: 200, description: '특정 사용자의 매칭을 수행해서 결과만 조회합니다. (실제로 매칭이 수행되지않습니다.)' })
-  async findMatches(
-    @Body() matchingRequest: AdminMatchRequest,
-  ) {
-    const similarUsers = await this.matchingService.findMatches(matchingRequest.userId, matchingRequest.limit);
-    const ids = similarUsers.map(user => user.userId);
-    const profiles = await this.profileService.getProfilesByIds(ids);
-    return { profiles, similarUsers };
+  async findMatches(@Body() matchingRequest: AdminMatchRequest) {
+    return this.adminMatchService.findMatches(matchingRequest);
   }
 
+  @Get('/unmatched-users')
+  @ApiOperation({ summary: '어드민 - 매칭되지 않은 사용자 조회', description: '매칭되지 않은 사용자를 조회합니다.' })
+  @ApiQuery({ name: 'page', type: Number, required: true, description: '페이지 번호', example: 1 })
+  @ApiQuery({ name: 'limit', type: Number, required: false, description: '페이지 당 항목 수', example: 10 })
+  @ApiResponse({ status: 200, description: '매칭되지 않은 사용자를 조회합니다.' })
+  async getUnmatchedUsers(
+    @Query('page') page: number = 1,
+    @Query('limit') limit: number = 10,
+  ) { 
+    return this.adminMatchService.getUnmatchedUsers({ page, limit });
+  }
+
+  @Post('batch')
+  @Roles(Role.ADMIN)
+  async processMatchingBatch() {
+    await this.matchingCreationService.processMatchCentral();
+  }
+
+  @ApiOperation({ summary: '어드민 매칭 처리 (단일)' })
+  @Post('user')
+  @Roles(Role.ADMIN)
+  async processMatchingSingle(@Body() request: AdminMatchSingleRequest) {
+    await this.matchingCreationService.createPartner(request.userId, 'admin');
+  }
 }

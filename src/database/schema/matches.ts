@@ -11,6 +11,6 @@ export const matches = pgTable('matches', {
   matcherId: varchar('matcher_id', { length: 128 }).references(() => users.id),
   score: decimal('score', { precision: 8, scale: 2 }).notNull(),
   publishedAt: timestamp('published_at', { withTimezone: true }),
-  type: matchTypeEnum('type').notNull(),
+  type: varchar('type', { length: 30 }).notNull(),
   ...timestamps,
 });

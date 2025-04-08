@@ -10,6 +10,8 @@ import UserMatchingController from './controllers/matching.controller';
 import MatchingCreationService from './services/creation.service';
 import MatchRepository from './repository/match.repository';
 import { ScheduleModule } from '@nestjs/schedule';
+import AdminMatchRepository from '@/admin/repositories/match.repository';
+import AdminMatchService from '@/admin/services/match.service';
 
 @Module({
   imports: [
@@ -18,8 +20,16 @@ import { ScheduleModule } from '@nestjs/schedule';
     QdrantModule,
     ScheduleModule.forRoot(),
   ],
-  providers: [MatchingService, ProfileRepository, ProfileService, MatchingCreationService, MatchRepository],
+  providers: [
+    MatchingService, 
+    ProfileRepository,
+    ProfileService,
+    MatchingCreationService,
+    MatchRepository,
+    AdminMatchRepository,
+    AdminMatchService,
+  ],
   controllers: [AdminMatchingController, UserMatchingController],
-  exports: [MatchingService],
+  exports: [MatchingService, MatchingCreationService],
 })
 export class MatchingModule {}

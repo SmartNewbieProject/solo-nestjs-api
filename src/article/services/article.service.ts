@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/commo
 import { ArticleRepository } from '../repository/article.repository';
 import { ArticleUpload, LikeArticle } from '../dto';
 import { LikeRepository } from '../repository/like.repository';
+import { PaginatedResponse } from '@/types/common';
 
 @Injectable()
 export class ArticleService {
@@ -14,7 +15,7 @@ export class ArticleService {
     return await this.articleRepository.createArticle(userId, articleData);
   }
 
-  async getArticles(page: number = 1, limit: number = 10, userId: string) {
+  async getArticles(page: number = 1, limit: number = 10, userId: string): Promise<PaginatedResponse<any>> {
     const offset = (page - 1) * limit;
     const articles = await this.articleRepository.getArticles(limit, offset);
     
@@ -38,16 +39,16 @@ export class ArticleService {
       isLiked: !!likedMap[article.id]
     }));
       
-      return {
-        items: articlesWithLikedInfo,
-        meta: {
-          currentPage: page,
-          itemsPerPage: limit,
-          totalItems: articles.length,
-          hasNextPage: articles.length === limit,
-          hasPreviousPage: page > 1
-        }
-      };
+    return {
+      items: articlesWithLikedInfo,
+      meta: {
+        currentPage: page,
+        itemsPerPage: limit,
+        totalItems: articles.length,
+        hasNextPage: articles.length === limit,
+        hasPreviousPage: page > 1
+      }
+    };
   }
 
   async getArticleById(id: string, userId: string) {

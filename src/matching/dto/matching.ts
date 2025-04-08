@@ -10,3 +10,9 @@ export class AdminMatchRequest {
   @IsNumber()
   limit: number;
 }
+
+export class AdminMatchSingleRequest {
+  @ApiProperty({ description: '사용자 ID' })
+  @IsString()
+  userId: string;
+}

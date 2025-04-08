@@ -7,17 +7,20 @@ import * as bcrypt from 'bcryptjs';
 import { Pool, PoolClient } from 'pg';
 import { Gender } from '@/types/enum';
 
-const PREFERENCE_TYPE_IDS = {
-  PERSONALITY: 'ed4a1fa2-8f26-4862-8567-878a069ee524',
-  DATING_STYLE: 'c7134ea1-f6d9-428c-a671-311169517efb',
-  LIFESTYLE: 'ced223ca-9f2b-42a2-a028-21094843c117',
-  DRINKING: '1142e39c-4937-400f-b964-c75e050beb69',
-  SMOKING: '02fe95c2-467d-4a2d-ae51-c6efb4f42c72',
-  TATTOO: '2b7273c5-62bd-49a5-9474-cf7ccf9e8850',
-  INTEREST: '4cb7f832-9bbf-42d7-bf39-b1f21f8a8095',
-  MBTI: 'f6cdb5ea-f141-443e-9e49-64a76bca7c35',
-  AGE_PREFERENCE: '7cde7b8a-1de8-48f2-abdc-1ce3b3043867'
-};
+// code로 변경하고 이름을 더 명확하게 수정
+const PREFERENCE_TYPE_CODES = {
+  PERSONALITY: 'PERSONALITY',
+  DATING_STYLE: 'DATING_STYLE',
+  LIFESTYLE: 'LIFESTYLE',
+  DRINKING: 'DRINKING',
+  SMOKING: 'SMOKING',
+  TATTOO: 'TATTOO',
+  INTEREST: 'INTEREST',
+  MBTI: 'MBTI',
+  AGE_PREFERENCE: 'AGE_PREFERENCE',
+  MILITARY_STATUS_MALE: 'MILITARY_STATUS_MALE',
+  MILITARY_PREFERENCE_FEMALE: 'MILITARY_PREFERENCE_FEMALE'
+} as const;
 
 @Injectable()
 export class UserSeeder {
@@ -49,21 +52,35 @@ export class UserSeeder {
     const allPreferenceTypes = await db.select().from(preferenceTypes);
     const allPreferenceOptions = await db.select().from(preferenceOptions);
     
-    // 선호도 타입별 옵션 매핑
+    // code로 선호도 타입 매핑
+    const preferenceTypesByCode = allPreferenceTypes.reduce<Record<string, typeof allPreferenceTypes[number]>>(
+      (acc, type) => {
+        acc[type.code] = type;
+        return acc;
+      }, 
+      {}
+    );
+    
+    // 선호도 타입별 옵션 매핑 부분 수정
     type PreferenceOption = typeof allPreferenceOptions[number];
     const preferenceOptionsByType = allPreferenceOptions.reduce<Record<string, PreferenceOption[]>>((acc, option) => {
-      const typeId = option.preferenceTypeId as string;
-      if (!acc[typeId]) {
-        acc[typeId] = [];
+      // preferenceType의 code로 매핑하도록 변경
+      const preferenceType = allPreferenceTypes.find(type => type.id === option.preferenceTypeId);
+      if (preferenceType) {
+        if (!acc[preferenceType.code]) {
+          acc[preferenceType.code] = [];
+        }
+        acc[preferenceType.code].push(option);
       }
-      acc[typeId].push(option);
       return acc;
     }, {});
     
-    // 각 선호도 타입별 옵션이 있는지 확인
-    for (const typeId of Object.values(PREFERENCE_TYPE_IDS)) {
-      if (!preferenceOptionsByType[typeId] || preferenceOptionsByType[typeId].length === 0) {
-        console.log(`경고: ${typeId} 타입에 대한 옵션이 없습니다.`);
+    // 각 선호도 타입별 옵션이 있는지 확인 (디버깅용)
+    for (const typeCode of Object.values(PREFERENCE_TYPE_CODES)) {
+      if (!preferenceOptionsByType[typeCode] || preferenceOptionsByType[typeCode].length === 0) {
+        console.log(`경고: ${typeCode} 코드에 대한 옵션이 없습니다.`);
+      } else {
+        console.log(`${typeCode} 코드에 대한 옵션 수: ${preferenceOptionsByType[typeCode].length}`);
       }
     }
     
@@ -136,33 +153,28 @@ export class UserSeeder {
           
           // 선호도 옵션 생성
           for (const preferenceType of allPreferenceTypes) {
-            // 해당 선호도 타입에 맞는 옵션 필터링
-            const typeOptions = allPreferenceOptions.filter(
-              option => option.preferenceTypeId === preferenceType.id
-            );
+            // typeId 대신 code로 옵션을 찾도록 수정
+            const typeOptions = preferenceOptionsByType[preferenceType.code] || [];
             
             if (typeOptions.length > 0) {
-              // 특정 typeId에 대해서는 무조건 1개만 선택
-              const singleOptionTypeIds = [
-                PREFERENCE_TYPE_IDS.DRINKING,   // 음주
-                PREFERENCE_TYPE_IDS.SMOKING,   // 흡연
-                PREFERENCE_TYPE_IDS.TATTOO,    // 문신
-                PREFERENCE_TYPE_IDS.MBTI,      // MBTI
-                PREFERENCE_TYPE_IDS.AGE_PREFERENCE // 선호 나이대
+              const singleOptionTypeCodes = [
+                PREFERENCE_TYPE_CODES.DRINKING,
+                PREFERENCE_TYPE_CODES.SMOKING,
+                PREFERENCE_TYPE_CODES.TATTOO,
+                PREFERENCE_TYPE_CODES.MBTI,
+                PREFERENCE_TYPE_CODES.AGE_PREFERENCE,
+                PREFERENCE_TYPE_CODES.MILITARY_STATUS_MALE,
+                PREFERENCE_TYPE_CODES.MILITARY_PREFERENCE_FEMALE
               ];
               
               let selectedOptions;
-              if (singleOptionTypeIds.includes(preferenceType.id)) {
-                // 특정 타입은 무조건 1개만 선택
+              if (singleOptionTypeCodes.includes(preferenceType.code as any)) {
                 selectedOptions = [faker.helpers.arrayElement(typeOptions)];
-                console.log(`${preferenceType.name} 타입은 1개 옵션만 선택: ${selectedOptions[0].displayName}`);
+                console.log(`${preferenceType.name}(${preferenceType.code}) 타입은 1개 옵션만 선택: ${selectedOptions[0].displayName}`);
               } else {
-                // 다른 타입은 기존처럼 1~3개 선택
                 const optionCount = faker.number.int({ min: 1, max: Math.min(3, typeOptions.length) });
-                selectedOptions = faker.helpers.arrayElements(
-                  typeOptions,
-                  optionCount
-                );
+                selectedOptions = faker.helpers.arrayElements(typeOptions, optionCount);
+                console.log(`${preferenceType.name}(${preferenceType.code}) 타입은 ${selectedOptions.length}개 옵션 선택`);
               }
               
               // 선택된 각 옵션에 대해 사용자 선호도 옵션 생성
