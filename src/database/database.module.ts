@@ -13,6 +13,8 @@ import { DatabaseService } from './database.service';
       provide: 'DRIZZLE_ORM',
       inject: [ConfigService],
       useFactory: async (configService: ConfigService) => {
+        const env = configService.get('NODE_ENV');
+
         const pool = new Pool({
           user: configService.get('DATABASE_USER'),
           host: configService.get('DATABASE_HOST'),
@@ -28,6 +30,7 @@ import { DatabaseService } from './database.service';
           casing: 'snake_case',
           logger: {
             logQuery: (query, params) => {
+              if (env !== 'development') return;
               logger.debug(`쿼리: ${query}`);
               if (params && params.length > 0) {
                 logger.debug(`파라미터: ${JSON.stringify(params)}`);

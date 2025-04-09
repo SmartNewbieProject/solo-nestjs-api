@@ -99,11 +99,15 @@ export default class MatchingCreationService {
       const failures = fnResults.filter(result => result.status === 'rejected');
       totalFailure += failures.length;
 
+      const failureMessages = failures.map(data => JSON.stringify(data.reason, null, 2));
+
       const now = weekDateService.createDayjs().format('MM월 DD일 HH시 mm분');
       this.slackService.sendNotification(`
       *[${now}] ${i}번째 배치 처리 현황*
         성공한 매칭 처리 횟수: ${successes.length},
         실패한 매칭 처리 횟수: ${failures.length}
+
+        ${failureMessages.join('[에러] ')}
 
         실패한매칭이 있다면 어드민 기능을 활용해 마저 처리해주시고, 엔지니어팀은 사태를 파악해 조치해주세요.
       `)
@@ -117,7 +121,7 @@ export default class MatchingCreationService {
     const now = weekDateService.createDayjs().format('MM월 DD일 HH시 mm분');
     this.slackService.sendNotification(`
       [${now}] 배치가 완료되었습니다.
-      총 처리된 개수: ${userIds},
+      총 처리된 개수: ${userIds.length},
       성공한 개수: ${totalSuccess}
       실패한 개수: ${totalFailure}
     `);
