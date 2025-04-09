@@ -78,7 +78,7 @@ export default class MatchingCreationService {
   }
 
   async batch(userIds: string[]) {
-    const BATCH_SIZE = 100;  // 배치 크기
+    const BATCH_SIZE = 50;  // 배치 크기
     const DELAY_MS = 3000;   // 배치간 지연시간 (1초)
     let totalSuccess = 0;
     let totalFailure = 0;
@@ -100,7 +100,7 @@ export default class MatchingCreationService {
 
       const failureMessages = failures.map(data => data.reason);
 
-      const now = weekDateService.createDayjs().format('MM월 DD일 HH시 mm분');
+      const now = weekDateService.createDayjs().format('MM월 DD일 HH시 mm분 ss초');
       this.slackService.sendNotification(`
       *[${now}] ${i}번째 배치 처리 현황*
         성공한 매칭 처리 횟수: ${successes.length},
@@ -117,7 +117,7 @@ export default class MatchingCreationService {
       }
     }
 
-    const now = weekDateService.createDayjs().format('MM월 DD일 HH시 mm분');
+    const now = weekDateService.createDayjs().format('MM월 DD일 HH시 mm분 ss초');
     this.slackService.sendNotification(`
       [${now}] 배치가 완료되었습니다.
       총 처리된 개수: ${userIds.length},
