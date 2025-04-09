@@ -6,6 +6,9 @@ import { choiceRandom } from "../domain/random";
 import MatchRepository from "../repository/match.repository";
 import { MatchType } from "@/database/schema/matches";
 import { Cron } from "@nestjs/schedule";
+import { SlackService } from "@/slack-notification/slack.service";
+import ProfileRepository from "@/user/repository/profile.repository";
+import { ProfileSummary } from "@/types/user";
 
 enum CronFrequency {
   MATCHING_DAY = '0 0 * * 2,4',
@@ -19,12 +22,15 @@ export default class MatchingCreationService {
   constructor(
     private readonly matchingService: MatchingService,
     private readonly matchRepository: MatchRepository,
+    private readonly profileRepository: ProfileRepository,  
+    private readonly slackService: SlackService,
   ) {}
 
 
-  // @Cron(CronFrequency.MATCHING_DAY)
+  @Cron(CronFrequency.MATCHING_DAY)
   async processMatchCentral() {
     const userIds = await this.findAllMatchingUsers();
+    this.slackService.sendNotification(`${userIds.length} 명의 매칭처리를 시작합니다.`);
     await this.batch(userIds);
   }
 
@@ -35,6 +41,17 @@ export default class MatchingCreationService {
       return;
     }
     const partner = this.getOnePartner(partners);
+    const requester = await this.profileRepository.getProfileSummary(userId) as ProfileSummary;
+    const matcher = await this.profileRepository.getProfileSummary(partner.userId) as ProfileSummary;
+
+    // 기존 텍스트 메시지 대신 새로운 블록 메시지 사용
+    await this.slackService.sendSingleMatch(
+      requester,
+      matcher,
+      partner.similarity,
+      type
+    );
+
     this.logger.debug(`대상 ID: ${userId}, 파트너 ID: ${partner.userId}, 유사도: ${partner.similarity}`);
     await this.createMatch(userId, partner, type);
   }

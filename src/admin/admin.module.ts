@@ -10,12 +10,14 @@ import { AdminMatchingController } from './controllers/admin-matching.controller
 import AdminMatchService from './services/match.service';
 import AdminMatchRepository from './repositories/match.repository';
 import { MatchingModule } from '@/matching/matching.module';
+import { SlackNotificationModule } from '@/slack-notification/slack-notification.module';
 
 @Module({
   imports: [
     DrizzleModule,
     UserModule,
-    MatchingModule
+    MatchingModule,
+    SlackNotificationModule,
   ],
   controllers: [AdminUserController, AdminMatchingController],
   providers: [AdminUserService, AdminRepository, ProfileService, ProfileRepository, AdminMatchService, AdminMatchRepository],

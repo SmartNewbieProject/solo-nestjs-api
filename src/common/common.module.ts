@@ -1,9 +1,11 @@
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { Module, Global } from '@nestjs/common';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { S3Service } from './services/s3.service';
 import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
+import { WebClient } from '@slack/web-api';
 
+@Global()
 @Module({
   imports: [
     ConfigModule,
@@ -28,7 +30,16 @@ import { memoryStorage } from 'multer';
     }),
   ],
   controllers: [],
-  providers: [S3Service],
+  providers: [
+    S3Service,
+    {
+      provide: 'SLACK',
+      useFactory: (configService: ConfigService) => {
+        return new WebClient(configService.get('SLACK_TOKEN'));
+      },
+      inject: [ConfigService],
+    }
+  ],
   exports: [S3Service],
 })
 export class CommonModule {}

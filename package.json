@@ -37,6 +37,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/schedule": "^5.0.1",
     "@qdrant/qdrant-js": "^1.13.0",
+    "@slack/web-api": "^7.9.1",
     "@types/bcryptjs": "^3.0.0",
     "@types/cookie-parser": "^1.4.8",
     "axios": "^1.8.4",
