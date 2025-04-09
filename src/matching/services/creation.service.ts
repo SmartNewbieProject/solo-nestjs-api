@@ -81,6 +81,8 @@ export default class MatchingCreationService {
   async batch(userIds: string[]) {
     const BATCH_SIZE = 100;  // 배치 크기
     const DELAY_MS = 3000;   // 배치간 지연시간 (1초)
+    let totalSuccess = 0;
+    let totalFailure = 0;
     // 배치 단위로 분할
     for (let i = 0; i < userIds.length; i += BATCH_SIZE) {
       const userBatch = userIds.slice(i, i + BATCH_SIZE);
@@ -93,7 +95,10 @@ export default class MatchingCreationService {
       // 현재 배치의 모든 작업 완료 대기
       const fnResults = await Promise.allSettled(matchingFns);
       const successes = fnResults.filter(result => result.status === 'fulfilled');
+      totalSuccess += successes.length;
       const failures = fnResults.filter(result => result.status === 'rejected');
+      totalFailure += failures.length;
+
       const now = weekDateService.createDayjs().format('MM월 DD일 HH시 mm분');
       this.slackService.sendNotification(`
       *[${now}] ${i}번째 배치 처리 현황*
@@ -108,6 +113,14 @@ export default class MatchingCreationService {
         await new Promise(resolve => setTimeout(resolve, DELAY_MS));
       }
     }
+
+    const now = weekDateService.createDayjs().format('MM월 DD일 HH시 mm분');
+    this.slackService.sendNotification(`
+      [${now}] 배치가 완료되었습니다.
+      총 처리된 개수: ${userIds},
+      성공한 개수: ${totalSuccess}
+      실패한 개수: ${totalFailure}
+    `);
   }
 
 }
