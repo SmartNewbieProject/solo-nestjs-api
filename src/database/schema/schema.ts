@@ -16,6 +16,7 @@ import { userRangePreferences } from './user_range_preferences';
 import { articles } from './articles';
 import { comments } from './comments';
 import { likes } from './likes';
+import { tickets } from './ticket';
 
 // 관계형 매핑 파일 가져오기
 import './relations';
@@ -44,6 +45,7 @@ export {
   userRangePreferences,
   articles,
   comments,
+  tickets,
   likes,
 };
 
@@ -66,4 +68,5 @@ export const schemas = [
   articles,
   comments,
   likes,
+  tickets,
 ];

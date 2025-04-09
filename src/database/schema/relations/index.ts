@@ -13,3 +13,4 @@ export * from './matching_requests.relations';
 export * from './articles.relations';
 export * from './comments.relations';
 export * from './likes.relations';
+export * from './ticket.relations';
