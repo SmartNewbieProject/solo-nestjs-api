@@ -36,7 +36,7 @@ export default class MatchingCreationService {
     await this.batch(userIds);
   } 
 
-  async createPartner(userId: string, type: MatchType) {
+  async createPartner(userId: string, type: MatchType, isBatch: boolean = false) {
     const partners = await this.matchingService.findMatches(userId, 10);
     if (partners.length === 0) {
       this.logger.debug(`대상 ID: ${userId}, 파트너 ID: 없음, 유사도: 0`);
@@ -54,7 +54,9 @@ export default class MatchingCreationService {
     );
 
     this.logger.debug(`대상 ID: ${userId}, 파트너 ID: ${partner.userId}, 유사도: ${partner.similarity}`);
-    await this.createMatch(userId, partner, type);
+    if (!isBatch) {
+      await this.createMatch(userId, partner, type);
+    }
   }
 
   private async createMatch(userId: string, partner: Similarity, type: MatchType) {
@@ -85,7 +87,7 @@ export default class MatchingCreationService {
       
       // 현재 배치 처리
       const matchingFns = userBatch.map(async (userId) => {
-        await this.createPartner(userId, 'scheduled');
+        await this.createPartner(userId, 'scheduled', true);
       });
       
       // 현재 배치의 모든 작업 완료 대기
