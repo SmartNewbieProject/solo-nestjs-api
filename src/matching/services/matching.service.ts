@@ -4,7 +4,6 @@ import matchingPreferenceWeighter from '../domain/matching-preference-weighter';
 import { ProfileService } from '@/user/services/profile.service';
 import { UserPreferenceSummary, Similarity, PartnerDetails } from '@/types/match';
 import MatchRepository from '../repository/match.repository';
-import { UniversityDetail } from '@/types/user';
 
 export interface MatchingWeights {
   age: number;

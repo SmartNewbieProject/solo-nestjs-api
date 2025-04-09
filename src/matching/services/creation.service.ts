@@ -13,7 +13,7 @@ import { ProfileService } from "@/user/services/profile.service";
 
 enum CronFrequency {
   // MATCHING_DAY = '0 0 * * 2,4',
-  MATCHING_DAY = '*/30 * * * *',
+  MATCHING_DAY = '* */6 * * *',
 }
 
 @Injectable()
@@ -34,7 +34,7 @@ export default class MatchingCreationService {
     const userIds = await this.findAllMatchingUsers();
     this.slackService.sendNotification(`${userIds.length} 명의 매칭처리를 시작합니다.`);
     await this.batch(userIds);
-  }
+  } 
 
   async createPartner(userId: string, type: MatchType) {
     const partners = await this.matchingService.findMatches(userId, 10);
