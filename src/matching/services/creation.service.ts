@@ -8,12 +8,11 @@ import { MatchType } from "@/database/schema/matches";
 import { Cron } from "@nestjs/schedule";
 import { SlackService } from "@/slack-notification/slack.service";
 import ProfileRepository from "@/user/repository/profile.repository";
-import { ProfileSummary } from "@/types/user";
 import { ProfileService } from "@/user/services/profile.service";
 
 enum CronFrequency {
   // MATCHING_DAY = '0 0 * * 2,4',
-  MATCHING_DAY = '* */6 * * *',
+  MATCHING_DAY = '0 23 * * *',
 }
 
 @Injectable()
@@ -23,7 +22,6 @@ export default class MatchingCreationService {
   constructor(
     private readonly matchingService: MatchingService,
     private readonly matchRepository: MatchRepository,
-    private readonly profileRepository: ProfileRepository,  
     private readonly profileService: ProfileService,
     private readonly slackService: SlackService,
   ) {}
@@ -78,60 +76,49 @@ export default class MatchingCreationService {
   }
 
   async batch(userIds: string[]) {
-    const BATCH_SIZE = 50;  // 배치 크기
-    const BATCH_DELAY_MS = 3000;   // 배치간 지연시간 (3초)
-    const PROCESS_DELAY_MS = 100;  // 프로세스간 지연시간 (100ms)
+    const PROCESS_DELAY_MS = 120; 
+    const totalUsers = userIds.length;
+    const notificationInterval = Math.ceil(totalUsers * 0.05); // 5%에 해당하는 사용자 수
     let totalSuccess = 0;
     let totalFailure = 0;
+    const results = [] as { status: string, reason?: any }[];
 
-    for (let i = 0; i < userIds.length; i += BATCH_SIZE) {
-      const userBatch = userIds.slice(i, i + BATCH_SIZE);
-      const results = [] as { status: string, reason?: any }[];
-      
-      // 각 프로세스를 순차적으로 실행하면서 지연시간 추가
-      for (const userId of userBatch) {
-        try {
-          await this.createPartner(userId, 'scheduled', true);
-          results.push({ status: 'fulfilled' });
-          totalSuccess++;
-        } catch (error) {
-          results.push({ status: 'rejected', reason: error });
-          totalFailure++;
-          this.logger.error(error);
-        }
-        // 각 프로세스 사이에 지연시간 추가
-        await new Promise(resolve => setTimeout(resolve, PROCESS_DELAY_MS));
+    for (let i = 0; i < totalUsers; i++) {
+      const userId = userIds[i];
+      try {
+        await this.createPartner(userId, 'scheduled', true);
+        results.push({ status: 'fulfilled' });
+        totalSuccess++;
+      } catch (error) {
+        results.push({ status: 'rejected', reason: error });
+        this.slackService.sendNotification(`${userId} 매칭 처리 실패\n\`\`\`${JSON.stringify(error, null, 2)}\`\`\``);
+        totalFailure++;
+        this.logger.error(error);
       }
+      await this.sleep(PROCESS_DELAY_MS);
 
-      const successes = results.filter(result => result.status === 'fulfilled');
-      const failures = results.filter(result => result.status === 'rejected');
-
-      const failureMessages = failures.map(data => data.reason).join('\n');
-
-      const now = weekDateService.createDayjs().format('MM월 DD일 HH시 mm분 ss초');
-      this.slackService.sendNotification(`
-      *[${now}] ${i / BATCH_SIZE + 1}번째 배치 처리 현황*
-        성공한 매칭 처리 횟수: ${successes.length},
-        실패한 매칭 처리 횟수: ${failures.length}
-
-        \`\`\`${failureMessages}\`\`\`
-
-        실패한매칭이 있다면 어드민 기능을 활용해 마저 처리해주시고, 엔지니어팀은 사태를 파악해 조치해주세요.
-      `);
-      
-      // 배치 간 지연시간 추가
-      if (i + BATCH_SIZE < userIds.length) {
-        await new Promise(resolve => setTimeout(resolve, BATCH_DELAY_MS));
+      // 5%씩 처리할 때마다 알림 전송
+      if ((i + 1) % notificationInterval === 0 || i === totalUsers - 1) {
+        const now = weekDateService.createDayjs().format('MM월 DD일 HH시 mm분 ss초');
+        this.slackService.sendNotification(`
+          [${now}] 현재까지 처리된 사용자 수: ${i + 1}/${totalUsers}
+          성공한 매칭 처리 횟수: ${totalSuccess},
+          실패한 매칭 처리 횟수: ${totalFailure}
+        `);
       }
     }
 
     const now = weekDateService.createDayjs().format('MM월 DD일 HH시 mm분 ss초');
     this.slackService.sendNotification(`
       [${now}] 배치가 완료되었습니다.
-      총 처리된 개수: ${userIds.length},
+      총 처리된 개수: ${totalUsers},
       성공한 개수: ${totalSuccess}
       실패한 개수: ${totalFailure}
     `);
+  }
+
+  private async sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
   }
 
 }
