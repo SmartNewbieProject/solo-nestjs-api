@@ -79,34 +79,34 @@ export default class MatchingCreationService {
 
   async batch(userIds: string[]) {
     const BATCH_SIZE = 50;  // 배치 크기
-    const DELAY_MS = 3000;   // 배치간 지연시간 (1초)
+    const BATCH_DELAY_MS = 3000;   // 배치간 지연시간 (3초)
+    const PROCESS_DELAY_MS = 100;  // 프로세스간 지연시간 (100ms)
     let totalSuccess = 0;
     let totalFailure = 0;
-    // 배치 단위로 분할
+
     for (let i = 0; i < userIds.length; i += BATCH_SIZE) {
       const userBatch = userIds.slice(i, i + BATCH_SIZE);
+      const results = [] as { status: string, reason?: any }[];
       
-      // 현재 배치 처리
-      const matchingFns = userBatch.map(async (userId) => {
-        await this.createPartner(userId, 'scheduled', true);
-      });
-      
-      // 현재 배치의 모든 작업 완료 대기
-      const fnResults = await Promise.allSettled(matchingFns);
-      const successes = fnResults.filter(result => result.status === 'fulfilled');
-      totalSuccess += successes.length;
-      const failures = fnResults.filter(result => result.status === 'rejected');
-      totalFailure += failures.length;
-
-      if (failures.length > 0) {
-        const failureMessages = failures.map(data => data.reason);
-        this.logger.error(failureMessages);
+      // 각 프로세스를 순차적으로 실행하면서 지연시간 추가
+      for (const userId of userBatch) {
+        try {
+          await this.createPartner(userId, 'scheduled', true);
+          results.push({ status: 'fulfilled' });
+          totalSuccess++;
+        } catch (error) {
+          results.push({ status: 'rejected', reason: error });
+          totalFailure++;
+          this.logger.error(error);
+        }
+        // 각 프로세스 사이에 지연시간 추가
+        await new Promise(resolve => setTimeout(resolve, PROCESS_DELAY_MS));
       }
 
-      const failureMessages = failures.map(data => {
-        this.logger.error(data.reason);
-        return data.reason;
-      }).join('\n');
+      const successes = results.filter(result => result.status === 'fulfilled');
+      const failures = results.filter(result => result.status === 'rejected');
+
+      const failureMessages = failures.map(data => data.reason).join('\n');
 
       const now = weekDateService.createDayjs().format('MM월 DD일 HH시 mm분 ss초');
       this.slackService.sendNotification(`
@@ -117,11 +117,11 @@ export default class MatchingCreationService {
         \`\`\`${failureMessages}\`\`\`
 
         실패한매칭이 있다면 어드민 기능을 활용해 마저 처리해주시고, 엔지니어팀은 사태를 파악해 조치해주세요.
-      `)
+      `);
       
-      // 마지막 배치가 아니면 지연 추가
+      // 배치 간 지연시간 추가
       if (i + BATCH_SIZE < userIds.length) {
-        await new Promise(resolve => setTimeout(resolve, DELAY_MS));
+        await new Promise(resolve => setTimeout(resolve, BATCH_DELAY_MS));
       }
     }
 
