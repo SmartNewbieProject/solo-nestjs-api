@@ -46,17 +46,17 @@ export default class MatchingCreationService {
     const requester = await this.profileService.getUserProfiles(userId);
     const matcher = await this.profileService.getUserProfiles(partner.userId);
 
+    if (!isBatch) {
     await this.slackService.sendSingleMatch(
       requester,
       matcher,
       partner.similarity,
       type
     );
+  }
 
     this.logger.debug(`대상 ID: ${userId}, 파트너 ID: ${partner.userId}, 유사도: ${partner.similarity}`);
-    if (!isBatch) {
       await this.createMatch(userId, partner, type);
-    }
   }
 
   private async createMatch(userId: string, partner: Similarity, type: MatchType) {
