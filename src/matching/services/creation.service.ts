@@ -54,7 +54,7 @@ export default class MatchingCreationService {
     );
 
     this.logger.debug(`대상 ID: ${userId}, 파트너 ID: ${partner.userId}, 유사도: ${partner.similarity}`);
-    if (!isBatch) {
+    if (isBatch) {
       await this.createMatch(userId, partner, type);
     }
   }
