@@ -9,6 +9,7 @@ import { Cron } from "@nestjs/schedule";
 import { SlackService } from "@/slack-notification/slack.service";
 import ProfileRepository from "@/user/repository/profile.repository";
 import { ProfileSummary } from "@/types/user";
+import { ProfileService } from "@/user/services/profile.service";
 
 enum CronFrequency {
   MATCHING_DAY = '0 0 * * 2,4',
@@ -23,6 +24,7 @@ export default class MatchingCreationService {
     private readonly matchingService: MatchingService,
     private readonly matchRepository: MatchRepository,
     private readonly profileRepository: ProfileRepository,  
+    private readonly profileService: ProfileService,
     private readonly slackService: SlackService,
   ) {}
 
@@ -41,8 +43,8 @@ export default class MatchingCreationService {
       return;
     }
     const partner = this.getOnePartner(partners);
-    const requester = await this.profileRepository.getProfileSummary(userId) as ProfileSummary;
-    const matcher = await this.profileRepository.getProfileSummary(partner.userId) as ProfileSummary;
+    const requester = await this.profileService.getUserProfiles(userId);
+    const matcher = await this.profileService.getUserProfiles(partner.userId);
 
     // 기존 텍스트 메시지 대신 새로운 블록 메시지 사용
     await this.slackService.sendSingleMatch(

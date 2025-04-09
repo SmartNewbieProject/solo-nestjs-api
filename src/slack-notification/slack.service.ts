@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { WebClient } from '@slack/web-api';
 import { Gender } from '@/types/enum';
-import { ProfileSummary } from '@/types/user';
+import { PreferenceTypeGroup, ProfileDetails, ProfileSummary, UserProfile } from '@/types/user';
 
 @Injectable()
 export class SlackService {
@@ -38,11 +38,30 @@ export class SlackService {
   }
 
   async sendSingleMatch(
-    requester: ProfileSummary,
-    matcher: ProfileSummary,
+    requester: UserProfile,
+    matcher: UserProfile,
     similarity: number,
     type: string = 'admin'
   ) {
+
+    const getSimpleStringPreferences = (groups: PreferenceTypeGroup[]) => {
+      const data = groups.map(({ typeName, selectedOptions  }) => ({
+        typeName,
+        options: selectedOptions.map(option => `\`${option.displayName}\``).join(', '),
+      }))
+
+      return data.reduce((acc, cur) => {
+        acc += `*[${cur.typeName}]*\n`;
+        acc += cur.options + '\n';
+        return acc;
+      }, '');
+    }
+
+    const getGenderKor = (gender: string) => gender === Gender.FEMALE ? "여성" : "남성";
+
+    const requesterPreferences = getSimpleStringPreferences(requester.preferences);
+    const matcherPreferences = getSimpleStringPreferences(matcher.preferences);
+
     const blocks = [
       {
         type: "header",
@@ -73,11 +92,11 @@ export class SlackService {
         fields: [
           {
             type: "mrkdwn",
-            text: "*매칭 요청자:*\n" + `${requester.name}\n${requester.age}세 ${requester.gender}\n${requester.title || '직업 미입력'}`
+            text: "*매칭 요청자:*\n" + `${requester.name}\n${requester.age}세 ${getGenderKor(requester.gender)}\n ${requesterPreferences}`
           },
           {
             type: "mrkdwn",
-            text: "*매칭 대상:*\n" + `${matcher.name}\n${matcher.age}세 ${matcher.gender}\n${matcher.title || '직업 미입력'}`
+            text: "*매칭 대상:*\n" + `${matcher.name}\n${matcher.age}세 ${getGenderKor(matcher.gender)}\n ${matcherPreferences}`
           }
         ]
       }
