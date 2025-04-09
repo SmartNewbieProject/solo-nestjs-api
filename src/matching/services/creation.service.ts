@@ -98,7 +98,7 @@ export default class MatchingCreationService {
       const failures = fnResults.filter(result => result.status === 'rejected');
       totalFailure += failures.length;
 
-      const failureMessages = failures.map(data => JSON.stringify(data.reason, null, 2));
+      const failureMessages = failures.map(data => data.reason);
 
       const now = weekDateService.createDayjs().format('MM월 DD일 HH시 mm분');
       this.slackService.sendNotification(`
