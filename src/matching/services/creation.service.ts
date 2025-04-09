@@ -103,7 +103,10 @@ export default class MatchingCreationService {
         this.logger.error(failureMessages);
       }
 
-      const failureMessages = failures.map(data => data.reason).join('\n');
+      const failureMessages = failures.map(data => {
+        this.logger.error(data.reason);
+        return data.reason;
+      }).join('\n');
 
       const now = weekDateService.createDayjs().format('MM월 DD일 HH시 mm분 ss초');
       this.slackService.sendNotification(`
