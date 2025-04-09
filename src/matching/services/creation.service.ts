@@ -12,8 +12,8 @@ import { ProfileSummary } from "@/types/user";
 import { ProfileService } from "@/user/services/profile.service";
 
 enum CronFrequency {
-  MATCHING_DAY = '0 0 * * 2,4',
-  // MATCHING_DAY = '*/1 * * * *',
+  // MATCHING_DAY = '0 0 * * 2,4',
+  MATCHING_DAY = '*/30 * * * *',
 }
 
 @Injectable()
@@ -46,7 +46,6 @@ export default class MatchingCreationService {
     const requester = await this.profileService.getUserProfiles(userId);
     const matcher = await this.profileService.getUserProfiles(partner.userId);
 
-    // 기존 텍스트 메시지 대신 새로운 블록 메시지 사용
     await this.slackService.sendSingleMatch(
       requester,
       matcher,
@@ -90,7 +89,17 @@ export default class MatchingCreationService {
       });
       
       // 현재 배치의 모든 작업 완료 대기
-      await Promise.allSettled(matchingFns);
+      const fnResults = await Promise.allSettled(matchingFns);
+      const successes = fnResults.filter(result => result.status === 'fulfilled');
+      const failures = fnResults.filter(result => result.status === 'rejected');
+      const now = weekDateService.createDayjs().format('MM월 DD일 HH시 mm분');
+      this.slackService.sendNotification(`
+      *[${now}] ${i}번째 배치 처리 현황*
+        성공한 매칭 처리 횟수: ${successes.length},
+        실패한 매칭 처리 횟수: ${failures.length}
+
+        실패한매칭이 있다면 어드민 기능을 활용해 마저 처리해주시고, 엔지니어팀은 사태를 파악해 조치해주세요.
+      `)
       
       // 마지막 배치가 아니면 지연 추가
       if (i + BATCH_SIZE < userIds.length) {

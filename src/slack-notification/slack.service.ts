@@ -80,7 +80,7 @@ export class SlackService {
           },
           {
             type: "mrkdwn",
-            text: "*매칭 점수:*\n" + `${(similarity * 100).toFixed(2)}%`
+            text: "*매칭 점수:*\n" + `*\`${(similarity * 100).toFixed(2)}%\`*`
           }
         ]
       },
