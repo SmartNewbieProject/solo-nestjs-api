@@ -55,7 +55,6 @@ export default class MatchingCreationService {
     );
   }
 
-    this.logger.debug(`대상 ID: ${userId}, 파트너 ID: ${partner.userId}, 유사도: ${partner.similarity}`);
       await this.createMatch(userId, partner, type);
   }
 
@@ -107,7 +106,7 @@ export default class MatchingCreationService {
         성공한 매칭 처리 횟수: ${successes.length},
         실패한 매칭 처리 횟수: ${failures.length}
 
-        ${failureMessages.join('[에러] ')}
+        \`\`\`${failureMessages.join('[에러] ')}\`\`\`
 
         실패한매칭이 있다면 어드민 기능을 활용해 마저 처리해주시고, 엔지니어팀은 사태를 파악해 조치해주세요.
       `)

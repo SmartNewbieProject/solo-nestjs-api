@@ -71,13 +71,11 @@ const getCheckedDates = () => {
 };
 
 const createPublishDate = (date: dayjs.Dayjs) => {
-  console.log(date.format('YYYY-MM-DD HH:mm:ss'));
   const d = date
   .set('hour', 21)
   .set('minute', 0)
   .set('second', 0)
   .set('millisecond', 0);
-  console.log(d.format('YYYY-MM-DD HH:mm:ss'));
   return d.toDate();
 }
 
