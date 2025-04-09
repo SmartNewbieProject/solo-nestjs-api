@@ -30,6 +30,7 @@ export class AdminUserService {
               age: 0,
               gender: user.profile?.gender || '미지정',
               profileImages: [],
+              instagramId: null,
               universityDetails: null,
               preferences: [],
             } as UserProfile;

@@ -38,6 +38,7 @@ export class ProfileService {
       age: profileDetails.age,
       gender: profileDetails.gender,
       profileImages: profileDetails.profileImages,
+      instagramId: profileDetails.instagramId,
       universityDetails: profileDetails.universityDetail,
       preferences
     };

@@ -40,6 +40,7 @@ export interface ProfileRawDetails {
   userId: string;
   age: number;
   gender: Gender;
+  instagramId: string | null;
   title: string | null;
   universityDetail: {
     name: string;
@@ -78,6 +79,7 @@ export interface UserProfile {
   age: number;
   gender: string;
   profileImages: ProfileImage[];
+  instagramId: string | null;
   universityDetails: UniversityDetail | null;
   preferences: PreferenceTypeGroup[];
 }
