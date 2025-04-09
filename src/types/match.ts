@@ -53,3 +53,21 @@ export type PartnerDetails = {
   } | null;
   preferences: PreferenceTypeGroup[];
 }
+
+export enum TicketStatus {
+  AVAILABLE = 'available',
+  USED = 'used',
+  EXPIRED = 'expired',
+}
+
+export enum TicketType {
+  REMATCHING = 'rematching',
+}
+export type TicketSummary = {
+  id: string;
+  status: TicketStatus;
+  name: string;
+  type: TicketType;
+  expiredAt: Date | null;
+  createdAt: Date;
+}

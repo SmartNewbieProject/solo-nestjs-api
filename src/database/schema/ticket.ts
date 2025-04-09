@@ -7,6 +7,7 @@ import { users } from "./users";
 
 export const tickets = pgTable('tickets', {
   id: uuid(),
+  name: varchar('name', { length: 30 }).notNull(),
   userId: varchar('user_id', { length: 128 }).references(() => users.id).notNull().unique(),
   status: varchar('status', { length: 10 }).notNull(),
   type: varchar('type', { length: 10 }).notNull(),

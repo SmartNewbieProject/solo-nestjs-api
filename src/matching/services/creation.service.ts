@@ -12,7 +12,7 @@ import { ProfileService } from "@/user/services/profile.service";
 
 enum CronFrequency {
   // MATCHING_DAY = '0 0 * * 2,4',
-  MATCHING_DAY = '0 23 * * *',
+  MATCHING_DAY = '10 23 * * *',
 }
 
 @Injectable()
