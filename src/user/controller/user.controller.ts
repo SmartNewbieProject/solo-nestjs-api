@@ -1,9 +1,10 @@
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { Controller, Get } from "@nestjs/common";
+import { Body, Controller, Get, Patch } from "@nestjs/common";
 import { CurrentUser } from "@/auth/decorators";
 import { AuthenticationUser } from "@/types";
 import { Roles } from "@/auth/decorators";
 import { Role } from "@/auth/domain/user-role.enum";
+import { PasswordUpdated } from "../dto/user";
 
 @ApiTags('유저')
 @ApiBearerAuth('access-token')
@@ -19,6 +20,11 @@ export default class UserController {
       id: user.id,
       name: user.name,
     };
+  }
+
+  @Patch()
+  async updatePassword(@CurrentUser() user: AuthenticationUser, @Body() passwordUpdated: PasswordUpdated) {
+    
   }
 
 }
