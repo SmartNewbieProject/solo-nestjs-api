@@ -21,7 +21,7 @@ export class TicketRepository {
         eq(tickets.type, 'rematching'),
         eq(tickets.userId, userId),
         isNull(tickets.deletedAt),
-        ne(tickets.status, 'available'),
+        eq(tickets.status, 'available'),
       ),
     }).execute();
   }
