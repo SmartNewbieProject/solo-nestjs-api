@@ -4,6 +4,13 @@ import * as schema from "@/database/schema";
 import { Injectable } from "@nestjs/common";
 import { PayBeforeHistory } from "@/types/payment";
 import { generateUuidV7 } from "@/database/schema/helper";
+import { eq } from "drizzle-orm";
+
+export type CompletionPay = {
+  receiptUrl?: string;
+  paidAt: Date;
+  txId: string;
+}
 
 @Injectable()
 export default class PayRepository {
@@ -19,6 +26,16 @@ export default class PayRepository {
       orderName: payBefore.orderName,
       amount: payBefore.amount,
     }).returning();
+  }
+
+  findPayHistory(orderId: string) {
+    return this.db.query.payHistories.findFirst({
+      where: eq(schema.payHistories.orderId, orderId),
+    });
+  }
+
+  updateHistory(orderId: string, update: CompletionPay) {
+    return this.db.update(schema.payHistories).set(update).where(eq(schema.payHistories.orderId, orderId));
   }
 
 }

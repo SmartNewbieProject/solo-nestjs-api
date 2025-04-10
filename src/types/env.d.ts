@@ -8,5 +8,6 @@ declare namespace NodeJS {
     DATABASE_HOST: string;
     DATABASE_PORT: string;
     DATABASE_NAME: string;
+    PORTONE_SECRET_KEY: string;
   }
 }

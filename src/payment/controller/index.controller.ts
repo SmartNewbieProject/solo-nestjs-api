@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { PaymentBeforeHistory, PaymentConfirm } from '../dto';
 import { Roles } from 'src/auth/decorators/roles.decorator';
@@ -24,9 +24,13 @@ export class PaymentController {
   }
 
   @ApiOperation({ summary: '결제 승인' })
+  @HttpCode(201)
   @Post('confirm')
   async confirmPayment(@CurrentUser() user: AuthenticationUser, @Body() paymentData: PaymentConfirm) {
-    return this.payService.pay(user.id, paymentData);
+    await this.payService.pay(user.id, paymentData);
+    return {
+      status: 'SUCCESS',
+    };
   }
 
 }
