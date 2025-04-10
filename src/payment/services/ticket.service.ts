@@ -18,4 +18,9 @@ export class TicketService {
       createdAt: ticket.createdAt,
     }));
   }
+
+  createRematchingTickets(userId: string, count: number) {
+    return this.ticketRepository.createTickets(userId, count, TicketType.REMATCHING, '연인 재매칭권');
+  }
+  
 }
