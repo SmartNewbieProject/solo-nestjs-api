@@ -4,6 +4,11 @@ import { S3Service } from './services/s3.service';
 import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { WebClient } from '@slack/web-api';
+import { CacheInterceptor, CacheModule } from '@nestjs/cache-manager';
+import { createKeyv, Keyv } from '@keyv/redis';
+import { CacheableMemory } from 'cacheable';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { CustomCacheInterceptor } from './interceptors/app-cache.interceptors';
 
 @Global()
 @Module({
@@ -11,22 +16,35 @@ import { WebClient } from '@slack/web-api';
     ConfigModule,
     MulterModule.register({
       storage: memoryStorage(),
-      // 파일 크기 제한 및 필터 설정
       limits: {
-        fileSize: 10 * 1024 * 1024, // 10MB
+        fileSize: 20 * 1024 * 1024,
       },
       fileFilter: (req, file, callback) => {
-        // 스웨거 문서 요청인 경우 필터링 건너뛰기
         if (req.url.includes('/docs') || req.url.includes('/docs-json')) {
           return callback(null, true);
         }
         
-        // 이미지 파일만 허용
         if (!file.mimetype.includes('image')) {
           return callback(new Error('이미지 파일만 업로드할 수 있습니다.'), false);
         }
         callback(null, true);
       },
+    }),
+    CacheModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        store: [
+          new Keyv({
+            store: new CacheableMemory({ ttl: 60000 }),
+          }),
+          createKeyv({
+            url: configService.get('REDIS_URL'),
+            password: configService.get('REDIS_PASSWORD'),
+          }),
+        ],
+      }),
+      inject: [ConfigService],
+      isGlobal: true,
     }),
   ],
   controllers: [],
@@ -38,7 +56,11 @@ import { WebClient } from '@slack/web-api';
         return new WebClient(configService.get('SLACK_TOKEN'));
       },
       inject: [ConfigService],
-    }
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: CacheInterceptor,
+    },
   ],
   exports: [S3Service],
 })
