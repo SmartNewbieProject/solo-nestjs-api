@@ -7,6 +7,8 @@ import { CommonModule } from "@/common/common.module";
 import { ImageService } from "./services/image.service";
 import { ImageController } from "./controller/image.controller";
 import UserController from "./controller/user.controller";
+import UserRepository from "./repository/user.repository";
+import UserService from "./services/user.service";
 
 @Module({
   imports: [CommonModule],
@@ -16,6 +18,8 @@ import UserController from "./controller/user.controller";
     ProfileRepository,
     ProfileService,
     ImageService,
+    UserRepository,
+    UserService,
   ],
   exports: [],
 })
