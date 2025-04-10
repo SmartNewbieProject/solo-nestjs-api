@@ -9,6 +9,7 @@ import { Cron } from "@nestjs/schedule";
 import { SlackService } from "@/slack-notification/slack.service";
 import ProfileRepository from "@/user/repository/profile.repository";
 import { ProfileService } from "@/user/services/profile.service";
+import { Cache } from "@nestjs/cache-manager";
 
 enum CronFrequency {
   // MATCHING_DAY = '0 0 * * 2,4',
@@ -24,6 +25,7 @@ export default class MatchingCreationService {
     private readonly matchRepository: MatchRepository,
     private readonly profileService: ProfileService,
     private readonly slackService: SlackService,
+    private readonly cacheManager: Cache,
   ) {}
 
 
@@ -53,7 +55,7 @@ export default class MatchingCreationService {
     );
   }
 
-      await this.createMatch(userId, partner, type);
+    await this.createMatch(userId, partner, type);
   }
 
   private async createMatch(userId: string, partner: Similarity, type: MatchType) {
@@ -76,6 +78,8 @@ export default class MatchingCreationService {
   }
 
   async batch(userIds: string[]) {
+    this.cacheManager.del('matching:total-count');
+    
     const PROCESS_DELAY_MS = 120; 
     const totalUsers = userIds.length;
     const notificationInterval = Math.ceil(totalUsers * 0.05); // 5%에 해당하는 사용자 수

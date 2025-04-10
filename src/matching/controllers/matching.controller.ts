@@ -1,13 +1,13 @@
-import { Controller, Get, Post, Body } from "@nestjs/common";
+import { Controller, Get } from "@nestjs/common";
 import MatchingCreationService from "../services/creation.service";
 import { ApiBearerAuth, ApiOperation, ApiTags, ApiResponse } from "@nestjs/swagger";
 import { CurrentUser, Roles } from "@/auth/decorators";
 import { Role } from "@/auth/domain/user-role.enum";
-import { AdminMatchSingleRequest } from "../dto/matching";
 import { MatchingService } from "../services/matching.service";
 import { AuthenticationUser } from "@/types";
 import { PartnerDetails } from "@/types/match";
-import { MatchingUserResponse, PartnerResponse } from "@/docs/matching.docs";
+import { MatchingUserResponse, PartnerResponse, TotalMatchingCountResponse } from "@/docs/matching.docs";
+import { CACHE_MANAGER, CacheKey, CacheTTL } from "@nestjs/cache-manager";
 
 @Controller('matching')
 @ApiBearerAuth('access-token')
@@ -35,6 +35,23 @@ export default class UserMatchingController {
       count: list.length,
       list,
     };
+  }
+
+  @CacheKey('matching:total-count')
+  @CacheTTL(86400)
+  @Get('total-count')
+  @Roles(Role.USER, Role.ADMIN)
+  @ApiOperation({ 
+    summary: '전체 매칭 수 조회',
+    description: '지금까지 생성된 전체 매칭의 수를 반환합니다. (24시간 캐시)'
+  })
+  @ApiResponse({
+    status: 200,
+    description: '전체 매칭 수 조회 성공',
+    type: TotalMatchingCountResponse
+  })
+  async getTotalMatchingCount(): Promise<TotalMatchingCountResponse> {
+    return await this.matchingService.getTotalMatchingCount();
   }
 
   @Get()

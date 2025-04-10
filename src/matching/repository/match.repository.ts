@@ -4,7 +4,7 @@ import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "@database/schema";
 import { generateUuidV7 } from "@database/schema/helper";
 import { MatchType } from "@database/schema/matches";
-import { eq, isNull, isNotNull, and, sql } from "drizzle-orm";
+import { eq, isNull, isNotNull, and, sql, count } from "drizzle-orm";
 import { Gender } from "@/types/enum";
 import { PreferenceTypeGroup } from "@/types/user";
 
@@ -107,5 +107,12 @@ export default class MatchRepository {
         university: target.university_details,
         preferences,
       };
+    }
+
+    async getTotalMatchingCount() {
+      const results = await this.db.select({
+        count: count()
+      }).from(schema.matches);
+      return Number(results[0].count);
     }
 }

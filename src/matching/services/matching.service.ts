@@ -84,6 +84,14 @@ export class MatchingService {
       } : null,
     }
   }
+
+  async getTotalMatchingCount() {
+    const count = await this.matchRepository.getTotalMatchingCount();
+    this.logger.debug(`Total matching count: ${count}`);
+    return {
+      count,
+    };
+  }
   
   private async getUserPreferenceSummary(userId: string): Promise<UserPreferenceSummary> {
     const userProfile = await this.profileService.getUserProfiles(userId);

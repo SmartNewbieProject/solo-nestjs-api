@@ -173,4 +173,14 @@ export class PartnerResponse {
     } | null;
     preferences: PreferenceTypeGroup[];
   } | null;
+}
+
+export class TotalMatchingCountResponse {
+  @ApiProperty({
+    description: '전체 매칭 수',
+    type: Number,
+    example: 1234,
+    minimum: 0
+  })
+  count: number;
 } 
