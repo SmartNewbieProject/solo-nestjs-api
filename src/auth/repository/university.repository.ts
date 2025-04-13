@@ -25,16 +25,17 @@ export default class UniversityRepository {
       .then(result => result[0].count > 0);
 
     if (!exists) {
-      await this.db.insert(universityDetails)
-      .values({ ...university, userId, id: generateUuidV7() })
-      .execute();
-      return;
+      const [result] = await this.db.insert(universityDetails)
+        .values({ ...university, userId, id: generateUuidV7() })
+        .returning();
+      return result;
     }
 
-    await this.db.update(universityDetails)
+    const [result] = await this.db.update(universityDetails)
       .set({ ...university, updatedAt: new Date() })
       .where(and(eq(universityDetails.userId, userId), isNull(universityDetails.deletedAt)))
-      .execute();
+      .returning();
+    return result;
   }
 
   async removeUniversity(userId: string) {

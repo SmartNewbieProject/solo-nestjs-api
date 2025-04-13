@@ -8,14 +8,7 @@ import { InjectDrizzle } from '@common/decorators';
 import { generateUuidV7 } from '@database/schema/helper';
 import { Role } from '@/auth/domain/user-role.enum';
 import { Gender } from '@/types/enum';
-
-interface CreateUserDto {
-  email: string;
-  password: string;
-  name: string;
-  age: number;
-  gender: Gender;
-}
+import { SignupRequest } from '../dto';
 
 @Injectable()
 export class SignupRepository {
@@ -42,32 +35,35 @@ export class SignupRepository {
     return result.length > 0;
   }
 
-  async createUser(createUserDto: CreateUserDto) {
+  async createUser(createUserDto: SignupRequest) {
     return await this.db.transaction(async (tx) => {
       const profileId = generateUuidV7();
       const userId = generateUuidV7();
       const preferenceId = generateUuidV7();
 
+      const { email, password, name, age, gender, profileImages, instagramId } = createUserDto;
+      
       const [user] = await tx.insert(users)
         .values({
           id: userId,
-          email: createUserDto.email,
-          password: createUserDto.password,
-          name: createUserDto.name,
+          email,
+          password,
+          name,
           profileId,
           role: Role.USER,
         })
         .returning();
 
-      await tx.insert(profiles)
+      const [profile] = await tx.insert(profiles)
         .values({
           id: profileId,
           userId: user.id,
-          name: createUserDto.name,
-          age: createUserDto.age,
-          gender: createUserDto.gender,
+          name,
+          age,
+          gender,
+          instagramId,
         })
-        .execute();
+        .returning();
 
       await tx.insert(schema.userPreferences)
         .values({
@@ -77,7 +73,14 @@ export class SignupRepository {
         })
         .execute();
     
-      return user;
+      return { ...user, profileId: profile.id };
     });
+  }
+
+  updateUniversityId(profileId: string, universityId: string) {
+    return this.db.update(profiles)
+      .set({ universityDetailId: universityId })
+      .where(eq(profiles.id, profileId))
+      .execute();
   }
 }

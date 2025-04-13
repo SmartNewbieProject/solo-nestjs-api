@@ -1,7 +1,8 @@
-import { IsEmail, IsNotEmpty, IsNumber, IsString, Matches, Max, MaxLength, Min, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsNumber, IsString, Matches, Max, MaxLength, Min, MinLength, IsOptional, ValidateNested, ArrayMaxSize } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { Gender } from '@/types/enum';
+import * as multer from 'multer';
 
 export class SignupRequest {
   @ApiProperty({
@@ -13,7 +14,7 @@ export class SignupRequest {
   email: string;
 
   @ApiProperty({
-    example: '@Password123!',
+    example: 'password123!',
     description: '비밀번호 (최소 8자, 문자와 숫자, 특수문자 포함)',
   })
   @IsString()
@@ -33,15 +34,19 @@ export class SignupRequest {
   name: string;
 
   @ApiProperty({
-    example: 25,
-    description: '사용자 나이 (19-27세)',
-    minimum: 19,
-    maximum: 27
+    example: '2000-06-27',
+    description: '생년월일',
   })
-  @IsNumber({}, { message: '나이는 숫자로 입력해주세요.' })
+  @IsString()
+  @IsNotEmpty({ message: '생년월일은 필수 입력 항목입니다.' })
+  birthday: string;
+
+  @ApiProperty({
+    example: 20,
+    description: '나이',
+  })
+  @IsNumber()
   @IsNotEmpty({ message: '나이는 필수 입력 항목입니다.' })
-  @Min(19, { message: '19세 이상만 가입이 가능합니다.' })
-  @Max(27, { message: '27세 이하만 가입이 가능합니다.' })
   age: number;
 
   @ApiProperty({
@@ -52,8 +57,66 @@ export class SignupRequest {
   @IsString()
   @IsNotEmpty({ message: '성별은 필수 입력 항목입니다.' })
   @Matches(/^(MALE|FEMALE)$/, { message: '성별은 MALE 또는 FEMALE이어야 합니다.' })
-  @Transform(({ value }) => {
-    return value === 'MALE' ? Gender.MALE : Gender.FEMALE;
-  })
+  @Transform(({ value }) => value === 'MALE' ? Gender.MALE : Gender.FEMALE)
   gender: Gender;
+
+  @ApiProperty({
+    example: 'ENFJ',
+    description: 'MBTI',
+  })
+  @IsString()
+  @IsOptional()
+  mbti?: string;
+
+  @ApiProperty({
+    example: '서울대학교',
+    description: '대학교 이름',
+  })
+  @IsString()
+  @IsNotEmpty({ message: '대학교 이름은 필수 입력 항목입니다.' })
+  universityName: string;
+
+  @ApiProperty({
+    example: '컴퓨터공학과',
+    description: '학과명',
+  })
+  @IsString()
+  @IsNotEmpty({ message: '학과명은 필수 입력 항목입니다.' })
+  departmentName: string;
+
+  @ApiProperty({
+    example: '3학년',
+    description: '학년',
+  })
+  @IsString()
+  @IsNotEmpty({ message: '학년은 필수 입력 항목입니다.' })
+  grade: string;
+
+  @ApiProperty({
+    example: '19학번',
+    description: '학번',
+  })
+  @IsString()
+  @IsNotEmpty({ message: '학번은 필수 입력 항목입니다.' })
+  studentNumber: string;
+
+  @ApiProperty({
+    example: 'instagram_id',
+    description: '인스타그램 ID',
+  })
+  @IsString()
+  @IsOptional()
+  instagramId?: string;
+
+  @ApiProperty({
+    type: 'array',
+    items: {
+      type: 'string',
+      format: 'binary',
+    },
+    description: '프로필 이미지 파일들 (3개, jpg/jpeg/png 형식, 각 20MB 이하)',
+    maxItems: 3,
+  })
+  @IsOptional()
+  profileImages: multer.File[];
 }

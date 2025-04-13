@@ -11,6 +11,8 @@ import { AuthRepository } from './repository/auth.repository';
 import { UniversityController } from './controller/university.controller';
 import { UniversityService } from './services/university.service';
 import UniversityRepository from './repository/university.repository';
+import { ImageService } from '@/user/services/image.service';
+import { S3Service } from '@/common/services/s3.service';
 
 @Module({
   imports: [
@@ -31,6 +33,8 @@ import UniversityRepository from './repository/university.repository';
     AuthRepository,
     UniversityService,
     UniversityRepository,
+    ImageService,
+    S3Service,
   ],
   exports: [SignupService, AuthService, UniversityService],
 })
