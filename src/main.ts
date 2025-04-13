@@ -16,7 +16,7 @@ async function bootstrap() {
   app.useStaticAssets(join(__dirname, '..', 'public'));
   app.setGlobalPrefix('api', { exclude: ['docs', 'docs-json', 'swagger-ui-bundle.js', 'swagger-ui-standalone-preset.js', 'swagger-ui.css'] });
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001', 'https://project-solo-azure.vercel.app', 'some-in-univ.com', 'https://some-in-univ.com', 'https://sometimes-eosin.vercel.app/'],
+    origin: ['http://localhost:3000', 'http://localhost:3001', 'https://project-solo-azure.vercel.app', 'some-in-univ.com', 'https://some-in-univ.com', 'https://sometimes-eosin.vercel.app', '/sometimes-eosin.vercel.app'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
