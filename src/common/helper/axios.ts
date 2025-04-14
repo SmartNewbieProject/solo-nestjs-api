@@ -3,7 +3,7 @@ import { InternalServerErrorException } from '@nestjs/common';
 
 export const axiosHandler = async (
   callback: (...args: unknown[]) => unknown,
-  onError?: (error: AxiosError) => unknown
+  onError?: (error: AxiosError) => unknown,
 ) => {
   try {
     return await callback();
@@ -13,4 +13,4 @@ export const axiosHandler = async (
     }
     throw new InternalServerErrorException(error);
   }
-}
+};

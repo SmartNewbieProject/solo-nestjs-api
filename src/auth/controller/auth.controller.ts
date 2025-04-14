@@ -1,18 +1,33 @@
-import { Body, Controller, Post, HttpCode, HttpStatus, Request, Res, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Res,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import { LoginRequest, TokenResponse, WithdrawRequest } from '../dto';
-import { UnauthorizedException } from '@nestjs/common';
-import { CurrentUser, Public } from '@auth/decorators';
+import { CurrentUser, Public, Roles } from '@auth/decorators';
 import { AuthenticationUser } from '@/types';
-import { AuthDocs } from '../docs/login.docs';
+import { AuthDocs } from '@auth/docs';
+import { Role } from '@auth/domain/user-role.enum';
+import { ApiBearerAuth } from '@nestjs/swagger';
 
 @Controller('auth')
 @AuthDocs.controller()
+@ApiBearerAuth('access-token')
+@Roles(Role.USER, Role.ADMIN)
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-  
-  private setRefreshTokenCookie(response: Response, refreshToken: string): void {
+
+  private setRefreshTokenCookie(
+    response: Response,
+    refreshToken: string,
+  ): void {
     response.cookie('refresh_token', refreshToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
@@ -35,55 +50,49 @@ export class AuthController {
   @Public()
   async login(
     @Body() loginRequest: LoginRequest,
-    @Res({ passthrough: true }) response: Response
+    @Res({ passthrough: true }) response: Response,
   ): Promise<TokenResponse> {
     const result = await this.authService.login(loginRequest);
-    
+
     this.setRefreshTokenCookie(response, result.refreshToken);
-    return result;    
+    return result;
   }
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @AuthDocs.refresh()
   async refresh(
-    @Request() req,
     @Body() { refreshToken }: { refreshToken: string },
-    @Res({ passthrough: true }) response: Response
+    @Res({ passthrough: true }) response: Response,
   ): Promise<Omit<TokenResponse, 'refreshToken'>> {
     if (!refreshToken) {
       throw new UnauthorizedException('리프레시 토큰이 없습니다.');
     }
-    
+
     const result = await this.authService.refreshToken(refreshToken);
     this.setRefreshTokenCookie(response, result.refreshToken);
-    const { refreshToken: newRefreshToken, ...tokenResponse } = result;
-    return tokenResponse;
+    return result;
   }
 
   @Post('logout')
   @HttpCode(HttpStatus.NO_CONTENT)
   @AuthDocs.logout()
-  @Public()
   async logout(
-    @Body() { userId }: { userId: string },
-    @Request() req,
-    @Res({ passthrough: true }) response: Response
+    @CurrentUser() user: AuthenticationUser,
+    @Body() { refreshToken }: { refreshToken: string },
+    @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
-    const refreshToken = req.cookies['refresh_token'];
-    
-    if (refreshToken) {
-      await this.authService.logout(userId, refreshToken);
-    }
-    
+    await this.authService.logout(user.id, refreshToken);
     this.clearRefreshTokenCookie(response);
   }
 
   @Delete('withdraw')
   @HttpCode(HttpStatus.CREATED)
   @AuthDocs.withdraw()
-  async withdraw(@CurrentUser() user: AuthenticationUser, @Body() withdrawRequest: WithdrawRequest) {
+  async withdraw(
+    @CurrentUser() user: AuthenticationUser,
+    @Body() withdrawRequest: WithdrawRequest,
+  ) {
     return await this.authService.withdraw(user.id, withdrawRequest.password);
   }
-
 }
