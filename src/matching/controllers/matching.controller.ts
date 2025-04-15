@@ -7,7 +7,7 @@ import { MatchingService } from "../services/matching.service";
 import { AuthenticationUser } from "@/types";
 import { PartnerDetails } from "@/types/match";
 import { MatchingUserResponse, PartnerResponse, TotalMatchingCountResponse } from "@/docs/matching.docs";
-import { CACHE_MANAGER, CacheKey, CacheTTL } from "@nestjs/cache-manager";
+import { CacheKey, CacheTTL } from "@nestjs/cache-manager";
 
 @Controller('matching')
 @ApiBearerAuth('access-token')
@@ -68,5 +68,15 @@ export default class UserMatchingController {
   async getLatestPartner(@CurrentUser() user: AuthenticationUser): Promise<PartnerDetails | null> {
     const partner = await this.matchingService.getLatestPartner(user.id);
     return partner;
+  }
+
+  @Get('next-date')
+  @ApiOperation({
+    summary: '다음 매칭 날짜 조회',
+    description: '다음 매칭 날짜를 조회합니다.'
+  })
+  getNextMatchingDate() {
+    const nextMatchingDate = this.matchingService.getNextMatchingDate();
+    return { nextMatchingDate };
   }
 }

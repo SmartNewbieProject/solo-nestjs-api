@@ -4,6 +4,7 @@ import matchingPreferenceWeighter from '../domain/matching-preference-weighter';
 import { ProfileService } from '@/user/services/profile.service';
 import { UserPreferenceSummary, Similarity, PartnerDetails } from '@/types/match';
 import MatchRepository from '../repository/match.repository';
+import weekDateService from '../domain/date';
 
 export interface MatchingWeights {
   age: number;
@@ -91,6 +92,11 @@ export class MatchingService {
     return {
       count,
     };
+  }
+
+  getNextMatchingDate() {
+    const nextMatchingDate = weekDateService.getNextMatchingDate();
+    return nextMatchingDate.toDate();
   }
   
   private async getUserPreferenceSummary(userId: string): Promise<UserPreferenceSummary> {
