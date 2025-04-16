@@ -5,6 +5,7 @@ import { AdminMatchRequest, AdminMatchSingleRequest } from '@/matching/dto/match
 import { ApiProperty, ApiResponse, ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import AdminMatchService from '../services/match.service';
 import MatchingCreationService from '@/matching/services/creation.service';
+import { Gender } from '@/types/enum';
 
 export class MatchResult {
   @ApiProperty({ description: '사용자 ID' })
@@ -65,5 +66,27 @@ export class AdminMatchingController {
   @Roles(Role.ADMIN)
   async processMatchingSingle(@Body() request: AdminMatchSingleRequest) {
     await this.matchingCreationService.createPartner(request.userId, 'admin');
+  }
+
+  @Get('match-stats')
+  @ApiOperation({ summary: '매칭 통계 조회', description: '성별에 따른 매칭 통계를 조회합니다.' })
+  @ApiQuery({
+    name: 'gender',
+    required: false,
+    enum: Gender,
+    description: '성별에 따른 매칭 통계 조회 (미입력시 전체 통계)'
+  })
+  @ApiQuery({
+    name: 'publishedAt',
+    required: true,
+    type: String,
+    description: '매칭 발표 날짜 (예: 2024-04-16)'
+  })
+  async getMatchStats(
+    @Query('gender') gender?: Gender,
+    @Query('publishedAt') publishedAt?: string
+  ): Promise<{ totalMatchRate: number; maleMatchRate?: number; femaleMatchRate?: number }> {
+    const date = publishedAt ? new Date(publishedAt) : new Date();
+    return await this.adminMatchService.getMatchStats(date, gender);
   }
 }

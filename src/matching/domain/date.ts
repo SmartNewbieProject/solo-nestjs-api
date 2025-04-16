@@ -10,7 +10,7 @@ export type WeekDates = {
   thursday: Date;
 }
 
-const createDayjs = () => dayjs();
+const createDayjs = (config?: dayjs.Dayjs) => dayjs(config);
 
 const getWeekDates = (): WeekDates => {
   const date = createDayjs();

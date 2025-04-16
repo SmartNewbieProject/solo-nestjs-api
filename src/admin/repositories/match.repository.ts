@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { InjectDrizzle } from "@common/decorators";
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "@database/schema";
-import { eq, isNull, and, between, isNotNull, count } from "drizzle-orm";
+import { eq, isNull, and, between, isNotNull, count, sql } from "drizzle-orm";
 import weekDateService from "@/matching/domain/date";
 import { PaginatedResponse, Pagination } from "@/types/common";
 import { Gender } from "@/types/enum";
@@ -70,5 +70,36 @@ export default class AdminMatchRepository {
           hasPreviousPage: pagination.page > 1,
         }
       };
+  }
+
+  private preprocess = (d: Date) => d.toISOString().replace("T", " ").replace("Z", "");
+
+  async getTotalMatchCount(publishedAt: Date) {
+    const result = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.matches)
+      .innerJoin(schema.users, eq(schema.matches.myId, schema.users.id))
+      .innerJoin(schema.profiles, eq(schema.users.id, schema.profiles.userId))
+      .where(sql`${schema.matches.publishedAt} = ${this.preprocess(publishedAt)}`)
+      .execute();
+    
+    return Number(result[0]?.count || 0);
+  }
+
+  async getGenderMatchCount(publishedAt: Date, gender: Gender) {
+    const result = await this.db
+      .select({ count: sql<number>`count(*)` })
+      .from(schema.matches)
+      .innerJoin(schema.users, eq(schema.matches.myId, schema.users.id))
+      .innerJoin(schema.profiles, eq(schema.users.id, schema.profiles.userId))
+      .where(
+        and(
+          sql`${schema.matches.publishedAt} = ${this.preprocess(publishedAt)}`,
+          eq(schema.profiles.gender, gender)
+        )
+      )
+      .execute();
+    
+    return Number(result[0]?.count || 0);
   }
 }
