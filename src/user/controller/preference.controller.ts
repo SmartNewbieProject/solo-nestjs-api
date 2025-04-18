@@ -15,9 +15,7 @@ export class PreferenceController {
 
   @Get('/options')
   async getDrinkOptions(@Query("name") typeName: string) {
-    const results = await this.preferenceService.getPreferencesByName(typeName);
-    console.log(results);
-
-    return results;
+    return await this.preferenceService.getPreferencesByName(typeName);
   }
+
 }

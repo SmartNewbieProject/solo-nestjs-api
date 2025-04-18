@@ -16,6 +16,7 @@ export class PreferenceService {
     const options = results.map(result => ({
       id: result.preference_options?.id as string,
       displayName: result.preference_options?.displayName as string,
+      imageUrl: result.preference_options?.imageUrl as string,
     }));
     const typeId = results[0].preference_types?.id as string;
 
