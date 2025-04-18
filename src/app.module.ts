@@ -11,6 +11,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { MatchingModule } from './matching/matching.module';
 import { ArticleModule } from './article/article.module';
 import { PaymentModule } from './payment/payment.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { PaymentModule } from './payment/payment.module';
     AdminModule,
     ArticleModule,
     PaymentModule,
+    HealthModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }

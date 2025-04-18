@@ -12,7 +12,7 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: ['error', 'warn', 'log', 'debug', 'verbose'],
   });
-  
+
   app.useStaticAssets(join(__dirname, '..', 'public'));
   app.setGlobalPrefix('api', { exclude: ['docs', 'docs-json', 'swagger-ui-bundle.js', 'swagger-ui-standalone-preset.js', 'swagger-ui.css'] });
   app.enableCors({
@@ -71,7 +71,7 @@ async function bootstrap() {
       persistAuthorization: true,
     },
   });
-  
+
   await app.listen(process.env.PORT ?? 8044, '0.0.0.0');
 }
 

@@ -1,4 +1,4 @@
-import { BadGatewayException, Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadGatewayException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
@@ -16,11 +16,13 @@ interface JwtPayload {
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   async login(loginRequest: LoginRequest): Promise<TokenResponse> {
     const { email, password } = loginRequest;
@@ -87,6 +89,7 @@ export class AuthService {
 
       return tokens;
     } catch (error) {
+      this.logger.error(error);
       throw new UnauthorizedException('유효하지 않은 리프레시 토큰입니다.');
     }
   }
@@ -100,22 +103,21 @@ export class AuthService {
   }
 
   private async generateTokens(userId: string, email: string, role: Role, gender: Gender): Promise<TokenResponse> {
-    const payload: JwtPayload = {
-      email,
-      id: userId,
-      role,
-      gender,
-    };
-
     const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(payload, {
-        secret: this.configService.get<string>('JWT_SECRET'),
-        expiresIn: '1h',
-      }),
-      this.jwtService.signAsync(payload, {
-        secret: this.configService.get<string>('JWT_SECRET'),
-        expiresIn: '7d',
-      }),
+      this.jwtService.signAsync(
+        { id: userId, email, role, gender },
+        {
+          secret: this.configService.get<string>('JWT_SECRET'),
+          expiresIn: '1h',
+        },
+      ),
+      this.jwtService.signAsync(
+        { id: userId, email, role, gender },
+        {
+          secret: this.configService.get<string>('JWT_SECRET'),
+          expiresIn: '7d',
+        },
+      ),
     ]);
 
     return {

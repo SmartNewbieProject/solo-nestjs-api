@@ -27,9 +27,9 @@ import { S3Service } from '@/common/services/s3.service';
   ],
   controllers: [SignupController, AuthController, UniversityController],
   providers: [
-    SignupService, 
+    SignupService,
     SignupRepository,
-    AuthService, 
+    AuthService,
     AuthRepository,
     UniversityService,
     UniversityRepository,
@@ -38,4 +38,4 @@ import { S3Service } from '@/common/services/s3.service';
   ],
   exports: [SignupService, AuthService, UniversityService],
 })
-export class AuthModule {}
+export class AuthModule { }

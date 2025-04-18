@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsString, IsNotEmpty } from 'class-validator';
 
 export class TokenResponse {
   @ApiProperty({
@@ -30,4 +31,10 @@ export class TokenResponse {
     example: 'user',
   })
   role: 'user' | 'admin';
+}
+
+export class RefreshToken {
+  @IsString()
+  @IsNotEmpty()
+  refreshToken: string;
 }

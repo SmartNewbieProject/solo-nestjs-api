@@ -4,6 +4,7 @@ import {
   Delete,
   HttpCode,
   HttpStatus,
+  Logger,
   Post,
   Res,
   UnauthorizedException,
@@ -16,12 +17,15 @@ import { AuthenticationUser } from '@/types';
 import { AuthDocs } from '@auth/docs';
 import { Role } from '@auth/domain/user-role.enum';
 import { ApiBearerAuth } from '@nestjs/swagger';
+import { RefreshToken } from '../dto/token';
 
 @Controller('auth')
 @AuthDocs.controller()
 @ApiBearerAuth('access-token')
 @Roles(Role.USER, Role.ADMIN)
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(private readonly authService: AuthService) {}
 
   private setRefreshTokenCookie(
@@ -61,15 +65,13 @@ export class AuthController {
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @AuthDocs.refresh()
+  @Public()
   async refresh(
-    @Body() { refreshToken }: { refreshToken: string },
+    @Body() token: RefreshToken,
     @Res({ passthrough: true }) response: Response,
   ): Promise<Omit<TokenResponse, 'refreshToken'>> {
-    if (!refreshToken) {
-      throw new UnauthorizedException('리프레시 토큰이 없습니다.');
-    }
-
-    const result = await this.authService.refreshToken(refreshToken);
+    this.logger.debug(`refresh: ${token.refreshToken}`);
+    const result = await this.authService.refreshToken(token.refreshToken);
     this.setRefreshTokenCookie(response, result.refreshToken);
     return result;
   }
@@ -79,10 +81,10 @@ export class AuthController {
   @AuthDocs.logout()
   async logout(
     @CurrentUser() user: AuthenticationUser,
-    @Body() { refreshToken }: { refreshToken: string },
+    @Body() token: RefreshToken,
     @Res({ passthrough: true }) response: Response,
   ): Promise<void> {
-    await this.authService.logout(user.id, refreshToken);
+    await this.authService.logout(user.id, token.refreshToken);
     this.clearRefreshTokenCookie(response);
   }
 
