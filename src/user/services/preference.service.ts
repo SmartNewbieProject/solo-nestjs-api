@@ -11,13 +11,15 @@ export class PreferenceService {
     private readonly profileService: ProfileService,
   ) { }
 
-  async getPreferencesByName(typeName: string): Promise<PreferenceOption[]> {
+  async getPreferencesByName(typeName: string) {
     const results = await this.preferenceRepository.getPreferencesByName(typeName);
-
-    return results.map(result => ({
+    const options = results.map(result => ({
       id: result.preference_options?.id as string,
       displayName: result.preference_options?.displayName as string,
     }));
+    const typeId = results[0].preference_types?.id as string;
+
+    return { typeId, options };
   }
 }
 

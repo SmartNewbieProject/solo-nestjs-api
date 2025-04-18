@@ -11,8 +11,8 @@ export class PreferenceRepository {
     @InjectDrizzle() private readonly db: NodePgDatabase<typeof schema>,
   ) { }
 
-  getPreferencesByName(typeName: string) {
-    return this.db.select()
+  async getPreferencesByName(typeName: string) {
+    return await this.db.select()
       .from(schema.preferenceTypes)
       .leftJoin(schema.preferenceOptions, eq(schema.preferenceTypes.id, schema.preferenceOptions.preferenceTypeId))
       .where(eq(schema.preferenceTypes.name, typeName));
