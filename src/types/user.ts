@@ -65,6 +65,11 @@ export interface PreferenceTypeGroup {
   selectedOptions: PreferenceOption[];
 }
 
+export interface PreferenceList extends PreferenceTypeGroup {
+  multiple: boolean;
+  maximumChoiceCount: number;
+}
+
 
 export interface UniversityDetail {
   name: string;
