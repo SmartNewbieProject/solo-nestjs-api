@@ -1,6 +1,6 @@
 [
   {
     "name": "sometimes-integration-api",
-    "imageUri": "565393029823.dkr.ecr.ap-northeast-2.amazonaws.com/sometimes-integration-api:${COMMIT_HASH}"
+    "imageUri": "565393029823.dkr.ecr.ap-northeast-2.amazonaws.com/sometimes-integration-api:latest"
   }
 ]
