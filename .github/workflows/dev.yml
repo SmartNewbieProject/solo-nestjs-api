@@ -2,9 +2,9 @@ name: Sometimes NestJS API Docker 이미지 빌드 및 배포
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "dev" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "dev" ]
 
 env:
   DOCKER_HUB_REPO: deveungi/sometimes-nestjs-api

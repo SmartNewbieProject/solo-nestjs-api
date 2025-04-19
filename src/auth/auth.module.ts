@@ -15,16 +15,7 @@ import { ImageService } from '@/user/services/image.service';
 import { S3Service } from '@/common/services/s3.service';
 
 @Module({
-  imports: [
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1h' },
-      }),
-    }),
-  ],
+  imports: [], 
   controllers: [SignupController, AuthController, UniversityController],
   providers: [
     SignupService,

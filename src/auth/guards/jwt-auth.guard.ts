@@ -18,7 +18,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   canActivate(context: ExecutionContext) {
-    // Public 데코레이터가 적용된 경우 인증 검사 생략
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -38,6 +37,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     try {
       const payload = this.jwtService.verify(token, {
         secret: this.configService.get<string>('JWT_SECRET'),
+        ignoreExpiration: false,
       });
 
       request.user = payload;

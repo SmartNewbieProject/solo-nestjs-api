@@ -69,6 +69,7 @@ export class AuthService {
       });
 
       const storedToken = await this.authRepository.findRefreshToken(payload.id, refreshToken);
+      this.logger.debug("storedToken: " + storedToken);
       if (!storedToken) {
         throw new UnauthorizedException('유효하지 않은 리프레시 토큰입니다.');
       }
@@ -108,14 +109,14 @@ export class AuthService {
         { id: userId, email, role, gender },
         {
           secret: this.configService.get<string>('JWT_SECRET'),
-          expiresIn: '1h',
+          expiresIn: '1h',  // Access Token: 1시간
         },
       ),
       this.jwtService.signAsync(
         { id: userId, email, role, gender },
         {
           secret: this.configService.get<string>('JWT_SECRET'),
-          expiresIn: '7d',
+          expiresIn: '7d',  // Refresh Token: 7일
         },
       ),
     ]);
@@ -124,7 +125,7 @@ export class AuthService {
       accessToken,
       refreshToken,
       tokenType: 'Bearer',
-      expiresIn: 3600,
+      expiresIn: 3600,  // Access Token의 만료시간(초)
       role,
     };
   }

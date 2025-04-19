@@ -36,7 +36,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 7 * 24 * 60 * 60 * 1000,  // 7일을 밀리초로 표현
     });
   }
 
@@ -62,10 +62,10 @@ export class AuthController {
     return result;
   }
 
+  @Public()
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @AuthDocs.refresh()
-  @Public()
   async refresh(
     @Body() token: RefreshToken,
     @Res({ passthrough: true }) response: Response,
