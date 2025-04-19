@@ -66,6 +66,7 @@ export class AuthService {
     try {
       const payload = await this.jwtService.verifyAsync<JwtPayload>(refreshToken, {
         secret: this.configService.get<string>('JWT_SECRET'),
+        ignoreExpiration: false,  // 만료 검사 활성화
       });
 
       const storedToken = await this.authRepository.findRefreshToken(payload.id, refreshToken);

@@ -13,16 +13,7 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - docker build -t $REPOSITORY_URI:latest \
-        --build-arg NODE_ENV=production \
-        --build-arg PORT=8044 \
-        --build-arg DATABASE_URL=$DATABASE_URL \
-        --build-arg JWT_SECRET=$JWT_SECRET \
-        --build-arg DATABASE_USER=$DATABASE_USER \
-        --build-arg DATABASE_HOST=$DATABASE_HOST \
-        --build-arg DATABASE_PORT=$DATABASE_PORT \
-        --build-arg DATABASE_NAME=$DATABASE_NAME \
-      .
+      - docker build -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
 
   post_build:
