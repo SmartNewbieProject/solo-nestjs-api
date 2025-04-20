@@ -3,7 +3,11 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      nodejs: 22
+      nodejs: 18  # 더 안정적인 Node.js 버전으로 변경
+    commands:
+      - n 18  # Node.js 18 버전으로 명시적 설정
+      - npm install -g pnpm@8  # pnpm 버전도 명시
+
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
@@ -11,8 +15,8 @@ phases:
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com/sometimes-integration-api
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
+      - node -v
       - echo Installing dependencies...
-      - npm install -g pnpm
       - pnpm install
 
   build:
