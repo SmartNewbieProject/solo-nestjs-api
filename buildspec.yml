@@ -8,7 +8,7 @@ phases:
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com/sometimes-integration-api
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
-      - echo Installing Node.js 16.x and dependencies...
+      - echo Installing Node.js 16.x...
       - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
       - export NVM_DIR="$HOME/.nvm"
       - source $NVM_DIR/nvm.sh
