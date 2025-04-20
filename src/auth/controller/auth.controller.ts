@@ -97,4 +97,12 @@ export class AuthController {
   ) {
     return await this.authService.withdraw(user.id, withdrawRequest.password);
   }
+
+  @Public()
+  @Post('sms')
+  @HttpCode(HttpStatus.CREATED)
+  async sendSmsCode() {
+
+  }
+
 }

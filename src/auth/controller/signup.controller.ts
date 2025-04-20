@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseInterceptors, UploadedFiles, BadRequestException } from '@nestjs/common';
+import { Body, Controller, Post, UseInterceptors, UploadedFiles, BadRequestException, HttpCode, HttpStatus } from '@nestjs/common';
 import { SignupService } from '../services/signup.service';
 import { Email, SignupRequest } from '../dto';
 import { Public } from '@auth/decorators';
@@ -6,6 +6,7 @@ import { SignupDocs } from '../docs/signup.docs';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes } from '@nestjs/swagger';
 import * as multer from 'multer';
+import { SmsCodeCreation, AuthorizeSmsCode } from '../dto/signup';
 
 @Controller('auth')
 @SignupDocs.controller()
@@ -39,6 +40,19 @@ export class SignupController {
       profileImages: files,
     });
   }
+
+  
+  @Post('sms')
+  @HttpCode(HttpStatus.CREATED)
+  async sendSmsCode(@Body() { phoneNumber }: SmsCodeCreation) {
+    const uniqueKey = await this.signupService.sendVerificationcCode(phoneNumber);
+    return { uniqueKey };
+  }
+
+  async matchSmsCode(@Body() { authorizationCode, uniqueKey }: AuthorizeSmsCode) {
+    await this.signupService.matchVerificationCode(uniqueKey, authorizationCode);
+  }
+
 
   @Post('check/email')
   @SignupDocs.checkEmail()

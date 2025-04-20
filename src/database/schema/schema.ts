@@ -17,6 +17,7 @@ import { articles } from './articles';
 import { comments } from './comments';
 import { likes } from './likes';
 import { tickets } from './ticket';
+import { smsAuthorization } from './sms_authorization';
 
 // 관계형 매핑 파일 가져오기
 import './relations';
@@ -47,6 +48,7 @@ export {
   comments,
   tickets,
   likes,
+  smsAuthorization,
 };
 
 // 모든 테이블 스키마를 배열로 내보내기
