@@ -11,7 +11,6 @@ phases:
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com/sometimes-integration-api
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
-      - node -v
       - echo Installing dependencies...
       - npm install -g pnpm
       - pnpm install
