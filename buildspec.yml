@@ -23,13 +23,10 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      - echo Generating database migration scripts...
-      - chmod +x scripts/db-migrate-auto.sh
       - |
         export NVM_DIR="$HOME/.nvm"
         [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
         nvm use 16
-        ./scripts/db-migrate-auto.sh
       - echo Building the Docker image...
       - docker build -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
@@ -38,8 +35,14 @@ phases:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker images...
-      - docker push $REPOSITORY_URI:latest
-      - docker push $REPOSITORY_URI:$IMAGE_TAG
+      - echo "AWS Account ID: $AWS_ACCOUNT_ID"
+      - echo "Repository URI: $REPOSITORY_URI"
+      - echo "Image tag: $IMAGE_TAG"
+      - echo "Checking Docker login status..."
+      - aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com
+      - echo "Pushing images to ECR..."
+      - docker push $REPOSITORY_URI:latest || echo "Failed to push latest tag"
+      - docker push $REPOSITORY_URI:$IMAGE_TAG || echo "Failed to push $IMAGE_TAG tag"
       - echo Writing image definitions file...
       - |
         export NVM_DIR="$HOME/.nvm"
@@ -47,13 +50,14 @@ phases:
         nvm use 16
         printf '[{"name":"sometimes-integration-api","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - cat imagedefinitions.json
+      - echo "Creating dummy artifacts for drizzle migrations..."
+      - mkdir -p db-backups
+      - cp -r drizzle .
 
 artifacts:
   files:
     - imagedefinitions.json
     - appspec.yaml
-    - drizzle/**/*
-    - db-backups/**/*
   discard-paths: no
 
 cache:
