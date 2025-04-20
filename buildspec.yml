@@ -8,8 +8,8 @@ phases:
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com/sometimes-integration-api
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
-      - echo Installing Node.js 18...
-      - curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+      - echo Installing Node.js 22 LTS...
+      - curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
       - apt-get install -y nodejs
       - node -v
       - echo Installing dependencies...
