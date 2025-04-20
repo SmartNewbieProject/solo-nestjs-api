@@ -3,10 +3,11 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      nodejs: 18  # 더 안정적인 Node.js 버전으로 변경
+      nodejs: 16  # 더 낮은 Node.js 버전 사용
+      docker: 20
     commands:
-      - n 18  # Node.js 18 버전으로 명시적 설정
-      - npm install -g pnpm@8  # pnpm 버전도 명시
+      - yum install -y nodejs npm  # Amazon Linux의 패키지 매니저를 통해 설치
+      - npm install -g pnpm@8
 
   pre_build:
     commands:
@@ -33,12 +34,9 @@ phases:
       - echo "AWS Account ID = $AWS_ACCOUNT_ID"
       - echo "Repository URI = $REPOSITORY_URI"
       - echo "Image tag = $IMAGE_TAG"
-      - echo "Checking Docker login status..."
       - aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com
-      - echo "Pushing images to ECR..."
       - docker push $REPOSITORY_URI:latest || echo "Failed to push latest tag"
       - docker push $REPOSITORY_URI:$IMAGE_TAG || echo "Failed to push $IMAGE_TAG tag"
-      - echo Writing image definitions file...
       - printf '[{"name":"sometimes-integration-api","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - cat imagedefinitions.json
 
