@@ -17,9 +17,8 @@ RUN mkdir /app
 COPY package.json pnpm-lock.yaml /app/
 WORKDIR /app
 
-RUN pnpm fetch
-
-RUN pnpm install --frozen-lockfile
+# pnpm install 시 --no-frozen-lockfile 옵션 사용
+RUN pnpm install --no-frozen-lockfile
 RUN pnpm add -g @nestjs/cli
 
 # 소스 코드 복사 및 빌드
