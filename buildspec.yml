@@ -8,16 +8,20 @@ phases:
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com/sometimes-integration-api
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
-      - echo Installing Node.js 22 LTS directly...
-      - mkdir -p /tmp/nodejs
-      - cd /tmp/nodejs
-      - curl -fsSL https://nodejs.org/dist/v22.2.0/node-v22.2.0-linux-x64.tar.gz -o node.tar.gz
-      - tar -xzf node.tar.gz
-      - sudo cp -r node-v22.2.0-linux-x64/* /usr/local/
-      - cd -
+      - echo Installing Node.js 16.x...
+      - if command -v yum &> /dev/null; then
+      -   curl -sL https://rpm.nodesource.com/setup_16.x | bash -
+      -   yum install -y nodejs
+      - elif command -v apt-get &> /dev/null; then
+      -   curl -sL https://deb.nodesource.com/setup_16.x | bash -
+      -   apt-get install -y nodejs
+      - else
+      -   echo "Neither yum nor apt-get found. Cannot install Node.js."
+      -   exit 1
+      - fi
       - node -v
       - echo Installing dependencies...
-      - npm install -g pnpm
+      - npm install -g pnpm@7.30.5
       - pnpm install
 
   build:
