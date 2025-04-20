@@ -1,10 +1,15 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, BadGatewayException } from '@nestjs/common';
 import { SignupRepository } from '@auth/repository/signup.repository';
 import * as bcrypt from 'bcryptjs';
 import { SignupRequest } from '@/auth/dto';
 import UniversityRepository from '../repository/university.repository';
 import { S3Service } from '@/common/services/s3.service';
 import { ImageService } from '@/user/services/image.service';
+import { uuidv7 } from 'uuidv7';
+import SmsService from '@/sms/services/sms.service';
+import { generateVerificationCode } from '../domain/code-generator';
+import { dayUtils } from '@/common/helper';
+import dayjs from 'dayjs';
 
 @Injectable()
 export class SignupService {
@@ -13,6 +18,7 @@ export class SignupService {
     private readonly universityRepository: UniversityRepository,
     private readonly s3Service: S3Service,
     private readonly imageService: ImageService,
+    private readonly smsService: SmsService,
   ) {}
 
   checkEmail(email: string) {
@@ -20,7 +26,8 @@ export class SignupService {
   }
 
   async signup(signupRequest: SignupRequest) {
-    const { email, name } = signupRequest;
+    const { email, name, phoneNumber } = signupRequest;
+    await this.checkVerifySms(phoneNumber);
     const existingUser = await this.checkEmail(email);
     if (existingUser) {
       throw new ConflictException('이미 등록된 이메일입니다.');
@@ -33,6 +40,49 @@ export class SignupService {
       name,
       createdAt: user.createdAt,
     };
+  }
+
+  async sendVerificationcCode(phoneNumber: string) {
+    const id = uuidv7();
+    const number = phoneNumber.replaceAll('-', '');
+    const authorizationCode = generateVerificationCode();
+
+    const smsVerification = await this.signupRepository.createSmsVerification({
+      authorizationCode,
+      phoneNumber: number,
+      uniqueKey: id,
+    })
+
+    await this.smsService.sendSms(
+      number,
+      `
+      [썸타임]
+      회원가입을 위해 인증번호를 입력해주세요.
+      인증번호: ${authorizationCode}
+      `
+    );
+
+    return smsVerification[0].uniqueKey;
+  }
+
+  async matchVerificationCode(uniqueKey: string, authCode: string) {
+    const authorizationCode = await this.signupRepository.getAuthorizationCode(uniqueKey);
+    if (!authorizationCode) {
+      throw new NotFoundException('인증번호가 유효하지 않습니다.');
+    }
+    const timeover = dayjs(authorizationCode.createdAt)
+    .isAfter(dayUtils.create().add(10, 'minutes'));
+
+    if (timeover) {
+      throw new BadGatewayException("인증코드 유효시간이 지났습니다.");
+    }
+
+    const matches = authorizationCode.authorizationCode === authCode;
+    if (!matches) {
+      throw new BadGatewayException("인증코드가 일치하지 않습니다.");
+    }
+
+    await this.signupRepository.approveAuthorizationCode(authorizationCode.id);
   }
 
   private async hashPassword(password: string): Promise<string> {
@@ -72,5 +122,12 @@ export class SignupService {
     await Promise.all(uploadImagePromises);
 
     return user;
+  }
+
+  private async checkVerifySms(phoneNumber: string) {
+    const exists = await this.signupRepository.existsVerifiedSms(phoneNumber);
+    if (!exists) {
+      throw new BadGatewayException("휴대폰 인증을 수행해주세요.");
+    }
   }
 }

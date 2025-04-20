@@ -13,9 +13,10 @@ import { UniversityService } from './services/university.service';
 import UniversityRepository from './repository/university.repository';
 import { ImageService } from '@/user/services/image.service';
 import { S3Service } from '@/common/services/s3.service';
+import { SmsModule } from '@/sms/sms.module';
 
 @Module({
-  imports: [], 
+  imports: [SmsModule], 
   controllers: [SignupController, AuthController, UniversityController],
   providers: [
     SignupService,

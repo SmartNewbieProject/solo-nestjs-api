@@ -1,6 +1,14 @@
 version: 0.2
 
 phases:
+  install:
+    runtime-versions:
+      nodejs: 16  # 더 낮은 Node.js 버전 사용
+      docker: 20
+    commands:
+      - yum install -y nodejs npm  # Amazon Linux의 패키지 매니저를 통해 설치
+      - npm install -g pnpm@8
+
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
@@ -8,6 +16,9 @@ phases:
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com/sometimes-integration-api
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
+      - node -v
+      - echo Installing dependencies...
+      - pnpm install
 
   build:
     commands:
@@ -20,17 +31,20 @@ phases:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker images...
-      - docker push $REPOSITORY_URI:latest
-      - docker push $REPOSITORY_URI:$IMAGE_TAG
-      - echo Writing image definitions file...
-      - printf '{"ImageURI":"%s"}' $REPOSITORY_URI:$IMAGE_TAG > imageDefinitions.json
-      - cat imageDefinitions.json
+      - echo "AWS Account ID = $AWS_ACCOUNT_ID"
+      - echo "Repository URI = $REPOSITORY_URI"
+      - echo "Image tag = $IMAGE_TAG"
+      - aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com
+      - docker push $REPOSITORY_URI:latest || echo "Failed to push latest tag"
+      - docker push $REPOSITORY_URI:$IMAGE_TAG || echo "Failed to push $IMAGE_TAG tag"
+      - printf '[{"name":"sometimes-integration-api","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - cat imagedefinitions.json
 
 artifacts:
   files:
-    - imageDefinitions.json
+    - imagedefinitions.json
     - appspec.yaml
-  discard-paths: yes
+  discard-paths: no
 
 cache:
   paths:

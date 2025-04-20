@@ -9,5 +9,8 @@ declare namespace NodeJS {
     DATABASE_PORT: string;
     DATABASE_NAME: string;
     PORTONE_SECRET_KEY: string;
+    COOL_SMS_SECRET_KEY: string;
+    COOL_SMS_API_KEY: string;
+    SMS_SENDER_NUMBER: string;
   }
 }

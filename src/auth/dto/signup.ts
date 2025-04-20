@@ -41,6 +41,12 @@ export class SignupRequest {
   @IsNotEmpty({ message: '생년월일은 필수 입력 항목입니다.' })
   birthday: string;
 
+  @IsString()
+  @Matches(/^010-?\d{3,4}-?\d{4}$/, {
+    message: '유효한 전화번호 형식이 아닙니다.',
+  })
+  phoneNumber: string;
+
   @ApiProperty({
     example: 20,
     description: '나이',
@@ -119,4 +125,20 @@ export class SignupRequest {
   })
   @IsOptional()
   profileImages: multer.File[];
+}
+
+export class SmsCodeCreation {
+  @IsString()
+  @Matches(/^010-?\d{3,4}-?\d{4}$/, {
+    message: '유효한 전화번호 형식이 아닙니다.',
+  })
+  phoneNumber: string;
+}
+
+export class AuthorizeSmsCode {
+  @IsString()
+  uniqueKey: string;
+
+  @IsString()
+  authorizationCode: string;
 }

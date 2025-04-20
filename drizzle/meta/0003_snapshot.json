@@ -1,6 +1,6 @@
 {
-  "id": "156e8f8a-f5fe-4134-9dc4-b76e6288c493",
-  "prevId": "6589a37e-c390-484c-b83b-7f504d0cbc22",
+  "id": "c4745fa8-dd3f-42d9-8c2c-116471cb7612",
+  "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -532,9 +532,21 @@
           "primaryKey": false,
           "notNull": true
         },
+        "tx_id": {
+          "name": "tx_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
         "payment_key": {
           "name": "payment_key",
           "type": "varchar(128)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "receipt_url": {
+          "name": "receipt_url",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -595,6 +607,12 @@
           "type": "varchar(128)",
           "primaryKey": true,
           "notNull": true
+        },
+        "image_url": {
+          "name": "image_url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "preference_type_id": {
           "name": "preference_type_id",
@@ -1036,6 +1054,12 @@
           "primaryKey": true,
           "notNull": true
         },
+        "name": {
+          "name": "name",
+          "type": "varchar(30)",
+          "primaryKey": false,
+          "notNull": true
+        },
         "user_id": {
           "name": "user_id",
           "type": "varchar(128)",
@@ -1044,15 +1068,13 @@
         },
         "status": {
           "name": "status",
-          "type": "ticket_status",
-          "typeSchema": "public",
+          "type": "varchar(10)",
           "primaryKey": false,
           "notNull": true
         },
         "type": {
           "name": "type",
-          "type": "ticket_type",
-          "typeSchema": "public",
+          "type": "varchar(10)",
           "primaryKey": false,
           "notNull": true
         },
@@ -1099,15 +1121,7 @@
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {
-        "tickets_user_id_unique": {
-          "name": "tickets_user_id_unique",
-          "nullsNotDistinct": false,
-          "columns": [
-            "user_id"
-          ]
-        }
-      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false
