@@ -3,7 +3,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      nodejs: 18
+      nodejs: 22
   pre_build:
     commands:
       - echo Logging in to Amazon ECR...
@@ -19,9 +19,6 @@ phases:
   build:
     commands:
       - echo Build started on `date`
-      - export NVM_DIR="$HOME/.nvm"
-      - source $NVM_DIR/nvm.sh
-      - nvm use 16
       - echo Building the Docker image...
       - docker build -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
@@ -39,9 +36,6 @@ phases:
       - docker push $REPOSITORY_URI:latest || echo "Failed to push latest tag"
       - docker push $REPOSITORY_URI:$IMAGE_TAG || echo "Failed to push $IMAGE_TAG tag"
       - echo Writing image definitions file...
-      - export NVM_DIR="$HOME/.nvm"
-      - source $NVM_DIR/nvm.sh
-      - nvm use 16
       - printf '[{"name":"sometimes-integration-api","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - cat imagedefinitions.json
 
