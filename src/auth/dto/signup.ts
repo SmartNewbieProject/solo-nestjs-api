@@ -128,6 +128,10 @@ export class SignupRequest {
 }
 
 export class SmsCodeCreation {
+  @ApiProperty({
+    example: '010-1234-5678',
+    description: '전화번호',
+  })
   @IsString()
   @Matches(/^010-?\d{3,4}-?\d{4}$/, {
     message: '유효한 전화번호 형식이 아닙니다.',
@@ -136,9 +140,17 @@ export class SmsCodeCreation {
 }
 
 export class AuthorizeSmsCode {
+  @ApiProperty({
+    example: 'sdjfdks-sdfsdfkl',
+    description: '인증 보안용 고유키',
+  })
   @IsString()
   uniqueKey: string;
 
+  @ApiProperty({
+    example: '123456',
+    description: '인증번호',
+  })
   @IsString()
   authorizationCode: string;
 }

@@ -1,10 +1,10 @@
-import { Body, Controller, Post, UseInterceptors, UploadedFiles, BadRequestException, HttpCode, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Post, Patch, UseInterceptors, UploadedFiles, BadRequestException, HttpCode, HttpStatus } from '@nestjs/common';
 import { SignupService } from '../services/signup.service';
 import { Email, SignupRequest } from '../dto';
 import { Public } from '@auth/decorators';
 import { SignupDocs } from '../docs/signup.docs';
 import { FilesInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes } from '@nestjs/swagger';
+import { ApiConsumes, ApiOperation } from '@nestjs/swagger';
 import * as multer from 'multer';
 import { SmsCodeCreation, AuthorizeSmsCode } from '../dto/signup';
 
@@ -42,13 +42,16 @@ export class SignupController {
   }
 
   
-  @Post('sms')
+  @ApiOperation({ summary: '인증번호 전송', description: '인증번호를 전송합니다.' })
+  @Post('sms/send')
   @HttpCode(HttpStatus.CREATED)
   async sendSmsCode(@Body() { phoneNumber }: SmsCodeCreation) {
     const uniqueKey = await this.signupService.sendVerificationcCode(phoneNumber);
     return { uniqueKey };
   }
 
+  @ApiOperation({ summary: '인증번호 인증', description: 'SMS 인증을 수행합니다.' })
+  @Patch('sms')
   async matchSmsCode(@Body() { authorizationCode, uniqueKey }: AuthorizeSmsCode) {
     await this.signupService.matchVerificationCode(uniqueKey, authorizationCode);
   }

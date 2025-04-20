@@ -55,11 +55,7 @@ export class SignupService {
 
     await this.smsService.sendSms(
       number,
-      `
-      [썸타임]
-      회원가입을 위해 인증번호를 입력해주세요.
-      인증번호: ${authorizationCode}
-      `
+      `[썸타임]\n회원가입을 위해 인증번호를 입력해주세요.\n인증번호: ${authorizationCode}`
     );
 
     return smsVerification[0].uniqueKey;
