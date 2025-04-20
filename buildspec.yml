@@ -9,24 +9,22 @@ phases:
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
       - echo Installing Node.js 16.x and dependencies...
-      - |
-        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
-        nvm install 16
-        nvm use 16
-        node -v
-        echo Installing dependencies...
-        npm install -g pnpm@7.30.5
-        pnpm install
+      - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+      - export NVM_DIR="$HOME/.nvm"
+      - source $NVM_DIR/nvm.sh
+      - nvm install 16
+      - nvm use 16
+      - node -v
+      - echo Installing dependencies...
+      - npm install -g pnpm@7.30.5
+      - pnpm install
 
   build:
     commands:
       - echo Build started on `date`
-      - |
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
-        nvm use 16
+      - export NVM_DIR="$HOME/.nvm"
+      - source $NVM_DIR/nvm.sh
+      - nvm use 16
       - echo Building the Docker image...
       - docker build -t $REPOSITORY_URI:latest .
       - docker tag $REPOSITORY_URI:latest $REPOSITORY_URI:$IMAGE_TAG
@@ -44,15 +42,11 @@ phases:
       - docker push $REPOSITORY_URI:latest || echo "Failed to push latest tag"
       - docker push $REPOSITORY_URI:$IMAGE_TAG || echo "Failed to push $IMAGE_TAG tag"
       - echo Writing image definitions file...
-      - |
-        export NVM_DIR="$HOME/.nvm"
-        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
-        nvm use 16
-        printf '[{"name":"sometimes-integration-api","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - export NVM_DIR="$HOME/.nvm"
+      - source $NVM_DIR/nvm.sh
+      - nvm use 16
+      - printf '[{"name":"sometimes-integration-api","imageUri":"%s"}]' $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
       - cat imagedefinitions.json
-      - echo "Creating dummy artifacts for drizzle migrations..."
-      - mkdir -p db-backups
-      - cp -r drizzle .
 
 artifacts:
   files:
