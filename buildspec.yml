@@ -33,9 +33,9 @@ phases:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker images...
-      - echo "AWS Account ID: $AWS_ACCOUNT_ID"
-      - echo "Repository URI: $REPOSITORY_URI"
-      - echo "Image tag: $IMAGE_TAG"
+      - echo "AWS Account ID = $AWS_ACCOUNT_ID"
+      - echo "Repository URI = $REPOSITORY_URI"
+      - echo "Image tag = $IMAGE_TAG"
       - echo "Checking Docker login status..."
       - aws ecr get-login-password --region ap-northeast-2 | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com
       - echo "Pushing images to ECR..."
