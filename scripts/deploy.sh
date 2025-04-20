@@ -9,6 +9,11 @@ cp /home/ubuntu/.env .env
 # 의존성 설치
 pnpm install
 
+# 데이터베이스 마이그레이션 실행
+echo "데이터베이스 마이그레이션 실행 중..."
+chmod +x scripts/db-migrate-auto.sh
+./scripts/db-migrate-auto.sh
+
 # 프로젝트 빌드
 pnpm build
 
