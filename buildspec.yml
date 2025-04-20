@@ -9,16 +9,11 @@ phases:
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
       - echo Installing Node.js 16.x...
-      - if command -v yum &> /dev/null; then
-      -   curl -sL https://rpm.nodesource.com/setup_16.x | bash -
-      -   yum install -y nodejs
-      - elif command -v apt-get &> /dev/null; then
-      -   curl -sL https://deb.nodesource.com/setup_16.x | bash -
-      -   apt-get install -y nodejs
-      - else
-      -   echo "Neither yum nor apt-get found. Cannot install Node.js."
-      -   exit 1
-      - fi
+      - curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+      - export NVM_DIR="$HOME/.nvm"
+      - source $NVM_DIR/nvm.sh
+      - nvm install 16
+      - nvm use 16
       - node -v
       - echo Installing dependencies...
       - npm install -g pnpm@7.30.5
