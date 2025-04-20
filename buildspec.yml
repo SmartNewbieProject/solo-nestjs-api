@@ -8,9 +8,13 @@ phases:
       - REPOSITORY_URI=$AWS_ACCOUNT_ID.dkr.ecr.ap-northeast-2.amazonaws.com/sometimes-integration-api
       - COMMIT_HASH=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
       - IMAGE_TAG=${COMMIT_HASH:=latest}
-      - echo Installing Node.js 22 LTS...
-      - curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
-      - apt-get install -y nodejs
+      - echo Installing Node.js 22 LTS directly...
+      - mkdir -p /tmp/nodejs
+      - cd /tmp/nodejs
+      - curl -fsSL https://nodejs.org/dist/v22.2.0/node-v22.2.0-linux-x64.tar.gz -o node.tar.gz
+      - tar -xzf node.tar.gz
+      - sudo cp -r node-v22.2.0-linux-x64/* /usr/local/
+      - cd -
       - node -v
       - echo Installing dependencies...
       - npm install -g pnpm
