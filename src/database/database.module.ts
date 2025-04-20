@@ -22,11 +22,11 @@ import { DatabaseService } from './database.service';
           port: configService.get('DATABASE_PORT'),
           database: configService.get('DATABASE_NAME'),
         });
-
+        await pool.query("SET timezone = 'Asia/Seoul'");
         const logger = new Logger('SQL');
-        
-        return drizzle(pool, { 
-          schema, 
+
+        return drizzle(pool, {
+          schema,
           casing: 'snake_case',
           logger: {
             logQuery: (query, params) => {

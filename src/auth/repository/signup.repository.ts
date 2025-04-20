@@ -3,13 +3,12 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '@database/schema';
 import { users } from '@database/schema/users';
 import { profiles } from '@database/schema/profiles';
-import { and, eq, isNull, between } from 'drizzle-orm';
+import { and, eq, isNull, between, sql } from 'drizzle-orm';
 import { InjectDrizzle } from '@common/decorators';
 import { generateUuidV7 } from '@database/schema/helper';
 import { Role } from '@/auth/domain/user-role.enum';
 import { SignupRequest } from '../dto';
 import { smsAuthorization } from '@database/schema/sms_authorization';
-import { dayUtils } from '@/common/helper';
 
 
 type SmsVerifyCreation = {
@@ -114,18 +113,16 @@ export class SignupRepository {
   }
 
   async existsVerifiedSms(phoneNumber: string) {
-    const now = dayUtils.create();
-    const before = now.subtract(60, 'minutes');
-
-    const nowDate = now.toDate();
-    const beforeDate = before.toDate();
+    // SQL 함수를 사용하여 데이터베이스 레벨에서 시간대 처리
+    const now = sql`NOW()`;
+    const minutesAgo = sql`NOW() - INTERVAL '60 minutes'`;
 
     return await this.db.query.smsAuthorization.findFirst({
       where: and(
-        eq(smsAuthorization.phoneNumber, phoneNumber),
+        eq(smsAuthorization.phoneNumber, phoneNumber.replaceAll('-', '')),
         eq(smsAuthorization.is_authorized, true),
         isNull(smsAuthorization.deletedAt),
-        between(smsAuthorization.createdAt, beforeDate, nowDate),
+        between(smsAuthorization.createdAt, minutesAgo, now),
       ),
     });
   }

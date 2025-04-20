@@ -1,4 +1,4 @@
-import { Injectable, ConflictException, NotFoundException, BadGatewayException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, BadGatewayException, Logger } from '@nestjs/common';
 import { SignupRepository } from '@auth/repository/signup.repository';
 import * as bcrypt from 'bcryptjs';
 import { SignupRequest } from '@/auth/dto';
@@ -9,10 +9,12 @@ import { uuidv7 } from 'uuidv7';
 import SmsService from '@/sms/services/sms.service';
 import { generateVerificationCode } from '../domain/code-generator';
 import { dayUtils } from '@/common/helper';
-import dayjs from 'dayjs';
+import * as dayjs from 'dayjs';
 
 @Injectable()
 export class SignupService {
+  private readonly logger = new Logger(SignupService.name);
+
   constructor(
     private readonly signupRepository: SignupRepository,
     private readonly universityRepository: UniversityRepository,
@@ -122,6 +124,7 @@ export class SignupService {
 
   private async checkVerifySms(phoneNumber: string) {
     const exists = await this.signupRepository.existsVerifiedSms(phoneNumber);
+    this.logger.debug(exists);
     if (!exists) {
       throw new BadGatewayException("휴대폰 인증을 수행해주세요.");
     }
