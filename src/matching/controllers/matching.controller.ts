@@ -1,4 +1,4 @@
-import { Controller, Get } from "@nestjs/common";
+import { Controller, Get, UseInterceptors } from "@nestjs/common";
 import MatchingCreationService from "../services/creation.service";
 import { ApiBearerAuth, ApiOperation, ApiTags, ApiResponse } from "@nestjs/swagger";
 import { CurrentUser, Roles } from "@/auth/decorators";
@@ -8,6 +8,7 @@ import { AuthenticationUser } from "@/types";
 import { PartnerDetails } from "@/types/match";
 import { MatchingUserResponse, PartnerResponse, TotalMatchingCountResponse } from "@/docs/matching.docs";
 import { CacheKey, CacheTTL } from "@nestjs/cache-manager";
+import { CustomCacheInterceptor } from '@/common/interceptors/app-cache.interceptors';
 
 @Controller('matching')
 @ApiBearerAuth('access-token')
@@ -16,11 +17,11 @@ export default class UserMatchingController {
   constructor(
     private readonly matchingCreationService: MatchingCreationService,
     private readonly matchingService: MatchingService,
-  ) {}
+  ) { }
 
   @Get('users')
   @Roles(Role.ADMIN)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: '매칭 대상 사용자 목록 조회',
     description: '매칭 처리가 필요한 사용자 목록을 조회합니다.'
   })
@@ -41,7 +42,7 @@ export default class UserMatchingController {
   @CacheTTL(86400)
   @Get('total-count')
   @Roles(Role.USER, Role.ADMIN)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: '전체 매칭 수 조회',
     description: '지금까지 생성된 전체 매칭의 수를 반환합니다. (24시간 캐시)'
   })
@@ -56,9 +57,9 @@ export default class UserMatchingController {
 
   @Get()
   @Roles(Role.USER, Role.ADMIN)
-  @ApiOperation({ 
-    summary: '매칭 파트너 조회', 
-    description: '사용자의 최근 매칭 파트너를 조회합니다. 매칭된 파트너가 존재하지않으면 null 입니다.' 
+  @ApiOperation({
+    summary: '매칭 파트너 조회',
+    description: '사용자의 최근 매칭 파트너를 조회합니다. 매칭된 파트너가 존재하지않으면 null 입니다.'
   })
   @ApiResponse({
     status: 200,

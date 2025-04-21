@@ -1,4 +1,5 @@
 import { Module, Global } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { S3Service } from './services/s3.service';
 import { MulterModule } from '@nestjs/platform-express';
@@ -23,7 +24,7 @@ import { CustomCacheInterceptor } from './interceptors/app-cache.interceptors';
         if (req.url.includes('/docs') || req.url.includes('/docs-json')) {
           return callback(null, true);
         }
-        
+
         if (!file.mimetype.includes('image')) {
           return callback(new Error('이미지 파일만 업로드할 수 있습니다.'), false);
         }
@@ -58,10 +59,13 @@ import { CustomCacheInterceptor } from './interceptors/app-cache.interceptors';
       inject: [ConfigService],
     },
     {
-      provide: APP_INTERCEPTOR,
-      useClass: CacheInterceptor,
+      provide: CustomCacheInterceptor,
+      useFactory: (reflector: Reflector, cacheManager: any) => {
+        return new CustomCacheInterceptor(reflector, cacheManager);
+      },
+      inject: [Reflector, 'CACHE_MANAGER'],
     },
   ],
-  exports: [S3Service],
+  exports: [S3Service, CustomCacheInterceptor],
 })
-export class CommonModule {}
+export class CommonModule { }

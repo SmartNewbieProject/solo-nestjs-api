@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { CommonModule } from '@/common/common.module';
 import { MatchingService } from './services/matching.service';
 import { AdminMatchingController } from '../admin/controllers/admin-matching.controller';
 import { DrizzleModule } from '@/database/drizzle.module';
@@ -19,9 +20,10 @@ import AdminMatchService from '@/admin/services/match.service';
     EmbeddingModule,
     QdrantModule,
     ScheduleModule.forRoot(),
+    CommonModule,
   ],
   providers: [
-    MatchingService, 
+    MatchingService,
     ProfileRepository,
     ProfileService,
     MatchingCreationService,
@@ -32,4 +34,4 @@ import AdminMatchService from '@/admin/services/match.service';
   controllers: [AdminMatchingController, UserMatchingController],
   exports: [MatchingService, MatchingCreationService],
 })
-export class MatchingModule {}
+export class MatchingModule { }
