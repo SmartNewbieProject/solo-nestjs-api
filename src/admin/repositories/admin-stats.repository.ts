@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { DrizzleService } from '@/database/drizzle.service';
-import { users, profiles } from '@/database/schema';
+import { users, profiles, universityDetails } from '@/database/schema';
 import { count, sql, and, gte, lt, lte, eq } from 'drizzle-orm';
 import { SignupTrendPoint } from '../dto/stats.dto';
 import { Gender } from '@/types/enum';
+import { getUniversities } from '@/auth/domain/university';
 
 @Injectable()
 export class AdminStatsRepository {
@@ -317,6 +318,109 @@ export class AdminStatsRepository {
    * 성별에 따른 회원 수를 조회합니다.
    * @returns {Promise<{maleCount: number, femaleCount: number}>} 남성 회원 수와 여성 회원 수
    */
+  /**
+   * 대학별 회원 통계를 조회합니다.
+   * @returns {Promise<Array<{universityName: string, totalCount: number, maleCount: number, femaleCount: number}>>} 대학별 회원 통계 데이터
+   */
+  async getUniversityStats(): Promise<Array<{universityName: string, totalCount: number, maleCount: number, femaleCount: number}>> {
+    // 대학 목록 가져오기 (전체 참여 대학)
+    const targetUniversities = [
+      '건양대학교(메디컬캠퍼스)', // 건양대 메디컬
+      '대전대학교', // 대전대
+      '목원대학교', // 목원대
+      '배재대학교', // 배재대
+      '우송대학교', // 우송대
+      '한남대학교', // 한남대
+      '충남대학교', // 충남대
+      'KAIST', // 카이스트
+      '한밭대학교', // 한밭대
+      '을지대학교', // 을지대
+      '대덕대학교', // 대덕대
+      '대전과학기술대학교', // 대전과기대
+      '대전보건대학교', // 대전보건대
+      '우송정보대학' // 우송정보대
+    ];
+
+    // 데이터베이스에 실제로 등록된 대학 목록 조회
+    const registeredUniversities = await this.drizzleService.db
+      .select({
+        universityName: universityDetails.universityName,
+      })
+      .from(universityDetails)
+      .where(sql`${universityDetails.deletedAt} IS NULL`)
+      .groupBy(universityDetails.universityName);
+
+    // 등록된 대학 이름 목록 추출
+    const registeredUniversityNames = registeredUniversities.map(uni => uni.universityName);
+
+    console.log('데이터베이스에 등록된 대학 목록:', registeredUniversityNames);
+
+    // 대학 목록 합치기 (등록된 대학 + 타겟 대학 중 누락된 대학)
+    const allUniversities = [...new Set([...registeredUniversityNames, ...targetUniversities])];
+
+    console.log('최종 대학 목록:', allUniversities);
+
+    // 대학별 전체 회원 수 조회
+    const universityTotalCounts = await this.drizzleService.db
+      .select({
+        universityName: universityDetails.universityName,
+        count: count(),
+      })
+      .from(universityDetails)
+      .innerJoin(users, eq(universityDetails.userId, users.id))
+      .where(and(
+        sql`${universityDetails.deletedAt} IS NULL`,
+        sql`${users.deletedAt} IS NULL`
+      ))
+      .groupBy(universityDetails.universityName);
+
+    // 대학별 성별 회원 수 조회
+    const universityGenderCounts = await this.drizzleService.db
+      .select({
+        universityName: universityDetails.universityName,
+        gender: profiles.gender,
+        count: count(),
+      })
+      .from(universityDetails)
+      .innerJoin(users, eq(universityDetails.userId, users.id))
+      .innerJoin(profiles, eq(users.id, profiles.userId))
+      .where(and(
+        sql`${universityDetails.deletedAt} IS NULL`,
+        sql`${users.deletedAt} IS NULL`,
+        sql`${profiles.deletedAt} IS NULL`
+      ))
+      .groupBy(universityDetails.universityName, profiles.gender);
+
+    // 모든 대학에 대한 결과 생성 (유저가 없는 대학도 포함)
+    const result = allUniversities.map(universityName => {
+      // 해당 대학의 전체 회원 수 찾기
+      const universityData = universityTotalCounts.find(item => item.universityName === universityName);
+      const totalCount = universityData?.count || 0;
+
+      // 해당 대학의 남성 회원 수 찾기
+      const maleCount = universityGenderCounts.find(
+        item => item.universityName === universityName && item.gender === Gender.MALE
+      )?.count || 0;
+
+      // 해당 대학의 여성 회원 수 찾기
+      const femaleCount = universityGenderCounts.find(
+        item => item.universityName === universityName && item.gender === Gender.FEMALE
+      )?.count || 0;
+
+      return {
+        universityName,
+        totalCount,
+        maleCount,
+        femaleCount
+      };
+    });
+
+    // 11개 참여 대학만 필터링
+    const filteredResult = result.filter(uni => targetUniversities.includes(uni.universityName));
+
+    return filteredResult;
+  }
+
   async getGenderStats(): Promise<{maleCount: number, femaleCount: number}> {
     // 남성 회원 수 조회
     const maleResult = await this.drizzleService.db

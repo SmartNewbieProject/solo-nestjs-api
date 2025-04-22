@@ -143,3 +143,61 @@ export class GenderStatsResponse {
   })
   genderRatio: string;
 }
+
+/**
+ * 대학별 통계 정보 DTO
+ */
+export class UniversityStatItem {
+  @ApiProperty({
+    description: '대학명',
+    example: '한밭대학교',
+  })
+  universityName: string;
+
+  @ApiProperty({
+    description: '전체 유저 수',
+    example: 42,
+  })
+  totalCount: number;
+
+  @ApiProperty({
+    description: '남성 유저 수',
+    example: 25,
+  })
+  maleCount: number;
+
+  @ApiProperty({
+    description: '여성 유저 수',
+    example: 17,
+  })
+  femaleCount: number;
+
+  @ApiProperty({
+    description: '전체 유저 대비 비율 (%)',
+    example: 34.15,
+  })
+  percentage: number;
+
+  @ApiProperty({
+    description: '성비 비율 (남성:여성)',
+    example: '1.47:1',
+  })
+  genderRatio: string;
+}
+
+/**
+ * 대학별 통계 응답 DTO
+ */
+export class UniversityStatsResponse {
+  @ApiProperty({
+    description: '대학별 통계 데이터',
+    type: [UniversityStatItem],
+  })
+  universities: UniversityStatItem[];
+
+  @ApiProperty({
+    description: '전체 유저 수',
+    example: 123,
+  })
+  totalCount: number;
+}

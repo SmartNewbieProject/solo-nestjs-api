@@ -8,6 +8,7 @@ import {
   DailySignupTrendResponse,
   GenderStatsResponse,
   MonthlySignupTrendResponse,
+  UniversityStatsResponse,
   WeeklySignupTrendResponse
 } from '../dto/stats.dto';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
@@ -190,5 +191,19 @@ export class AdminStatsController {
   })
   async getGenderStats(): Promise<GenderStatsResponse> {
     return await this.adminStatsService.getGenderStats();
+  }
+
+  @Get('users/universities')
+  @ApiOperation({
+    summary: '대학별 통계 조회',
+    description: '대학별 전체 유저 수, 유저 비율, 성별 유저 수, 성비 비율을 조회합니다.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: '대학별 통계 조회 성공',
+    type: UniversityStatsResponse
+  })
+  async getUniversityStats(): Promise<UniversityStatsResponse> {
+    return await this.adminStatsService.getUniversityStats();
   }
 }

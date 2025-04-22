@@ -6,6 +6,8 @@ import {
   DailySignupTrendResponse,
   GenderStatsResponse,
   MonthlySignupTrendResponse,
+  UniversityStatItem,
+  UniversityStatsResponse,
   WeeklySignupTrendResponse
 } from '../dto/stats.dto';
 
@@ -118,6 +120,49 @@ export class AdminStatsService {
    * 성별 통계를 조회합니다.
    * @returns {Promise<GenderStatsResponse>} 성별 통계 정보
    */
+  /**
+   * 대학별 통계를 조회합니다.
+   * @returns {Promise<UniversityStatsResponse>} 대학별 통계 정보
+   */
+  async getUniversityStats(): Promise<UniversityStatsResponse> {
+    const universityStats = await this.adminStatsRepository.getUniversityStats();
+    const totalCount = universityStats.reduce((sum, university) => sum + university.totalCount, 0);
+
+    // 대학별 통계 정보 계산
+    const universities: UniversityStatItem[] = universityStats.map(university => {
+      const { universityName, totalCount: uniTotalCount, maleCount, femaleCount } = university;
+
+      // 전체 유저 대비 비율 계산 (소수점 2자리까지)
+      const percentage = totalCount > 0 ? parseFloat(((uniTotalCount / totalCount) * 100).toFixed(2)) : 0;
+
+      // 성비 비율 계산 (남성:여성)
+      let genderRatio = '0:0';
+      if (femaleCount > 0) {
+        const ratio = maleCount / femaleCount;
+        genderRatio = `${ratio.toFixed(1)}:1`;
+      } else if (maleCount > 0) {
+        genderRatio = '∞:1'; // 여성이 0명인 경우
+      }
+
+      return {
+        universityName,
+        totalCount: uniTotalCount,
+        maleCount,
+        femaleCount,
+        percentage,
+        genderRatio
+      };
+    });
+
+    // 대학명 정렬 (총 회원 수 내림차순)
+    universities.sort((a, b) => b.totalCount - a.totalCount);
+
+    return {
+      universities,
+      totalCount
+    };
+  }
+
   async getGenderStats(): Promise<GenderStatsResponse> {
     const { maleCount, femaleCount } = await this.adminStatsRepository.getGenderStats();
     const totalCount = maleCount + femaleCount;
@@ -130,7 +175,7 @@ export class AdminStatsService {
     let genderRatio = '0:0';
     if (femaleCount > 0) {
       const ratio = maleCount / femaleCount;
-      genderRatio = `${ratio.toFixed(2)}:1`;
+      genderRatio = `${ratio.toFixed(1)}:1`;
     } else if (maleCount > 0) {
       genderRatio = '∞:1'; // 여성이 0명인 경우
     }
