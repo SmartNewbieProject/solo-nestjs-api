@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { DrizzleService } from '@/database/drizzle.service';
-import { users } from '@/database/schema';
-import { count, sql, and, gte, lt, lte } from 'drizzle-orm';
+import { users, profiles } from '@/database/schema';
+import { count, sql, and, gte, lt, lte, eq } from 'drizzle-orm';
 import { SignupTrendPoint } from '../dto/stats.dto';
+import { Gender } from '@/types/enum';
 
 @Injectable()
 export class AdminStatsRepository {
@@ -312,6 +313,41 @@ export class AdminStatsRepository {
    * @param endDate 종료 날짜 (YYYY-MM-DD 형식)
    * @returns 사용자 지정 기간 내 일별 회원가입 추이 데이터
    */
+  /**
+   * 성별에 따른 회원 수를 조회합니다.
+   * @returns {Promise<{maleCount: number, femaleCount: number}>} 남성 회원 수와 여성 회원 수
+   */
+  async getGenderStats(): Promise<{maleCount: number, femaleCount: number}> {
+    // 남성 회원 수 조회
+    const maleResult = await this.drizzleService.db
+      .select({ count: count() })
+      .from(profiles)
+      .innerJoin(users, eq(profiles.userId, users.id))
+      .where(
+        and(
+          sql`${users.deletedAt} IS NULL`,
+          eq(profiles.gender, Gender.MALE)
+        )
+      );
+
+    // 여성 회원 수 조회
+    const femaleResult = await this.drizzleService.db
+      .select({ count: count() })
+      .from(profiles)
+      .innerJoin(users, eq(profiles.userId, users.id))
+      .where(
+        and(
+          sql`${users.deletedAt} IS NULL`,
+          eq(profiles.gender, Gender.FEMALE)
+        )
+      );
+
+    return {
+      maleCount: maleResult[0].count,
+      femaleCount: femaleResult[0].count
+    };
+  }
+
   async getCustomPeriodSignupTrend(startDate: string, endDate: string): Promise<SignupTrendPoint[]> {
     // 이번 주 가입자 수를 조회하는 경우 특별 처리
     if (startDate === 'this-week' || startDate === 'current-week') {

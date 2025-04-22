@@ -102,3 +102,44 @@ export class CustomPeriodTrendResponse {
   })
   totalSignups: number;
 }
+
+/**
+ * 성별 통계 응답 DTO
+ */
+export class GenderStatsResponse {
+  @ApiProperty({
+    description: '전체 남성 유저 수',
+    example: 75,
+  })
+  maleCount: number;
+
+  @ApiProperty({
+    description: '전체 여성 유저 수',
+    example: 48,
+  })
+  femaleCount: number;
+
+  @ApiProperty({
+    description: '총 유저 수',
+    example: 123,
+  })
+  totalCount: number;
+
+  @ApiProperty({
+    description: '남성 비율 (%)',
+    example: 60.98,
+  })
+  malePercentage: number;
+
+  @ApiProperty({
+    description: '여성 비율 (%)',
+    example: 39.02,
+  })
+  femalePercentage: number;
+
+  @ApiProperty({
+    description: '성비 비율 (남성:여성)',
+    example: '1.56:1',
+  })
+  genderRatio: string;
+}

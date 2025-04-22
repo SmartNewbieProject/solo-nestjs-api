@@ -6,6 +6,7 @@ import {
   CustomPeriodResponse,
   CustomPeriodTrendResponse,
   DailySignupTrendResponse,
+  GenderStatsResponse,
   MonthlySignupTrendResponse,
   WeeklySignupTrendResponse
 } from '../dto/stats.dto';
@@ -175,5 +176,19 @@ export class AdminStatsController {
   async getCustomPeriodSignupTrend(@Body() customPeriodRequest: CustomPeriodRequest): Promise<CustomPeriodTrendResponse> {
     const { startDate, endDate } = customPeriodRequest;
     return await this.adminStatsService.getCustomPeriodSignupTrend(startDate, endDate);
+  }
+
+  @Get('users/gender')
+  @ApiOperation({
+    summary: '성별 통계 조회',
+    description: '전체 남성 유저 수, 여성 유저 수, 성비 비율을 조회합니다.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: '성별 통계 조회 성공',
+    type: GenderStatsResponse
+  })
+  async getGenderStats(): Promise<GenderStatsResponse> {
+    return await this.adminStatsService.getGenderStats();
   }
 }

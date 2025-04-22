@@ -4,6 +4,7 @@ import {
   CustomPeriodResponse,
   CustomPeriodTrendResponse,
   DailySignupTrendResponse,
+  GenderStatsResponse,
   MonthlySignupTrendResponse,
   WeeklySignupTrendResponse
 } from '../dto/stats.dto';
@@ -113,6 +114,37 @@ export class AdminStatsService {
    * @param endDate 종료 날짜 (YYYY-MM-DD 형식)
    * @returns {Promise<CustomPeriodTrendResponse>} 사용자 지정 기간 내 일별 회원가입 추이 데이터
    */
+  /**
+   * 성별 통계를 조회합니다.
+   * @returns {Promise<GenderStatsResponse>} 성별 통계 정보
+   */
+  async getGenderStats(): Promise<GenderStatsResponse> {
+    const { maleCount, femaleCount } = await this.adminStatsRepository.getGenderStats();
+    const totalCount = maleCount + femaleCount;
+
+    // 비율 계산 (소수점 2자리까지)
+    const malePercentage = totalCount > 0 ? parseFloat(((maleCount / totalCount) * 100).toFixed(2)) : 0;
+    const femalePercentage = totalCount > 0 ? parseFloat(((femaleCount / totalCount) * 100).toFixed(2)) : 0;
+
+    // 성비 비율 계산 (남성:여성)
+    let genderRatio = '0:0';
+    if (femaleCount > 0) {
+      const ratio = maleCount / femaleCount;
+      genderRatio = `${ratio.toFixed(2)}:1`;
+    } else if (maleCount > 0) {
+      genderRatio = '∞:1'; // 여성이 0명인 경우
+    }
+
+    return {
+      maleCount,
+      femaleCount,
+      totalCount,
+      malePercentage,
+      femalePercentage,
+      genderRatio
+    };
+  }
+
   async getCustomPeriodSignupTrend(startDate: string, endDate: string): Promise<CustomPeriodTrendResponse> {
     const data = await this.adminStatsRepository.getCustomPeriodSignupTrend(startDate, endDate);
 
