@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { IsDateString, IsNotEmpty } from 'class-validator';
 
 export class SignupTrendPoint {
   @ApiProperty({
@@ -36,4 +37,68 @@ export class MonthlySignupTrendResponse {
     type: [SignupTrendPoint],
   })
   data: SignupTrendPoint[];
+}
+
+export class CustomPeriodRequest {
+  @ApiProperty({
+    description: '시작 날짜 (YYYY-MM-DD 형식)',
+    example: '2025-01-01',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  startDate: string;
+
+  @ApiProperty({
+    description: '종료 날짜 (YYYY-MM-DD 형식)',
+    example: '2025-01-31',
+  })
+  @IsNotEmpty()
+  @IsDateString()
+  endDate: string;
+}
+
+export class CustomPeriodResponse {
+  @ApiProperty({
+    description: '사용자 지정 기간 내 회원가입자 수',
+    example: 123,
+  })
+  totalSignups: number;
+
+  @ApiProperty({
+    description: '시작 날짜',
+    example: '2025-01-01',
+  })
+  startDate: string;
+
+  @ApiProperty({
+    description: '종료 날짜',
+    example: '2025-01-31',
+  })
+  endDate: string;
+}
+
+export class CustomPeriodTrendResponse {
+  @ApiProperty({
+    description: '사용자 지정 기간 내 일별 회원가입 추이 데이터',
+    type: [SignupTrendPoint],
+  })
+  data: SignupTrendPoint[];
+
+  @ApiProperty({
+    description: '시작 날짜',
+    example: '2025-01-01',
+  })
+  startDate: string;
+
+  @ApiProperty({
+    description: '종료 날짜',
+    example: '2025-01-31',
+  })
+  endDate: string;
+
+  @ApiProperty({
+    description: '총 회원가입자 수',
+    example: 123,
+  })
+  totalSignups: number;
 }

@@ -1,7 +1,14 @@
-import { Controller, Get, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { AdminStatsService } from '../services/admin-stats.service';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { DailySignupTrendResponse, MonthlySignupTrendResponse, WeeklySignupTrendResponse } from '../dto/stats.dto';
+import {
+  CustomPeriodRequest,
+  CustomPeriodResponse,
+  CustomPeriodTrendResponse,
+  DailySignupTrendResponse,
+  MonthlySignupTrendResponse,
+  WeeklySignupTrendResponse
+} from '../dto/stats.dto';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@/auth/guards/roles.guard';
 import { Roles } from '@/auth/decorators/roles.decorator';
@@ -124,5 +131,49 @@ export class AdminStatsController {
   })
   async getMonthlySignupTrend(): Promise<MonthlySignupTrendResponse> {
     return await this.adminStatsService.getMonthlySignupTrend();
-  } // FIX ME
+  }
+
+  @Post('users/custom-period')
+  @ApiOperation({
+    summary: '사용자 지정 기간 내 회원가입자 수 조회',
+    description: '사용자가 지정한 기간 내 회원가입자 수를 조회합니다.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: '사용자 지정 기간 내 회원가입자 수 조회 성공',
+    type: CustomPeriodResponse
+  })
+  async getCustomPeriodSignupCount(@Body() customPeriodRequest: CustomPeriodRequest): Promise<CustomPeriodResponse> {
+    const { startDate, endDate } = customPeriodRequest;
+    return await this.adminStatsService.getCustomPeriodSignupCount(startDate, endDate);
+  }
+
+  @Get('users/this-week')
+  @ApiOperation({
+    summary: '이번 주 회원가입자 수 조회 (정확한 값)',
+    description: '이번 주(월요일~일요일) 가입한 회원 수를 정확하게 조회합니다.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: '이번 주 회원가입자 수 조회 성공',
+    type: CustomPeriodResponse
+  })
+  async getThisWeekSignupCount(): Promise<CustomPeriodResponse> {
+    return await this.adminStatsService.getThisWeekSignupCount();
+  }
+
+  @Post('users/trend/custom-period')
+  @ApiOperation({
+    summary: '사용자 지정 기간 내 회원가입 추이 조회',
+    description: '사용자가 지정한 기간 내 일별 회원가입 추이 데이터를 조회합니다.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: '사용자 지정 기간 내 회원가입 추이 조회 성공',
+    type: CustomPeriodTrendResponse
+  })
+  async getCustomPeriodSignupTrend(@Body() customPeriodRequest: CustomPeriodRequest): Promise<CustomPeriodTrendResponse> {
+    const { startDate, endDate } = customPeriodRequest;
+    return await this.adminStatsService.getCustomPeriodSignupTrend(startDate, endDate);
+  }
 }

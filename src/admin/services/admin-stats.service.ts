@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { AdminStatsRepository } from '../repositories/admin-stats.repository';
-import { DailySignupTrendResponse, MonthlySignupTrendResponse, WeeklySignupTrendResponse } from '../dto/stats.dto';
+import {
+  CustomPeriodResponse,
+  CustomPeriodTrendResponse,
+  DailySignupTrendResponse,
+  MonthlySignupTrendResponse,
+  WeeklySignupTrendResponse
+} from '../dto/stats.dto';
 
 @Injectable()
 export class AdminStatsService {
@@ -60,5 +66,67 @@ export class AdminStatsService {
   async getMonthlySignupTrend(): Promise<MonthlySignupTrendResponse> {
     const data = await this.adminStatsRepository.getMonthlySignupTrend();
     return { data };
+  }
+
+  /**
+   * 사용자 지정 기간 내 회원가입자 수를 조회합니다.
+   * @param startDate 시작 날짜 (YYYY-MM-DD 형식)
+   * @param endDate 종료 날짜 (YYYY-MM-DD 형식)
+   * @returns {Promise<CustomPeriodResponse>} 사용자 지정 기간 내 회원가입자 수
+   */
+  async getCustomPeriodSignupCount(startDate: string, endDate: string): Promise<CustomPeriodResponse> {
+    const totalSignups = await this.adminStatsRepository.getCustomPeriodSignupCount(startDate, endDate);
+    return { totalSignups, startDate, endDate };
+  }
+
+  /**
+   * 이번 주 회원가입자 수를 정확하게 조회합니다.
+   * @returns {Promise<CustomPeriodResponse>} 이번 주 회원가입자 수
+   */
+  async getThisWeekSignupCount(): Promise<CustomPeriodResponse> {
+    // 이번 주의 월요일과 일요일 가져오기
+    const today = new Date();
+    const currentDay = today.getDay(); // 0: 일요일, 1: 월요일, ..., 6: 토요일
+
+    // 이번 주의 월요일 가져오기
+    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
+    const monday = new Date(today);
+    monday.setDate(today.getDate() + mondayOffset);
+    monday.setHours(0, 0, 0, 0);
+
+    // 이번 주의 일요일 가져오기
+    const sunday = new Date(monday);
+    sunday.setDate(monday.getDate() + 6);
+    sunday.setHours(23, 59, 59, 999);
+
+    // 날짜 형식화 (YYYY-MM-DD)
+    const startDate = monday.toISOString().split('T')[0];
+    const endDate = sunday.toISOString().split('T')[0];
+
+    const totalSignups = await this.adminStatsRepository.getCustomPeriodSignupCount('this-week', 'this-week');
+    return { totalSignups, startDate, endDate };
+  }
+
+  /**
+   * 사용자 지정 기간 내 일별 회원가입 추이 데이터를 조회합니다.
+   * @param startDate 시작 날짜 (YYYY-MM-DD 형식)
+   * @param endDate 종료 날짜 (YYYY-MM-DD 형식)
+   * @returns {Promise<CustomPeriodTrendResponse>} 사용자 지정 기간 내 일별 회원가입 추이 데이터
+   */
+  async getCustomPeriodSignupTrend(startDate: string, endDate: string): Promise<CustomPeriodTrendResponse> {
+    const data = await this.adminStatsRepository.getCustomPeriodSignupTrend(startDate, endDate);
+
+    // 일별 데이터의 합계 계산
+    const sumFromDailyData = data.reduce((sum, item) => sum + item.count, 0);
+
+    // 전체 기간 회원가입자 수 조회
+    const totalFromDB = await this.adminStatsRepository.getCustomPeriodSignupCount(startDate, endDate);
+
+    // 두 값 중 더 정확한 값 사용 (일반적으로 DB에서 직접 조회한 값이 더 정확함)
+    const totalSignups = totalFromDB;
+
+    console.log(`일별 데이터 합계: ${sumFromDailyData}, DB 조회 합계: ${totalFromDB}`);
+
+    return { data, startDate, endDate, totalSignups };
   }
 }

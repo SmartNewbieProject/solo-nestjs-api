@@ -214,4 +214,254 @@ export class AdminStatsRepository {
 
     return result;
   }
+
+  /**
+   * 사용자 지정 기간 내 회원가입자 수를 조회합니다.
+   * @param startDate 시작 날짜 (YYYY-MM-DD 형식)
+   * @param endDate 종료 날짜 (YYYY-MM-DD 형식)
+   * @returns 사용자 지정 기간 내 회원가입자 수
+   */
+  async getCustomPeriodSignupCount(startDate: string, endDate: string): Promise<number> {
+    // 이번 주 가입자 수를 조회하는 경우 특별 처리
+    if (startDate === 'this-week' || startDate === 'current-week') {
+      // 이번 주의 월요일과 일요일 가져오기
+      const today = new Date();
+      const currentDay = today.getDay(); // 0: 일요일, 1: 월요일, ..., 6: 토요일
+
+      // 이번 주의 월요일 가져오기 (현재가 월요일이면 오늘, 아니면 지난 월요일)
+      const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay; // 일요일이면 -6, 월요일이면 0, 화요일이면 -1, ...
+      const monday = new Date(today);
+      monday.setDate(today.getDate() + mondayOffset);
+      monday.setHours(0, 0, 0, 0);
+
+      // 이번 주의 일요일 가져오기 (현재가 일요일이면 오늘, 아니면 다음 일요일)
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+
+      console.log(`이번 주 검색 범위: ${monday.toISOString()} ~ ${sunday.toISOString()}`);
+      console.log(`월요일: ${monday.toDateString()}, 일요일: ${sunday.toDateString()}`);
+
+      // 이번 주 가입자 수 조회
+      const result = await this.drizzleService.db
+        .select({ count: count() })
+        .from(users)
+        .where(
+          and(
+            sql`${users.deletedAt} IS NULL`,
+            gte(users.createdAt, monday),
+            lte(users.createdAt, sunday)
+          )
+        );
+
+      // 디버깅을 위해 전체 사용자 수도 조회
+      const totalUsers = await this.drizzleService.db
+        .select({ count: count() })
+        .from(users)
+        .where(sql`${users.deletedAt} IS NULL`);
+
+      console.log(`전체 사용자 수: ${totalUsers[0].count}, 이번 주 가입자 수: ${result[0].count}`);
+
+      return result[0].count;
+    }
+
+    // 일반적인 사용자 지정 기간 처리
+    try {
+      // 날짜 문자열을 Date 객체로 변환
+      const start = new Date(`${startDate}T00:00:00.000Z`);
+      const end = new Date(`${endDate}T23:59:59.999Z`);
+
+      // 디버깅을 위한 로그 추가
+      console.log(`사용자 지정 기간 검색 범위: ${start.toISOString()} ~ ${end.toISOString()}`);
+      console.log(`시작일: ${start.toDateString()}, 종료일: ${end.toDateString()}`);
+
+      // 사용자 지정 기간 내 가입자 수 조회
+      const result = await this.drizzleService.db
+        .select({ count: count() })
+        .from(users)
+        .where(
+          and(
+            sql`${users.deletedAt} IS NULL`,
+            gte(users.createdAt, start),
+            lte(users.createdAt, end)
+          )
+        );
+
+      // 디버깅을 위해 직접 SQL 쿼리 실행
+      const rawResult = await this.drizzleService.db.execute(sql`
+        SELECT COUNT(*) as count
+        FROM users
+        WHERE deleted_at IS NULL
+          AND created_at >= ${start.toISOString()}
+          AND created_at <= ${end.toISOString()}
+      `);
+
+      console.log(`Raw SQL 결과: `, rawResult);
+      console.log(`사용자 지정 기간 가입자 수: ${result[0].count}`);
+
+      return result[0].count;
+    } catch (error) {
+      console.error('사용자 지정 기간 조회 오류:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * 사용자 지정 기간 내 일별 회원가입 추이 데이터를 조회합니다.
+   * @param startDate 시작 날짜 (YYYY-MM-DD 형식)
+   * @param endDate 종료 날짜 (YYYY-MM-DD 형식)
+   * @returns 사용자 지정 기간 내 일별 회원가입 추이 데이터
+   */
+  async getCustomPeriodSignupTrend(startDate: string, endDate: string): Promise<SignupTrendPoint[]> {
+    // 이번 주 가입자 수를 조회하는 경우 특별 처리
+    if (startDate === 'this-week' || startDate === 'current-week') {
+      // 이번 주의 월요일과 일요일 가져오기
+      const today = new Date();
+      const currentDay = today.getDay(); // 0: 일요일, 1: 월요일, ..., 6: 토요일
+
+      // 이번 주의 월요일 가져오기
+      const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
+      const monday = new Date(today);
+      monday.setDate(today.getDate() + mondayOffset);
+      monday.setHours(0, 0, 0, 0);
+
+      // 이번 주의 일요일 가져오기
+      const sunday = new Date(monday);
+      sunday.setDate(monday.getDate() + 6);
+      sunday.setHours(23, 59, 59, 999);
+
+      console.log(`이번 주 추이 검색 범위: ${monday.toISOString()} ~ ${sunday.toISOString()}`);
+
+      // 이번 주 내 일별 데이터 조회
+      const result: SignupTrendPoint[] = [];
+      const currentDate = new Date(monday);
+
+      while (currentDate <= sunday) {
+        const dayStart = new Date(currentDate);
+        dayStart.setHours(0, 0, 0, 0);
+
+        const dayEnd = new Date(currentDate);
+        dayEnd.setHours(23, 59, 59, 999);
+
+        const queryResult = await this.drizzleService.db
+          .select({ count: count() })
+          .from(users)
+          .where(
+            and(
+              sql`${users.deletedAt} IS NULL`,
+              gte(users.createdAt, dayStart),
+              lte(users.createdAt, dayEnd)
+            )
+          );
+
+        // 날짜 표시 형식: MM월 DD일
+        const month = currentDate.getMonth() + 1;
+        const day = currentDate.getDate();
+        const label = `${month}월 ${day}일`;
+
+        result.push({
+          label,
+          count: queryResult[0].count
+        });
+
+        // 다음 날로 이동
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      return result;
+    }
+
+    // 일반적인 사용자 지정 기간 처리
+    try {
+      // 날짜 문자열을 Date 객체로 변환
+      const start = new Date(`${startDate}T00:00:00.000Z`);
+      const end = new Date(`${endDate}T23:59:59.999Z`);
+
+      console.log(`사용자 지정 기간 추이 검색 범위: ${start.toISOString()} ~ ${end.toISOString()}`);
+      console.log(`시작일: ${start.toDateString()}, 종료일: ${end.toDateString()}`);
+
+      // 전체 기간 회원가입자 수 먼저 조회
+      const totalResult = await this.drizzleService.db
+        .select({ count: count() })
+        .from(users)
+        .where(
+          and(
+            sql`${users.deletedAt} IS NULL`,
+            gte(users.createdAt, start),
+            lte(users.createdAt, end)
+          )
+        );
+
+      const totalCount = totalResult[0].count;
+      console.log(`전체 기간 회원가입자 수: ${totalCount}`);
+
+      // 사용자 데이터 조회
+      const usersList = await this.drizzleService.db
+        .select({
+          id: users.id,
+          createdAt: users.createdAt
+        })
+        .from(users)
+        .where(
+          and(
+            sql`${users.deletedAt} IS NULL`,
+            gte(users.createdAt, start),
+            lte(users.createdAt, end)
+          )
+        )
+        .orderBy(users.createdAt);
+
+      console.log(`조회된 사용자 수: ${usersList.length}`);
+      usersList.forEach(user => {
+        console.log(`사용자 ID: ${user.id}, 가입일: ${user.createdAt.toISOString()}`);
+      });
+
+      const result: SignupTrendPoint[] = [];
+
+      // 시작 날짜부터 종료 날짜까지 일별 데이터 조회
+      const currentDate = new Date(start);
+      while (currentDate <= end) {
+        const dayStart = new Date(currentDate);
+        dayStart.setUTCHours(0, 0, 0, 0);
+
+        const dayEnd = new Date(currentDate);
+        dayEnd.setUTCHours(23, 59, 59, 999);
+
+        // 해당 날짜에 가입한 사용자 수 계산
+        const dayCount = usersList.filter(user => {
+          const userDate = new Date(user.createdAt);
+          return userDate >= dayStart && userDate <= dayEnd;
+        }).length;
+
+        // 날짜 표시 형식: MM월 DD일
+        const month = currentDate.getMonth() + 1;
+        const day = currentDate.getDate();
+        const label = `${month}월 ${day}일`;
+
+        console.log(`${label} 가입자 수: ${dayCount}`);
+
+        result.push({
+          label,
+          count: dayCount
+        });
+
+        // 다음 날로 이동
+        currentDate.setDate(currentDate.getDate() + 1);
+      }
+
+      // 총합 확인
+      const sumOfDays = result.reduce((sum, day) => sum + day.count, 0);
+      console.log(`일별 합계: ${sumOfDays}, 전체 합계: ${totalCount}`);
+
+      // 합계가 다르면 조정
+      if (sumOfDays !== totalCount) {
+        console.log(`합계가 다릅니다. 조정이 필요합니다.`);
+      }
+
+      return result;
+    } catch (error) {
+      console.error('사용자 지정 기간 추이 조회 오류:', error);
+      return [];
+    }
+  }
 }
