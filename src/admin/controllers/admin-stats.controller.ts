@@ -1,6 +1,7 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { AdminStatsService } from '../services/admin-stats.service';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { DailySignupTrendResponse, MonthlySignupTrendResponse, WeeklySignupTrendResponse } from '../dto/stats.dto';
 import { JwtAuthGuard } from '@/auth/guards/jwt-auth.guard';
 import { RolesGuard } from '@/auth/guards/roles.guard';
 import { Roles } from '@/auth/decorators/roles.decorator';
@@ -82,4 +83,46 @@ export class AdminStatsController {
   async getWeeklySignupCount() {
     return await this.adminStatsService.getWeeklySignupCount();
   }
+
+  @Get('users/trend/daily')
+  @ApiOperation({
+    summary: '일별 회원가입 추이 조회',
+    description: '최근 30일간의 일별 회원가입 추이 데이터를 조회합니다.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: '일별 회원가입 추이 조회 성공',
+    type: DailySignupTrendResponse
+  })
+  async getDailySignupTrend(): Promise<DailySignupTrendResponse> {
+    return await this.adminStatsService.getDailySignupTrend();
+  }
+
+  @Get('users/trend/weekly')
+  @ApiOperation({
+    summary: '주별 회원가입 추이 조회',
+    description: '최근 12주간의 주별 회원가입 추이 데이터를 조회합니다.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: '주별 회원가입 추이 조회 성공',
+    type: WeeklySignupTrendResponse
+  })
+  async getWeeklySignupTrend(): Promise<WeeklySignupTrendResponse> {
+    return await this.adminStatsService.getWeeklySignupTrend();
+  }
+
+  @Get('users/trend/monthly')
+  @ApiOperation({
+    summary: '월별 회원가입 추이 조회',
+    description: '최근 12개월간의 월별 회원가입 추이 데이터를 조회합니다.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: '월별 회원가입 추이 조회 성공',
+    type: MonthlySignupTrendResponse
+  })
+  async getMonthlySignupTrend(): Promise<MonthlySignupTrendResponse> {
+    return await this.adminStatsService.getMonthlySignupTrend();
+  } // FIX ME
 }

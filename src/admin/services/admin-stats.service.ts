@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AdminStatsRepository } from '../repositories/admin-stats.repository';
+import { DailySignupTrendResponse, MonthlySignupTrendResponse, WeeklySignupTrendResponse } from '../dto/stats.dto';
 
 @Injectable()
 export class AdminStatsService {
@@ -32,5 +33,32 @@ export class AdminStatsService {
   async getWeeklySignupCount(): Promise<{ weeklySignups: number }> {
     const weeklySignups = await this.adminStatsRepository.getWeeklySignupCount();
     return { weeklySignups };
+  }
+
+  /**
+   * 일별 회원가입 추이 데이터를 조회합니다.
+   * @returns {Promise<DailySignupTrendResponse>} 최근 30일간의 일별 회원가입 추이 데이터
+   */
+  async getDailySignupTrend(): Promise<DailySignupTrendResponse> {
+    const data = await this.adminStatsRepository.getDailySignupTrend();
+    return { data };
+  }
+
+  /**
+   * 주별 회원가입 추이 데이터를 조회합니다.
+   * @returns {Promise<WeeklySignupTrendResponse>} 최근 12주간의 주별 회원가입 추이 데이터
+   */
+  async getWeeklySignupTrend(): Promise<WeeklySignupTrendResponse> {
+    const data = await this.adminStatsRepository.getWeeklySignupTrend();
+    return { data };
+  } // FIX ME
+
+  /**
+   * 월별 회원가입 추이 데이터를 조회합니다.
+   * @returns {Promise<MonthlySignupTrendResponse>} 최근 12개월간의 월별 회원가입 추이 데이터
+   */
+  async getMonthlySignupTrend(): Promise<MonthlySignupTrendResponse> {
+    const data = await this.adminStatsRepository.getMonthlySignupTrend();
+    return { data };
   }
 }

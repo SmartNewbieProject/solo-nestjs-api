@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { DrizzleService } from '@/database/drizzle.service';
 import { users } from '@/database/schema';
 import { count, sql, and, gte, lt, lte } from 'drizzle-orm';
+import { SignupTrendPoint } from '../dto/stats.dto';
 
 @Injectable()
 export class AdminStatsRepository {
@@ -76,5 +77,141 @@ export class AdminStatsRepository {
       );
 
     return result[0].count;
+  }
+
+  /**
+   * 일별 회원가입 추이 데이터를 조회합니다.
+   * 최근 30일간의 일별 회원가입자 수를 조회합니다.
+   */
+  async getDailySignupTrend(): Promise<SignupTrendPoint[]> {
+    const today = new Date();
+    const result: SignupTrendPoint[] = [];
+
+    // 최근 30일간의 데이터 조회
+    for (let i = 29; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+
+      const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+      const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+
+      const queryResult = await this.drizzleService.db
+        .select({ count: count() })
+        .from(users)
+        .where(
+          and(
+            sql`${users.deletedAt} IS NULL`,
+            gte(users.createdAt, startOfDay),
+            lt(users.createdAt, endOfDay)
+          )
+        );
+
+      // 날짜 표시 형식: MM월 DD일
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const label = `${month}월 ${day}일`;
+
+      result.push({
+        label,
+        count: queryResult[0].count
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * 주별 회원가입 추이 데이터를 조회합니다.
+   * 최근 12주간의 주별 회원가입자 수를 조회합니다.
+   */
+  async getWeeklySignupTrend(): Promise<SignupTrendPoint[]> {
+    const today = new Date();
+    const currentDay = today.getDay(); // 0: 일요일, 1: 월요일, ..., 6: 토요일
+    const result: SignupTrendPoint[] = [];
+
+    // 이번 주의 월요일 가져오기
+    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
+    const thisMonday = new Date(today);
+    thisMonday.setDate(today.getDate() + mondayOffset);
+    thisMonday.setHours(0, 0, 0, 0);
+
+    // 최근 12주간의 데이터 조회
+    for (let i = 11; i >= 0; i--) {
+      const weekStart = new Date(thisMonday);
+      weekStart.setDate(thisMonday.getDate() - (7 * i));
+
+      const weekEnd = new Date(weekStart);
+      weekEnd.setDate(weekStart.getDate() + 6);
+      weekEnd.setHours(23, 59, 59, 999);
+
+      const queryResult = await this.drizzleService.db
+        .select({ count: count() })
+        .from(users)
+        .where(
+          and(
+            sql`${users.deletedAt} IS NULL`,
+            gte(users.createdAt, weekStart),
+            lte(users.createdAt, weekEnd)
+          )
+        );
+
+      // 주간 라벨 생성 (MM월 DD일 ~ MM월 DD일)
+      const startMonth = weekStart.getMonth() + 1;
+      const startDay = weekStart.getDate();
+      const endMonth = weekEnd.getMonth() + 1;
+      const endDay = weekEnd.getDate();
+
+      // 주간 라벨 형식: MM월 DD일 ~ MM월 DD일
+      const label = `${startMonth}월 ${startDay}일 ~ ${endMonth}월 ${endDay}일`;
+
+      result.push({
+        label,
+        count: queryResult[0].count
+      });
+    }
+
+    return result;
+  }
+
+  /**
+   * 월별 회원가입 추이 데이터를 조회합니다.
+   * 최근 12개월간의 월별 회원가입자 수를 조회합니다.
+   */
+  async getMonthlySignupTrend(): Promise<SignupTrendPoint[]> {
+    const today = new Date();
+    const result: SignupTrendPoint[] = [];
+
+    // 최근 12개월간의 데이터 조회
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0);
+
+      // 다음 달의 1일에서 1밀리초를 빼서 현재 달의 마지막 날 23:59:59.999 가져오기
+      const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1, 0, 0, 0);
+      endOfMonth.setMilliseconds(-1);
+
+      const queryResult = await this.drizzleService.db
+        .select({ count: count() })
+        .from(users)
+        .where(
+          and(
+            sql`${users.deletedAt} IS NULL`,
+            gte(users.createdAt, startOfMonth),
+            lte(users.createdAt, endOfMonth)
+          )
+        );
+
+      // 월 라벨 형식: YYYY년 MM월
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const label = `${year}년 ${month}월`;
+
+      result.push({
+        label,
+        count: queryResult[0].count
+      });
+    }
+
+    return result;
   }
 }
