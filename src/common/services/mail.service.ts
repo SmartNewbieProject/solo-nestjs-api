@@ -30,7 +30,7 @@ export class MailService {
           email: to,
           university: data.universityName || '대학교',
           signupDate: new Date().toLocaleDateString('ko-KR'),
-          loginUrl: `${baseUrl}/login`,
+          loginUrl: `${baseUrl}/auth/login`,
           unsubscribeUrl: `${baseUrl}/unsubscribe?email=${encodeURIComponent(to)}`,
           ...data,
         },
