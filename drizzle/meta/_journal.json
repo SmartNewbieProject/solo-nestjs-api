@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1743770498499,
-      "tag": "0000_past_whistler",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1744184971861,
-      "tag": "0001_outstanding_wolfsbane",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1744185403553,
-      "tag": "0002_married_demogoblin",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1745085898730,
-      "tag": "0003_large_raza",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1745149033542,
-      "tag": "0004_odd_captain_cross",
+      "when": 1745287844024,
+      "tag": "0000_complex_wallop",
       "breakpoints": true
     }
   ]

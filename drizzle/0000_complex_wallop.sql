@@ -6,9 +6,9 @@ CREATE TABLE "articles" (
 	"emoji" varchar(10),
 	"like_count" integer DEFAULT 0 NOT NULL,
 	"blinded_at" timestamp,
-	"updated_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "comments" (
@@ -18,9 +18,9 @@ CREATE TABLE "comments" (
 	"content" varchar(255) NOT NULL,
 	"nickname" varchar(15) NOT NULL,
 	"emoji" varchar(10),
-	"updated_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "images" (
@@ -31,9 +31,9 @@ CREATE TABLE "images" (
 	"mime_type" varchar(100),
 	"size_in_bytes" integer,
 	"is_verified" boolean DEFAULT false,
-	"updated_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "likes" (
@@ -41,9 +41,9 @@ CREATE TABLE "likes" (
 	"user_id" varchar(128) NOT NULL,
 	"article_id" varchar(128) NOT NULL,
 	"up" boolean DEFAULT false NOT NULL,
-	"updated_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "matches" (
@@ -51,20 +51,20 @@ CREATE TABLE "matches" (
 	"my_id" varchar(128),
 	"matcher_id" varchar(128),
 	"score" numeric(8, 2) NOT NULL,
-	"published_at" timestamp with time zone,
+	"published_at" timestamp,
 	"type" varchar(30) NOT NULL,
-	"updated_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "matching_requests" (
 	"id" varchar(128) PRIMARY KEY NOT NULL,
 	"user_id" varchar(128),
 	"score" varchar(36),
-	"updated_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "pay_histories" (
@@ -78,9 +78,9 @@ CREATE TABLE "pay_histories" (
 	"payment_key" varchar(128),
 	"receipt_url" text,
 	"paid_at" timestamp,
-	"updated_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "preference_options" (
@@ -89,9 +89,9 @@ CREATE TABLE "preference_options" (
 	"preference_type_id" varchar(128),
 	"value" varchar(100) NOT NULL,
 	"display_name" varchar(100) NOT NULL,
-	"updated_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "preference_types" (
@@ -100,9 +100,9 @@ CREATE TABLE "preference_types" (
 	"name" varchar(100) NOT NULL,
 	"multi_select" boolean DEFAULT false NOT NULL,
 	"maximum_choice_count" integer DEFAULT 1 NOT NULL,
-	"updated_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone,
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp,
 	CONSTRAINT "preference_types_code_unique" UNIQUE("code")
 );
 --> statement-breakpoint
@@ -112,9 +112,9 @@ CREATE TABLE "profile_images" (
 	"image_id" varchar(36) NOT NULL,
 	"image_order" integer NOT NULL,
 	"is_main" boolean DEFAULT false NOT NULL,
-	"updated_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "profiles" (
@@ -128,9 +128,9 @@ CREATE TABLE "profiles" (
 	"introduction" varchar(255),
 	"status_at" varchar(36),
 	"university_detail_id" varchar(36),
-	"updated_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone,
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp,
 	CONSTRAINT "profiles_user_id_unique" UNIQUE("user_id")
 );
 --> statement-breakpoint
@@ -141,9 +141,20 @@ CREATE TABLE "reports" (
 	"reported_id" varchar(128) NOT NULL,
 	"reason" varchar(255),
 	"status" varchar(15),
-	"updated_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp
+);
+--> statement-breakpoint
+CREATE TABLE "sms_authorization" (
+	"id" varchar(128) PRIMARY KEY NOT NULL,
+	"phone_number" varchar(15) NOT NULL,
+	"unique_key" varchar(62) NOT NULL,
+	"authorization_code" varchar(12) NOT NULL,
+	"is_authorized" boolean DEFAULT false NOT NULL,
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "tickets" (
@@ -153,9 +164,9 @@ CREATE TABLE "tickets" (
 	"status" varchar(10) NOT NULL,
 	"type" varchar(10) NOT NULL,
 	"expired_at" timestamp,
-	"updated_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "university_details" (
@@ -166,27 +177,27 @@ CREATE TABLE "university_details" (
 	"authentication" boolean DEFAULT false NOT NULL,
 	"grade" varchar(10) NOT NULL,
 	"student_number" varchar(10) NOT NULL,
-	"updated_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "user_preference_options" (
 	"id" varchar(128) PRIMARY KEY NOT NULL,
 	"user_preference_id" varchar(36) NOT NULL,
 	"preference_option_id" varchar(36) NOT NULL,
-	"updated_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "user_preferences" (
 	"id" varchar(128) PRIMARY KEY NOT NULL,
 	"user_id" varchar(36) NOT NULL,
 	"distance_max" varchar(36),
-	"updated_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone,
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp,
 	CONSTRAINT "user_preferences_user_id_unique" UNIQUE("user_id")
 );
 --> statement-breakpoint
@@ -196,9 +207,9 @@ CREATE TABLE "user_range_preferences" (
 	"preference_type_id" varchar(36),
 	"min_value" integer,
 	"max_value" integer,
-	"updated_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp
 );
 --> statement-breakpoint
 CREATE TABLE "users" (
@@ -206,13 +217,14 @@ CREATE TABLE "users" (
 	"name" varchar(15) NOT NULL,
 	"email" varchar(100) NOT NULL,
 	"password" varchar(100) NOT NULL,
+	"phone_number" varchar(16) NOT NULL,
 	"profile_id" varchar(36),
 	"oauth_provider" varchar(30),
 	"refresh_token" varchar(500),
 	"role" varchar(10) DEFAULT 'user' NOT NULL,
-	"updated_at" timestamp with time zone,
-	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
-	"deleted_at" timestamp with time zone
+	"updated_at" timestamp,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"deleted_at" timestamp
 );
 --> statement-breakpoint
 ALTER TABLE "articles" ADD CONSTRAINT "articles_author_id_users_id_fk" FOREIGN KEY ("author_id") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint

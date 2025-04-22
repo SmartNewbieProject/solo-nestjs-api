@@ -10,7 +10,7 @@ export const matches = pgTable('matches', {
   myId: varchar('my_id', { length: 128 }).references(() => users.id),
   matcherId: varchar('matcher_id', { length: 128 }).references(() => users.id),
   score: decimal('score', { precision: 8, scale: 2 }).notNull(),
-  publishedAt: timestamp('published_at', { withTimezone: true }),
+  publishedAt: timestamp('published_at'),
   type: varchar('type', { length: 30 }).notNull(),
   ...timestamps,
 });
