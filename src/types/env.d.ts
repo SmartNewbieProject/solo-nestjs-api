@@ -12,5 +12,9 @@ declare namespace NodeJS {
     COOL_SMS_SECRET_KEY: string;
     COOL_SMS_API_KEY: string;
     SMS_SENDER_NUMBER: string;
+    SMTP_HOST: string;
+    SMTP_USER: string;
+    SMTP_PASSWORD: string;
+    TZ: string;
   }
 }

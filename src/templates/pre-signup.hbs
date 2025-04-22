@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>썸타임 사전 회원가입을 축하합니다!</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif;
+            background-color: #F9FAFB;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #FFFFFF;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #7A4AE2, #9D7CE8);
+            padding: 40px 30px;
+            text-align: center;
+            color: #FFFFFF;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .header-subtitle {
+            font-size: 18px;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .greeting {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1A1A1A;
+            margin-bottom: 20px;
+        }
+
+        .welcome-message {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 30px;
+        }
+
+        .vip-badge {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #000;
+            padding: 10px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 20px 0;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .benefits {
+            background-color: #F8F6FF;
+            border-radius: 8px;
+            padding: 25px;
+            margin: 30px 0;
+        }
+
+        .benefit-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .benefit-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            font-size: 15px;
+            color: #555;
+        }
+
+        .benefit-icon {
+            width: 32px;
+            height: 32px;
+            background-color: #E2D9FF;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 16px;
+        }
+
+        .timeline {
+            background-color: #fff;
+            border: 1px solid #E2D9FF;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 30px 0;
+        }
+
+        .timeline-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #7A4AE2;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .timeline-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .timeline-date {
+            font-weight: bold;
+            color: #7A4AE2;
+            margin-right: 10px;
+            min-width: 80px;
+        }
+
+        .early-bird {
+            background-color: #F8F6FF;
+            border-left: 4px solid #9D7CE8;
+            padding: 15px;
+            margin: 30px 0;
+            border-radius: 4px;
+        }
+
+        .early-bird-title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #7A4AE2;
+            margin-bottom: 10px;
+        }
+
+        .early-bird-content {
+            font-size: 14px;
+            color: #5B2DB0;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: #7A4AE2;
+            color: #FFFFFF;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 16px;
+            margin: 20px 0;
+            transition: background-color 0.3s ease;
+        }
+
+        .cta-button:hover {
+            background: #6538C9;
+        }
+
+        .footer {
+            background-color: #F5F5F5;
+            padding: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+        }
+
+        .social-links {
+            margin: 20px 0;
+        }
+
+        .social-link {
+            display: inline-block;
+            margin: 0 10px;
+            color: #777;
+            text-decoration: none;
+        }
+
+        .divider {
+            height: 1px;
+            background-color: #eee;
+            margin: 30px 0;
+        }
+
+        .contact-info {
+            font-size: 12px;
+            color: #999;
+            margin-top: 15px;
+        }
+
+        .highlight {
+            color: #7A4AE2;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="email-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">썸타임</div>
+            <div class="header-subtitle">대학생 블라인드 소개팅의 새로운 시작</div>
+        </div>
+        <!-- Content -->
+        <div class="content">
+            <div class="greeting">
+                {{name}}님, 얼리버드 등록을 축하드립니다! 🎉
+            </div>
+            <div class="welcome-message">
+                썸타임의 특별한 여정에 가장 먼저 함께해 주셔서 감사합니다! <br>
+                얼리버드 회원으로서 누리는 특별한 혜택과 앞으로의 일정을 안내해드립니다. <br>
+                정식 오픈 시 누구보다 먼저 프로필 설정과 매칭을 시작하실 수 있습니다.
+            </div>
+            <div style="text-align: center;">
+                <div class="vip-badge">⭐ 얼리버드 회원 ⭐</div>
+            </div>
+            <div class="benefits">
+                <div class="benefit-title">얼리버드 회원만의 특별한 혜택</div>
+                <ul class="benefit-list">
+                    <li class="benefit-item">
+                        <div class="benefit-icon">🎯</div>
+                        <div>첫 달 <span class="highlight">재매칭 1회 무료 이용권</span> 증정</div>
+                    </li>
+                    <li class="benefit-item">
+                        <div class="benefit-icon">😵‍💫</div>
+                        <div>얼리버드 전용 <span class="highlight">우선 매칭 기회</span> 제공</div>
+                    </li>
+                    <li class="benefit-item">
+                        <div class="benefit-icon">🎁</div>
+                        <div>서비스 개선을 위한 <span class="highlight">피드백 참여 시 추첨을 통해 메가커피 아아 쿠폰</span> 제공</div>
+                    </li>
+                </ul>
+            </div>
+            <div class="timeline">
+                <div class="timeline-title">📅 썸타임 오픈 일정</div>
+                <div class="timeline-item">
+                    <span class="timeline-date">현재~5월 9일</span>
+                    <span>사전 회원가입 진행 중</span>
+                </div>
+                <div class="timeline-item">
+                    <span class="timeline-date">5월 3주차</span>
+                    <span>정식 서비스 오픈! 🎉</span>
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <a href="{{loginUrl}}" class="cta-button">
+                    정식 오픈 후에 프로필 및 이상형 설정하기
+                </a>
+            </div>
+            <div class="divider"></div>
+            <div style="text-align: center; margin-top: 20px;">
+                <p style="color: #777; font-size: 14px;">
+                    정식 오픈 시 <span class="highlight">이메일 알림</span>으로 안내드리겠습니다!<br>
+                    질문이 있으시면 언제든 문의해주세요.
+                </p>
+            </div>
+        </div>
+        <!-- Footer -->
+        <div class="footer">
+            <div style="margin-bottom: 15px;">
+                <strong>썸타임 커뮤니티</strong>
+            </div>
+            <div class="social-links">
+                <a href="https://www.instagram.com/sometime.in.univ/" class="social-link">인스타그램</a>
+            </div>
+            <div class="contact-info">
+                본 메일은 발신 전용입니다. 문의사항은 고객센터를 이용해주세요.<br>
+                고객센터: {{supportEmail}} | 전화: {{supportPhone}}<br>
+                © {{currentYear}} 스마트 뉴비. All rights reserved.
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

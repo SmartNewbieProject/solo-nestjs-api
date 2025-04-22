@@ -26,7 +26,7 @@ import { RefreshToken } from '../dto/token';
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   private setRefreshTokenCookie(
     response: Response,

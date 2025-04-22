@@ -82,9 +82,19 @@ export interface UniversityDetail {
 export interface UserProfile {
   name: string;
   age: number;
-  gender: string;
+  gender: Gender;
   profileImages: ProfileImage[];
   instagramId: string | null;
   universityDetails: UniversityDetail | null;
   preferences: PreferenceTypeGroup[];
+}
+
+export interface UserDetails {
+  name: string;
+  age: number;
+  gender: Gender;
+  profileImages: ProfileImage[];
+  phoneNumber: string;
+  instagramId: string | null;
+  universityDetails: UniversityDetail | null;
 }
