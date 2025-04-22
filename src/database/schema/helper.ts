@@ -2,15 +2,9 @@ import { timestamp, varchar } from "drizzle-orm/pg-core";
 import { uuidv7 } from 'uuidv7';
 
 export const timestamps = {
-  updatedAt: timestamp('updated_at', {
-    withTimezone: true,
-  }),
-  createdAt: timestamp('created_at', {
-    withTimezone: true,
-  }).defaultNow().notNull(),
-  deletedAt: timestamp('deleted_at', {
-    withTimezone: true,
-  }),
+  updatedAt: timestamp('updated_at'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  deletedAt: timestamp('deleted_at'),
 };
 
 export const uuid = () =>

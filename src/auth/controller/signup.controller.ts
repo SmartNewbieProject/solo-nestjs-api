@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Patch, UseInterceptors, UploadedFiles, BadRequestException, HttpCode, HttpStatus } from '@nestjs/common';
 import { SignupService } from '../services/signup.service';
-import { Email, SignupRequest } from '../dto';
+import { Email, InstagramId, SignupRequest } from '../dto';
 import { Public } from '@auth/decorators';
 import { SignupDocs } from '../docs/signup.docs';
 import { FilesInterceptor } from '@nestjs/platform-express';
@@ -12,7 +12,7 @@ import { SmsCodeCreation, AuthorizeSmsCode } from '../dto/signup';
 @SignupDocs.controller()
 @Public()
 export class SignupController {
-  constructor(private readonly signupService: SignupService) {}
+  constructor(private readonly signupService: SignupService) { }
 
   @Post('signup')
   @ApiConsumes('multipart/form-data')
@@ -41,7 +41,7 @@ export class SignupController {
     });
   }
 
-  
+
   @ApiOperation({ summary: '인증번호 전송', description: '인증번호를 전송합니다.' })
   @Post('sms/send')
   @HttpCode(HttpStatus.CREATED)
@@ -62,5 +62,10 @@ export class SignupController {
   async checkEmail(@Body() { email }: Email) {
     const exists = await this.signupService.checkEmail(email);
     return { exists };
+  }
+
+  @Post('check/instagram')
+  async existsInstagram(@Body() { instagramId }: InstagramId) {
+    return { exists: await this.signupService.validateInstagram(instagramId) };
   }
 }
