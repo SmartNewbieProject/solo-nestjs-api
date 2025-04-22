@@ -98,45 +98,8 @@ export class SignupService {
       return false;
     }
 
-    try {
-      const response = await axios.get(`https://www.instagram.com/${id}/`, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-          'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
-      });
+    return true;
 
-      const notFoundIndicators = [
-        'Sorry, this page isn\'t available.',
-        'The link you followed may be broken',
-        'Page Not Found',
-        'content="Instagram">\n<meta property="og:type" content="profile">'
-      ];
-
-      const pageNotAvailable = notFoundIndicators.some(indicator =>
-        response.data.includes(indicator)
-      );
-
-      const hasProfileData = [
-        `"@${id}"`,                                // 사용자 ID
-        `"username":"${id}"`,                     // JSON 데이터에서 사용자명
-        'profile_pic_url',                         // 프로필 사진 URL
-        'full_name',                               // 전체 이름
-        `og:title" content="${id}`,                // 메타 태그의 사용자명
-        `<title>${id}</title>`,                    // 페이지 제목의 사용자명
-        'biography'                                // 자기소개
-      ].some(indicator => response.data.includes(indicator));
-
-      this.logger.debug(`Instagram validation for ${id}: hasProfileData=${hasProfileData}, pageNotAvailable=${pageNotAvailable}`);
-
-      return hasProfileData && !pageNotAvailable;
-    } catch (error) {
-      this.logger.error(`Instagram validation error for ${id}:`, error);
-      return false;
-    }
   }
 
   private async hashPassword(password: string): Promise<string> {
