@@ -7,7 +7,6 @@ import {
   Logger,
   Post,
   Res,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from '../services/auth.service';
@@ -26,7 +25,7 @@ import { RefreshToken } from '../dto/token';
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   private setRefreshTokenCookie(
     response: Response,
@@ -96,13 +95,6 @@ export class AuthController {
     @Body() withdrawRequest: WithdrawRequest,
   ) {
     return await this.authService.withdraw(user.id, withdrawRequest.password);
-  }
-
-  @Public()
-  @Post('sms')
-  @HttpCode(HttpStatus.CREATED)
-  async sendSmsCode() {
-
   }
 
 }

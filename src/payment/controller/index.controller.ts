@@ -28,9 +28,6 @@ export class PaymentController {
   @Post('confirm')
   async confirmPayment(@CurrentUser() user: AuthenticationUser, @Body() paymentData: PaymentConfirm) {
     await this.payService.pay(user.id, paymentData);
-    return {
-      status: 'SUCCESS',
-    };
   }
 
 }
