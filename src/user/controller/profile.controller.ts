@@ -17,7 +17,7 @@ export default class ProfileController {
   constructor(
     private readonly profileService: ProfileService,
     private readonly eventEmitter: EventEmitter2,
-  ) {}
+  ) { }
 
   @Get()
   @ProfileDocs.getProfile()
@@ -30,7 +30,7 @@ export default class ProfileController {
   async getPreferences(@CurrentUser() user: AuthenticationUser) {
     return await this.profileService.getAllPreferences(user.gender);
   }
-  
+
   @Patch('nickname')
   @ProfileDocs.updateNickname()
   async updateNickname(@CurrentUser() user: AuthenticationUser, @Body() data: NameUpdated) {
@@ -44,14 +44,14 @@ export default class ProfileController {
   async updatePreferences(
     @CurrentUser() user: AuthenticationUser,
     @Body() data: PreferenceSave
-  )  {
+  ) {
     const updatedProfile = await this.profileService.updatePreferences(user.id, data);
-    
+
     this.eventEmitter.emit(
       'profile.updated',
       new ProfileUpdatedEvent(user.id, updatedProfile)
     );
-    
+
     return updatedProfile;
   }
 
@@ -59,7 +59,7 @@ export default class ProfileController {
   @Patch('/instagram')
   async updateInstagramId(@CurrentUser() user: AuthenticationUser, @Body() data: InstagramId) {
     const updatedProfile = await this.profileService.updateInstagramId(user.id, data.instagramId);
-    
+
     return updatedProfile;
   }
 

@@ -14,3 +14,12 @@ export class WithdrawRequest {
   @IsString({ message: '비밀번호는 문자열로 입력해주세요.' })
   password: string;
 }
+
+export class InstagramId {
+  @ApiProperty({
+    example: '@.somqai3',
+    description: '인스타그램 ID'
+  })
+  @IsString()
+  instagramId: string;
+}

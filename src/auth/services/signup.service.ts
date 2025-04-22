@@ -10,6 +10,8 @@ import SmsService from '@/sms/services/sms.service';
 import { generateVerificationCode } from '../domain/code-generator';
 import { dayUtils } from '@/common/helper';
 import * as dayjs from 'dayjs';
+import axios from 'axios';
+import { SlackService } from '@/slack-notification/slack.service';
 
 @Injectable()
 export class SignupService {
@@ -21,7 +23,8 @@ export class SignupService {
     private readonly s3Service: S3Service,
     private readonly imageService: ImageService,
     private readonly smsService: SmsService,
-  ) {}
+    private readonly slackService: SlackService,
+  ) { }
 
   checkEmail(email: string) {
     return this.signupRepository.checkEmailExists(email);
@@ -35,6 +38,9 @@ export class SignupService {
       throw new ConflictException('이미 등록된 이메일입니다.');
     }
     const user = await this.createUser(signupRequest);
+    // this.smsService.sendSms(phoneNumber, `[썸타임]\n${name}님 회원가입을 환영합니다.`);
+    // 슬랙으로 회원가입 알림 전송 (상세 정보 포함)
+    this.slackService.sendSignupNotification(signupRequest);
 
     return {
       id: user.id,
@@ -69,7 +75,7 @@ export class SignupService {
       throw new NotFoundException('인증번호가 유효하지 않습니다.');
     }
     const timeover = dayjs(authorizationCode.createdAt)
-    .isAfter(dayUtils.create().add(10, 'minutes'));
+      .isAfter(dayUtils.create().add(10, 'minutes'));
 
     if (timeover) {
       throw new BadGatewayException("인증코드 유효시간이 지났습니다.");
@@ -81,6 +87,56 @@ export class SignupService {
     }
 
     await this.signupRepository.approveAuthorizationCode(authorizationCode.id);
+  }
+
+  async validateInstagram(id: string): Promise<boolean> {
+    if (!id || id.trim() === '') {
+      return false;
+    }
+
+    if (!/^[a-zA-Z0-9._]+$/.test(id)) {
+      return false;
+    }
+
+    try {
+      const response = await axios.get(`https://www.instagram.com/${id}/`, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+          'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+
+      const notFoundIndicators = [
+        'Sorry, this page isn\'t available.',
+        'The link you followed may be broken',
+        'Page Not Found',
+        'content="Instagram">\n<meta property="og:type" content="profile">'
+      ];
+
+      const pageNotAvailable = notFoundIndicators.some(indicator =>
+        response.data.includes(indicator)
+      );
+
+      const hasProfileData = [
+        `"@${id}"`,                                // 사용자 ID
+        `"username":"${id}"`,                     // JSON 데이터에서 사용자명
+        'profile_pic_url',                         // 프로필 사진 URL
+        'full_name',                               // 전체 이름
+        `og:title" content="${id}`,                // 메타 태그의 사용자명
+        `<title>${id}</title>`,                    // 페이지 제목의 사용자명
+        'biography'                                // 자기소개
+      ].some(indicator => response.data.includes(indicator));
+
+      this.logger.debug(`Instagram validation for ${id}: hasProfileData=${hasProfileData}, pageNotAvailable=${pageNotAvailable}`);
+
+      return hasProfileData && !pageNotAvailable;
+    } catch (error) {
+      this.logger.error(`Instagram validation error for ${id}:`, error);
+      return false;
+    }
   }
 
   private async hashPassword(password: string): Promise<string> {
