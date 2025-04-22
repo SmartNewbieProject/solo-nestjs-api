@@ -59,4 +59,27 @@ export class AdminStatsController {
   async getDailySignupCount() {
     return await this.adminStatsService.getDailySignupCount();
   }
+
+  @Get('users/weekly')
+  @ApiOperation({
+    summary: '주간 회원가입자 수 조회',
+    description: '이번 주(월요일~일요일) 가입한 회원 수를 조회합니다. 매주 월요일에 리셋됩니다.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: '주간 회원가입자 수 조회 성공',
+    schema: {
+      type: 'object',
+      properties: {
+        weeklySignups: {
+          type: 'number',
+          example: 156,
+          description: '이번 주 가입한 회원 수'
+        }
+      }
+    }
+  })
+  async getWeeklySignupCount() {
+    return await this.adminStatsService.getWeeklySignupCount();
+  }
 }
