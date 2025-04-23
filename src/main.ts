@@ -62,17 +62,19 @@ async function bootstrap() {
     )
     .build();
 
-  const document = SwaggerModule.createDocument(app, config, {
-    extraModels: [],
-    ignoreGlobalPrefix: false,
-  });
-  SwaggerModule.setup('docs', app, document, {
-    jsonDocumentUrl: '/docs-json',
-    swaggerOptions: {
-      docExpansion: 'list',
-      persistAuthorization: true,
-    },
-  });
+  if (process.env.NODE_ENV !== 'production') {
+    const document = SwaggerModule.createDocument(app, config, {
+      extraModels: [],
+      ignoreGlobalPrefix: false,
+    });
+    SwaggerModule.setup('docs', app, document, {
+      jsonDocumentUrl: '/docs-json',
+      swaggerOptions: {
+        docExpansion: 'list',
+        persistAuthorization: true,
+      },
+    });
+  }
 
   await app.listen(process.env.PORT ?? 8044, '0.0.0.0');
 }
