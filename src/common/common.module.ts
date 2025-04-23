@@ -63,7 +63,8 @@ import { join } from 'path';
           },
           tls: {
             // SSL 인증서 검증 비활성화 (개발 환경에서만 사용)
-            rejectUnauthorized: configService.get('NODE_ENV') === 'development',
+            // rejectUnauthorized: configService.get('NODE_ENV') === 'development',
+            rejectUnauthorized: true,
           },
           debug: configService.get('NODE_ENV') === 'development',
         },
