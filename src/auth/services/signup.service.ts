@@ -51,7 +51,7 @@ export class SignupService {
     };
   }
 
-  private async sendPreWelcomeEmail(email: string, name: string, request: SignupRequest) {
+  async sendPreWelcomeEmail(email: string, name: string, request: SignupRequest) {
     try {
       await this.mailService.sendPreSignupEmail(email, name, request);
       this.logger.log(`Pre-signup email sent to ${email}`);
