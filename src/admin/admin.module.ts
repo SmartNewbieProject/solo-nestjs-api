@@ -19,6 +19,9 @@ import { AdminStatsService } from './services/admin-stats.service';
 import { AdminStatsRepository } from './repositories/admin-stats.repository';
 import { AdminActivityController } from './controllers/admin-activity.controller';
 import { AdminActivityService } from './services/admin-activity.service';
+import { AdminWithdrawalStatsController } from './controllers/admin-withdrawal-stats.controller';
+import { AdminWithdrawalStatsService } from './services/admin-withdrawal-stats.service';
+import { AdminWithdrawalStatsRepository } from './repositories/admin-withdrawal-stats.repository';
 
 import { UserActivityInterceptor } from './interceptors/user-activity.interceptor';
 import { UserActivityListener } from './listeners/user-activity.listener';
@@ -35,7 +38,7 @@ import { RedisModule } from '@/config/redis/redis.module';
     ScheduleModule.forRoot(),
     RedisModule,
   ],
-  controllers: [AdminUserController, AdminMatchingController, AdminStatsController, AdminActivityController],
+  controllers: [AdminUserController, AdminMatchingController, AdminStatsController, AdminActivityController, AdminWithdrawalStatsController],
   providers: [
     AdminUserService,
     AdminRepository,
@@ -46,6 +49,8 @@ import { RedisModule } from '@/config/redis/redis.module';
     AdminStatsService,
     AdminStatsRepository,
     AdminActivityService,
+    AdminWithdrawalStatsService,
+    AdminWithdrawalStatsRepository,
     UserActivityListener,
     ActivityAggregatorService,
     {
@@ -53,6 +58,6 @@ import { RedisModule } from '@/config/redis/redis.module';
       useClass: UserActivityInterceptor,
     }
   ],
-  exports: [AdminUserService, AdminMatchService, AdminStatsService, AdminActivityService]
+  exports: [AdminUserService, AdminMatchService, AdminStatsService, AdminActivityService, AdminWithdrawalStatsService]
 })
 export class AdminModule {}

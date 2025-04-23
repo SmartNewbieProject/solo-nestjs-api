@@ -95,7 +95,12 @@ export class AuthController {
     @CurrentUser() user: AuthenticationUser,
     @Body() withdrawRequest: WithdrawRequest,
   ) {
-    return await this.authService.withdraw(user.id, withdrawRequest.password);
+    return await this.authService.withdraw(
+      user.id,
+      withdrawRequest.password,
+      withdrawRequest.reason,
+      withdrawRequest.detail
+    );
   }
 
   @Public()

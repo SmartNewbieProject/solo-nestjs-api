@@ -6,6 +6,7 @@ import { LoginRequest, TokenResponse } from '../dto';
 import { Role } from '../domain/user-role.enum';
 import { AuthRepository } from '../repository/auth.repository';
 import { Gender } from '@/types/enum';
+import { WithdrawalReason } from '@/types/withdrawal';
 
 interface JwtPayload {
   email: string;
@@ -48,7 +49,14 @@ export class AuthService {
     return { ...tokens, role: user.role };
   }
 
-  async withdraw(userId: string, password: string) {
+  /**
+   * 회원 탈퇴 처리
+   * @param userId 사용자 ID
+   * @param password 비밀번호
+   * @param reason 탈퇴 사유
+   * @param detail 상세 사유 (선택 사항)
+   */
+  async withdraw(userId: string, password: string, reason: WithdrawalReason, detail?: string) {
     const user = await this.authRepository.findUserById(userId);
     if (!user) {
       throw new UnauthorizedException('사용자를 찾을 수 없습니다.');
@@ -59,7 +67,18 @@ export class AuthService {
       throw new UnauthorizedException('비밀번호가 올바르지 않습니다.');
     }
 
-    await this.authRepository.deleteUser(userId);
+    try {
+      const result = await this.authRepository.deleteUser(userId, reason, detail);
+      this.logger.log(`사용자 탈퇴 완료: ${userId}, 사유: ${reason}`);
+      return {
+        message: '탈퇴가 성공적으로 처리되었습니다.',
+        withdrawnAt: result.withdrawnAt,
+        serviceDurationDays: result.serviceDurationDays
+      };
+    } catch (error) {
+      this.logger.error(`사용자 탈퇴 오류: ${error.message}`, error.stack);
+      throw new BadGatewayException('탈퇴 처리 중 오류가 발생했습니다.');
+    }
   }
 
   async refreshToken(refreshToken: string): Promise<TokenResponse> {
