@@ -97,8 +97,6 @@ export class AuthController {
     return await this.authService.withdraw(
       user.id,
       withdrawRequest.password,
-      withdrawRequest.reason,
-      withdrawRequest.detail
     );
   }
 

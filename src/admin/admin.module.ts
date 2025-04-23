@@ -30,6 +30,12 @@ import { UserActivityInterceptor } from './interceptors/user-activity.intercepto
 import { UserActivityListener } from './listeners/user-activity.listener';
 import { ActivityAggregatorService } from './services/activity-aggregator.service';
 import { RedisModule } from '@/config/redis/redis.module';
+import { AdminMailController } from './controllers/admin-mail.controller';
+import { SignupService } from '@/auth/services/signup.service';
+import { SignupRepository } from '@/auth/repository/signup.repository';
+import UniversityRepository from '@/auth/repository/university.repository';
+import { ImageService } from '@/user/services/image.service';
+import SmsService from '@/sms/services/sms.service';
 
 @Module({
   imports: [
@@ -40,9 +46,23 @@ import { RedisModule } from '@/config/redis/redis.module';
     EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
     RedisModule,
+    
   ],
-  controllers: [AdminUserController, AdminMatchingController, AdminStatsController, AdminActivityController, AdminWithdrawalStatsController, AdminSalesStatsController],
+  controllers: [
+    AdminUserController,
+    AdminMatchingController,
+    AdminStatsController,
+    AdminActivityController,
+    AdminWithdrawalStatsController,
+    AdminSalesStatsController,
+    AdminMailController,
+  ],
   providers: [
+    SignupService,
+    SignupRepository,
+    UniversityRepository,
+    ImageService,
+    SmsService,
     AdminUserService,
     AdminRepository,
     ProfileService,

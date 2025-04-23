@@ -1,4 +1,4 @@
-import { IsEmail } from 'class-validator';
+import { IsEmail, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class PreSignUp {
@@ -13,5 +13,6 @@ export class PreSignUp {
     example: "한은숙",
     description: '이름',
   })
+  @IsString()
   name: string;
 }
