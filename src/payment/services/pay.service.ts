@@ -47,6 +47,9 @@ export default class PayService {
     const { response: portOnePayment } = await this.getPayment(impUid, accessToken) as { response: PaymentDetails };
     this.logger.debug({ portOnePayment });
 
+    if (portOnePayment.status === 'failed') {
+      throw new BadGatewayException(`결제가 실패했어요. 다시시도해주세요.`);
+    }
     if (portOnePayment.status !== 'paid') {
       throw new BadGatewayException(`결제 상태가 아닙니다.`);
     }
