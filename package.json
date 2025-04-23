@@ -58,6 +58,7 @@
     "class-validator": "^0.14.1",
     "cookie-parser": "^1.4.7",
     "dayjs": "^1.11.13",
+    "dayjs-plugin-utc": "^0.1.2",
     "dotenv": "^16.4.7",
     "drizzle-orm": "^0.41.0",
     "jsonwebtoken": "^9.0.2",

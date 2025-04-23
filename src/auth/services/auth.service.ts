@@ -64,14 +64,26 @@ export class AuthService {
 
   async refreshToken(refreshToken: string): Promise<TokenResponse> {
     try {
+      this.logger.log(`리프레시 토큰 검증, 토큰 길이: ${refreshToken?.length}`);
+      this.logger.log(`JWT_SECRET: ${this.configService.get<string>('JWT_SECRET')?.substring(0, 3)}...`);
+
+      // 토큰 디코딩 시도 (검증 없이)
+      try {
+        const decoded = this.jwtService.decode(refreshToken);
+        this.logger.log(`토큰 디코딩 결과: ${JSON.stringify(decoded)}`);
+      } catch (decodeError) {
+        this.logger.error(`토큰 디코딩 실패: ${decodeError.message}`);
+      }
+
       const payload = await this.jwtService.verifyAsync<JwtPayload>(refreshToken, {
         secret: this.configService.get<string>('JWT_SECRET'),
-        ignoreExpiration: false,  // 만료 검사 활성화
       });
 
+      this.logger.log(`토큰 검증 성공, payload: ${JSON.stringify(payload)}`);
+
       const storedToken = await this.authRepository.findRefreshToken(payload.id, refreshToken);
-      this.logger.debug("storedToken: " + storedToken);
       if (!storedToken) {
+        this.logger.log("저장된 리프레시토큰이 없음");
         throw new UnauthorizedException('유효하지 않은 리프레시 토큰입니다.');
       }
 
@@ -91,7 +103,22 @@ export class AuthService {
 
       return tokens;
     } catch (error) {
-      this.logger.error(error);
+      this.logger.error("리프레시 토큰 검증 실패");
+      this.logger.error(`오류 타입: ${error.name}, 메시지: ${error.message}`);
+      this.logger.error(`오류 상세: ${JSON.stringify(error)}`);
+
+      if (error.name === 'JsonWebTokenError') {
+        if (error.message === 'invalid token') {
+          throw new UnauthorizedException('토큰 형식이 잘못되었습니다.');
+        } else if (error.message === 'jwt malformed') {
+          throw new UnauthorizedException('JWT 토큰 형식이 잘못되었습니다.');
+        } else if (error.message === 'invalid signature') {
+          throw new UnauthorizedException('토큰 서명이 유효하지 않습니다.');
+        }
+      } else if (error.name === 'TokenExpiredError') {
+        throw new UnauthorizedException('리프레시 토큰이 만료되었습니다.');
+      }
+
       throw new UnauthorizedException('유효하지 않은 리프레시 토큰입니다.');
     }
   }
@@ -105,28 +132,47 @@ export class AuthService {
   }
 
   private async generateTokens(userId: string, email: string, role: Role, gender: Gender): Promise<TokenResponse> {
-    const [accessToken, refreshToken] = await Promise.all([
-      this.jwtService.signAsync(
-        { id: userId, email, role, gender },
-        {
-          secret: this.configService.get<string>('JWT_SECRET'),
-          expiresIn: '1h',  // Access Token: 1시간
-        },
-      ),
-      this.jwtService.signAsync(
-        { id: userId, email, role, gender },
-        {
-          secret: this.configService.get<string>('JWT_SECRET'),
-          expiresIn: '7d',  // Refresh Token: 7일
-        },
-      ),
-    ]);
+    this.logger.log(`토큰 생성 시작 - userId: ${userId}, email: ${email}, role: ${role}, gender: ${gender}`);
+
+    // Access Token 생성 (1시간)
+    const accessToken = await this.jwtService.signAsync(
+      { id: userId, email, role, gender },
+      {
+        secret: this.configService.get<string>('JWT_SECRET'),
+        expiresIn: '1m',
+      },
+    );
+    this.logger.log(`액세스 토큰 생성 완료, 길이: ${accessToken.length}`);
+
+    // Refresh Token 생성 (7일)
+    const refreshToken = await this.jwtService.signAsync(
+      { id: userId, email, role, gender },
+      {
+        secret: this.configService.get<string>('JWT_SECRET'),
+        expiresIn: '7d',
+      },
+    );
+    this.logger.log(`리프레시 토큰 생성 완료, 길이: ${refreshToken.length}`);
+
+    // 리프레시 토큰 디코딩 테스트
+    try {
+      const decoded = this.jwtService.decode(refreshToken);
+      this.logger.log(`생성된 리프레시 토큰 디코딩: ${JSON.stringify(decoded)}`);
+
+      // 만료시간 확인
+      if (decoded && decoded['exp']) {
+        const expiryDate = new Date(decoded['exp'] * 1000);
+        this.logger.log(`리프레시 토큰 만료시간: ${expiryDate.toISOString()}`);
+      }
+    } catch (error) {
+      this.logger.error(`생성된 토큰 디코딩 실패: ${error.message}`);
+    }
 
     return {
       accessToken,
       refreshToken,
       tokenType: 'Bearer',
-      expiresIn: 3600,  // Access Token의 만료시간(초)
+      expiresIn: 3600,
       role,
     };
   }

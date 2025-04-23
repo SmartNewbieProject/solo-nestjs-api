@@ -37,12 +37,12 @@ export interface MatchingResult {
 @Injectable()
 export class MatchingService {
   private readonly logger = new Logger(MatchingService.name);
-  
+
   constructor(
     private readonly profileEmbeddingService: ProfileEmbeddingService,
     private readonly profileService: ProfileService,
-    private readonly matchRepository: MatchRepository,  
-  ) {}
+    private readonly matchRepository: MatchRepository,
+  ) { }
 
   /**
    * 사용자에게 맞는 매칭 결과를 반환합니다.
@@ -51,24 +51,41 @@ export class MatchingService {
    * @param weights 가중치 설정 (선택적)
    */
   async findMatches(
-    userId: string, 
+    userId: string,
     limit: number = 10,
     weights?: Partial<MatchingWeights>
   ): Promise<Similarity[]> {
     const { getWeights } = matchingPreferenceWeighter;
     const finalWeights: MatchingWeights = getWeights(weights);
-      
+
     const weightSum = Object.values(finalWeights).reduce((sum, weight) => sum + weight, 0);
     Object.keys(finalWeights).forEach(key => {
-        finalWeights[key as keyof MatchingWeights] /= weightSum;
-      });
-      
+      finalWeights[key as keyof MatchingWeights] /= weightSum;
+    });
+
     const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3);
 
     return similarProfiles;
   }
 
   async getLatestPartner(userId: string): Promise<PartnerDetails | null> {
+    const latestMatch = await this.matchRepository.findLatestMatch(userId);
+    if (!latestMatch) {
+      return null;
+    }
+    const publishedDate = weekDateService.createDayjs(latestMatch.publishedAt!);
+    const endOfView = publishedDate
+      .add(2, 'day')
+      .set('hour', 0)
+      .set('minute', 0)
+      .set('second', 0)
+      .set('millisecond', 0);
+    const now = weekDateService.createDayjs();
+
+    if (now.isAfter(endOfView)) {
+      return null;
+    }
+
     const partner = await this.matchRepository.findLatestPartner(userId);
 
     if (!partner) {
@@ -95,11 +112,12 @@ export class MatchingService {
   }
 
   getNextMatchingDate() {
-    // return weekDateService.createDayjs().add(1, 'minute').toDate();
-    const nextMatchingDate = weekDateService.getNextMatchingDate();
-    return nextMatchingDate.toDate();
+    // const nextMatchingDate = weekDateService.getNextMatchingDate();
+    // const nextMatchingDate = weekDateService.test30seconds();
+    const nextMatchingDate = weekDateService.test1Minutes();
+    return nextMatchingDate.format('YYYY-MM-DD HH:mm:ss');
   }
-  
+
   private async getUserPreferenceSummary(userId: string): Promise<UserPreferenceSummary> {
     const userProfile = await this.profileService.getUserProfiles(userId);
     const { preferences } = userProfile;

@@ -1,7 +1,14 @@
 import { BadRequestException } from '@nestjs/common';
 import * as dayjs from 'dayjs';
+import * as utc from 'dayjs/plugin/utc';
+import * as timezone from 'dayjs/plugin/timezone';
 import 'dayjs/locale/ko';
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 dayjs.locale('ko');
+dayjs.tz.setDefault('Asia/Seoul');
 
 export type WeekDates = {
   start: Date;
@@ -10,15 +17,44 @@ export type WeekDates = {
   sunday: Date;
 }
 
-const createDayjs = (config?: dayjs.Dayjs) => dayjs(config);
+const createDayjs = (config?: dayjs.Dayjs | Date) => {
+  // 한국 시간대를 적용한 dayjs 객체 생성
+  return dayjs(config).tz('Asia/Seoul');
+};
 
 const getWeekDates = (): WeekDates => {
   const date = createDayjs();
-  const start = date.startOf('week').add(2, 'day').set('hour', 0).set('minute', 0).set('second', 0).set('millisecond', 0);
+
+  // 월요일부터 시작하는 주의 시작일
+  const start = date.startOf('week')
+    .set('hour', 0)
+    .set('minute', 0)
+    .set('second', 0)
+    .set('millisecond', 0);
+
+  // 주의 마지막일 (일요일)
   const end = date.endOf('week');
 
-  const thursday = start.add(3, 'day');
-  const sunday = start.add(6, 'day');
+  // 목요일 (0시 0분 0초)
+  const thursday = start.add(4, 'day')
+    .set('hour', 0)
+    .set('minute', 0)
+    .set('second', 0)
+    .set('millisecond', 0);
+
+  // 일요일 (0시 0분 0초)
+  const sunday = start.add(6, 'day')
+    .set('hour', 0)
+    .set('minute', 0)
+    .set('second', 0)
+    .set('millisecond', 0);
+
+  console.log('getWeekDates 함수 내부 값:', {
+    start: start.format('YYYY-MM-DD HH:mm:ss'),
+    end: end.format('YYYY-MM-DD HH:mm:ss'),
+    thursday: thursday.format('YYYY-MM-DD HH:mm:ss'),
+    sunday: sunday.format('YYYY-MM-DD HH:mm:ss'),
+  });
 
   return {
     start: start.toDate(),
@@ -31,7 +67,7 @@ const getWeekDates = (): WeekDates => {
 const isPublishDay = (date: Date) => {
   const { thursday, sunday } = getWeekDates();
   const d = dayjs(date);
-  
+
   const thursdayBefore = d.isBefore(thursday);
   if (thursdayBefore) {
     return false;
@@ -72,34 +108,62 @@ const getCheckedDates = () => {
 
 const createPublishDate = (date: dayjs.Dayjs) => {
   const d = date
-  .set('hour', 21)
-  .set('minute', 0)
-  .set('second', 0)
-  .set('millisecond', 0);
+    .set('hour', 21)
+    .set('minute', 0)
+    .set('second', 0)
+    .set('millisecond', 0);
   return d.toDate();
 }
 
 const setDeadline = (d: Date) => {
-  d.setHours(21);
-  d.setMinutes(0);
-  d.setSeconds(0);
-  d.setMilliseconds(0);
-  return d;
+  // Date 객체를 직접 수정하는 대신 dayjs를 사용하여 시간대 일관성 유지
+  const dayjsDate = createDayjs(d)
+    .set('hour', 21)
+    .set('minute', 0)
+    .set('second', 0)
+    .set('millisecond', 0);
+
+  // 디버깅용 로그
+  console.log(`setDeadline 함수 - 입력: ${d.toISOString()}, 결과: ${dayjsDate.format('YYYY-MM-DD HH:mm:ss')}`);
+
+  return dayjsDate.toDate();
 }
 
 const getNextMatchingDate = () => {
   const { thursday, sunday } = getWeekDates();
   const now = createDayjs();
-  // console.log({
-  //   now: now.format('YYYY-MM-DD HH:mm:ss'),
-  //   thursday: thursday.toISOString(),
-  //   sunday: sunday.toISOString(),
-  // });
-  if (now.isBefore(thursday, 'second') || now.isSame(thursday, 'second')) {
-    return dayjs(setDeadline(thursday));
+
+  // 디버깅용 로그 - 한국 시간 포맷과 ISO 문자열 모두 출력
+  console.log('getNextMatchingDate 함수 내부 값:', {
+    now: now.format('YYYY-MM-DD HH:mm:ss'),
+    thursday_format: createDayjs(thursday).format('YYYY-MM-DD HH:mm:ss'),
+    sunday_format: createDayjs(sunday).format('YYYY-MM-DD HH:mm:ss'),
+    thursday_iso: thursday.toISOString(),
+    sunday_iso: sunday.toISOString(),
+  });
+
+  // 현재 시간이 목요일 전이면 목요일 21시로 설정
+  if (now.isBefore(createDayjs(thursday))) {
+    const result = createDayjs(setDeadline(thursday));
+    console.log(`다음 매칭일: 목요일 ${result.format('YYYY-MM-DD HH:mm:ss')}`);
+    return result;
   }
-  return dayjs(setDeadline(sunday));
+
+  // 그 외에는 일요일 21시로 설정
+  const result = createDayjs(setDeadline(sunday));
+  console.log(`다음 매칭일: 일요일 ${result.format('YYYY-MM-DD HH:mm:ss')}`);
+  return result;
 }
+
+const test30seconds = () => {
+  const now = createDayjs();
+  return now.add(30, 'second');
+};
+
+const test1Minutes = () => {
+  const now = createDayjs();
+  return now.add(1, 'minute');
+};
 
 const weekDateService = {
   getWeekDates,
@@ -108,6 +172,8 @@ const weekDateService = {
   createDayjs,
   getCheckedDates,
   getNextMatchingDate,
+  test30seconds,
+  test1Minutes,
 };
 
 export default weekDateService;
