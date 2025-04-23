@@ -22,7 +22,7 @@ export class SignupRepository {
   constructor(
     @InjectDrizzle()
     private readonly db: NodePgDatabase<typeof schema>,
-  ) {}
+  ) { }
 
   async findUserByEmail(email: string) {
     const result = await this.db.select()
@@ -94,10 +94,10 @@ export class SignupRepository {
 
   async createSmsVerification(data: SmsVerifyCreation) {
     return await this.db.insert(smsAuthorization)
-    .values({
-      id: generateUuidV7(),  ...data,
-     })
-    .returning();
+      .values({
+        id: generateUuidV7(), ...data,
+      })
+      .returning();
   }
 
   async getAuthorizationCode(uniqueKey: string) {
@@ -106,14 +106,13 @@ export class SignupRepository {
     });
   }
 
-  async approveAuthorizationCode(id :string) {
+  async approveAuthorizationCode(id: string) {
     await this.db.update(smsAuthorization)
-    .set({ is_authorized: true })
-    .where(eq(smsAuthorization.id, id));
+      .set({ is_authorized: true })
+      .where(eq(smsAuthorization.id, id));
   }
 
   async existsVerifiedSms(phoneNumber: string) {
-    // SQL 함수를 사용하여 데이터베이스 레벨에서 시간대 처리
     const now = sql`NOW()`;
     const minutesAgo = sql`NOW() - INTERVAL '60 minutes'`;
 

@@ -9,6 +9,7 @@ import { eq } from "drizzle-orm";
 export type CompletionPay = {
   receiptUrl?: string;
   paidAt: Date;
+  method: string;
   txId: string;
 }
 

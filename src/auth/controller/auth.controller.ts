@@ -7,7 +7,6 @@ import {
   Logger,
   Post,
   Res,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { AuthService } from '../services/auth.service';
@@ -101,13 +100,6 @@ export class AuthController {
       withdrawRequest.reason,
       withdrawRequest.detail
     );
-  }
-
-  @Public()
-  @Post('sms')
-  @HttpCode(HttpStatus.CREATED)
-  async sendSmsCode() {
-
   }
 
 }

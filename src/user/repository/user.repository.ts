@@ -9,15 +9,15 @@ export default class UserRepository {
   constructor(
     @InjectDrizzle()
     private readonly db: NodePgDatabase<typeof schema>,
-  ) {}
+  ) { }
 
   async getUser(userId: string) {
     const results = await this.db.select()
-    .from(schema.users)
-    .where(and(
-      eq(schema.users.id, userId),
-      isNull(schema.users.deletedAt),
-    ));
+      .from(schema.users)
+      .where(and(
+        eq(schema.users.id, userId),
+        isNull(schema.users.deletedAt),
+      ));
 
     return results[0];
   }
@@ -27,4 +27,20 @@ export default class UserRepository {
       password: newPassword,
     }).where(eq(schema.users.id, userId));
   }
+
+  async getMyDetails(userId: string) {
+    return await this.db.query.users.findFirst({
+      with: {
+        profile: {
+          with: {
+            universityDetail: true,
+            profileImages: {
+              with: { image: true },
+            },
+          },
+        },
+      },
+    });
+  }
+
 }

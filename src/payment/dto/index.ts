@@ -3,13 +3,13 @@ import { IsString, IsNumber } from 'class-validator';
 import { TicketStatus, TicketType } from '@/types/match';
 
 export class PaymentConfirm {
-  @ApiProperty({ description: '주문 ID' })
+  @ApiProperty({ description: '결제 고유 아이디' })
   @IsString()
-  orderId: string;
+  impUid: string;
 
-  @ApiProperty({ description: '결제 트랜잭션 아이디' })
+  @ApiProperty({ description: '고객사 주문 고유 번호' })
   @IsString()
-  txId: string;
+  merchantUid: string;
 }
 
 export class PaymentBeforeHistory {
