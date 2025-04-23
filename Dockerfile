@@ -30,6 +30,7 @@ WORKDIR /app
 COPY --from=prod /app/package.json /app/package.json
 COPY --from=prod /app/node_modules /app/node_modules
 COPY --from=prod /app/dist /app/dist
+COPY --from=prod /app/src/templates /app/dist/templates
 
 # 런타임 환경 변수 설정
 ARG NODE_ENV

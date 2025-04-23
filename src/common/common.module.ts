@@ -71,7 +71,7 @@ import { join } from 'path';
           from: `"썸타임" <${configService.get('SMTP_FROM', 'smartnewb2@gmail.com')}>`,
         },
         template: {
-          dir: join(process.cwd(), 'src/templates'),
+          dir: join(__dirname, '..', 'templates'),
           adapter: new HandlebarsAdapter(),
           options: {
             strict: true,
