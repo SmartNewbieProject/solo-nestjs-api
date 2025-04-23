@@ -57,8 +57,7 @@ export default class PayService {
     const customData = JSON.parse(portOnePayment.custom_data as string) as PortOneCustomData;
     this.logger.debug({ history, customData });
     if (
-      history?.orderName !== customData.orderName ||
-      history?.amount !== customData.amount
+      history?.orderName !== customData.orderName
     ) {
       this.logger.error(`결제 내용이 변조되었습니다.`);
       throw new BadGatewayException('결제 내용이 변조되었습니다.');
