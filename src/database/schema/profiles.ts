@@ -8,6 +8,7 @@ export enum UserRank {
   A = 'A',
   B = 'B',
   C = 'C',
+  UNKNOWN = 'UNKNOWN',
 }
 
 export const profiles = pgTable('profiles', {
@@ -21,7 +22,7 @@ export const profiles = pgTable('profiles', {
   is_matching_enable: boolean('is_matching_enable').default(true).notNull(),
   introduction: varchar('introduction', { length: 255 }),
   statusAt: varchar('status_at', { length: 36 }),
-  rank: varchar('rank', { length: 2, enum: ['S', 'A', 'B', 'C'] }).default('C'),
+  rank: varchar('rank', { length: 7, enum: ['S', 'A', 'B', 'C', 'UNNKOWN'] }).default('UNNKOWN'),
   universityDetailId: varchar('university_detail_id', { length: 36 }),
   ...timestamps,
 });
