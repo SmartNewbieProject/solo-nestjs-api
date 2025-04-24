@@ -21,7 +21,7 @@ export default class AdminMatchService {
     private readonly matchingService: MatchingService,
     private readonly profileService: ProfileService,
     private readonly adminMatchRepository: AdminMatchRepository
-  ) {}
+  ) { }
 
   async findMatches(matchingRequest: AdminMatchRequest) {
     const similarUsers = await this.matchingService.findMatches(matchingRequest.userId, matchingRequest.limit);
@@ -30,7 +30,7 @@ export default class AdminMatchService {
     return { profiles, similarUsers };
   }
 
-  async getUnmatchedUsers(pagination: Pagination): Promise<PaginatedResponse<UnmatchedUser>> { 
+  async getUnmatchedUsers(pagination: Pagination): Promise<PaginatedResponse<UnmatchedUser>> {
     return await this.adminMatchRepository.getUnmatchedUsers(pagination);
   }
 
@@ -41,7 +41,7 @@ export default class AdminMatchService {
     date.setHours(date.getHours() + 9);
 
     const totalCount = await this.adminMatchRepository.getTotalMatchCount(date);
-    
+
     if (!totalCount) {
       return {
         totalMatchRate: 0,

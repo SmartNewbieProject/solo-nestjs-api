@@ -33,6 +33,7 @@ export class AdminUserService {
               instagramId: null,
               universityDetails: null,
               id: user.id,
+              rank: user.profile?.rank,
               preferences: [],
             } as UserProfile;
           }

@@ -1,3 +1,4 @@
+import { UserRank } from "@/database/schema/profiles";
 import { Gender } from "./enum";
 
 export interface ProfileDetails {
@@ -39,6 +40,7 @@ export interface ProfileRawDetails {
   deletedAt: Date | null;
   userId: string;
   age: number;
+  rank: UserRank;
   gender: Gender;
   instagramId: string | null;
   title: string | null;
@@ -84,11 +86,14 @@ export interface UserProfile {
   name: string;
   age: number;
   gender: Gender;
+  rank: UserRank;
   profileImages: ProfileImage[];
   instagramId: string | null;
   universityDetails: UniversityDetail | null;
   preferences: PreferenceTypeGroup[];
 }
+
+export type CommonProfile = Omit<UserProfile, 'rank'>;
 
 export interface UserDetails {
   name: string;

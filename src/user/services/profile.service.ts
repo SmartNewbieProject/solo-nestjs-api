@@ -4,6 +4,7 @@ import { PreferenceSave } from "../dto/profile.dto";
 import { NotFoundException } from "@nestjs/common";
 import { UserProfile, UniversityDetail, ProfileImage, Preference, PreferenceOption, PreferenceTypeGroup } from "@/types/user";
 import { Gender } from "@/types/enum";
+import { UserRank } from "@/database/schema/profiles";
 
 type Option = {
   id: string;
@@ -21,30 +22,31 @@ export type PreferenceSet = {
 export class ProfileService {
   constructor(
     private readonly profileRepository: ProfileRepository,
-  ) {}
+  ) { }
 
   async getUserProfiles(userId: string): Promise<UserProfile> {
     const profileDetails = await this.profileRepository.getProfileDetails(userId);
-    
+
     if (!profileDetails) {
       throw new NotFoundException(`사용자 프로필을 찾을 수 없습니다. ${userId}`);
     }
 
     const userPreferenceOptions = await this.profileRepository.getUserPreferenceOptions(userId);
     const preferences = this.processPreferences(userPreferenceOptions);
-    
+
     return {
       id: userId,
       name: profileDetails.name,
       age: profileDetails.age,
       gender: profileDetails.gender,
+      rank: profileDetails.rank as UserRank,
       profileImages: profileDetails.profileImages,
       instagramId: profileDetails.instagramId,
       universityDetails: profileDetails.universityDetail,
       preferences
     };
   }
-  
+
   async getProfilesByIds(ids: string[]): Promise<UserProfile[]> {
     const promises = ids.map(id => this.getUserProfiles(id));
     return Promise.all(promises);
@@ -57,7 +59,7 @@ export class ProfileService {
 
     if (gender === Gender.MALE) {
       map.delete("군필 여부 선호도");
-    } 
+    }
     if (gender === Gender.FEMALE) {
       map.delete("군필 여부");
     }
@@ -114,10 +116,10 @@ export class ProfileService {
   private findOne(typeName: string, preferences: Preference[]) {
     return preferences.find(p => p.typeName === typeName) as Preference;
   }
-  
+
   private processPreferences(userPreferenceOptions: any[]): PreferenceTypeGroup[] {
     const preferencesByType = new Map<string, PreferenceTypeGroup>();
-    
+
     userPreferenceOptions.forEach(option => {
       if (!preferencesByType.has(option.typeName)) {
         preferencesByType.set(option.typeName, {
@@ -125,7 +127,7 @@ export class ProfileService {
           selectedOptions: []
         });
       }
-      
+
       const typeData = preferencesByType.get(option.typeName);
       if (typeData) {
         typeData.selectedOptions.push({
@@ -134,10 +136,10 @@ export class ProfileService {
         });
       }
     });
-    
+
     return Array.from(preferencesByType.values());
   }
-  
+
   async changeNickname(userId: string, nickname: string) {
     await this.profileRepository.updateNickname(userId, nickname);
     return nickname;

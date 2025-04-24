@@ -59,6 +59,7 @@ export class MatchingService {
   ): Promise<Similarity[]> {
     const { getWeights } = matchingPreferenceWeighter;
     const finalWeights: MatchingWeights = getWeights(weights);
+    this.logger.log(finalWeights);
 
     const weightSum = Object.values(finalWeights).reduce((sum, weight) => sum + weight, 0);
     Object.keys(finalWeights).forEach(key => {
@@ -66,6 +67,7 @@ export class MatchingService {
     });
 
     const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3);
+    this.logger.log(similarProfiles);
     return similarProfiles;
   }
 

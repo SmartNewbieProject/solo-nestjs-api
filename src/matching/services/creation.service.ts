@@ -13,7 +13,7 @@ import { Cache } from "@nestjs/cache-manager";
 
 enum CronFrequency {
   // MATCHING_DAY = '0 0 * * 2,4',
-  MATCHING_DAY = '10 23 * * *',
+  MATCHING_DAY = '50 23 * * *',
 }
 
 @Injectable()
@@ -26,7 +26,7 @@ export default class MatchingCreationService {
     private readonly profileService: ProfileService,
     private readonly slackService: SlackService,
     private readonly cacheManager: Cache,
-  ) {}
+  ) { }
 
 
   @Cron(CronFrequency.MATCHING_DAY)
@@ -34,7 +34,7 @@ export default class MatchingCreationService {
     const userIds = await this.findAllMatchingUsers();
     this.slackService.sendNotification(`${userIds.length} 명의 매칭처리를 시작합니다.`);
     await this.batch(userIds);
-  } 
+  }
 
   async createPartner(userId: string, type: MatchType, isBatch: boolean = false) {
     const partners = await this.matchingService.findMatches(userId, 10);
@@ -47,13 +47,13 @@ export default class MatchingCreationService {
     const matcher = await this.profileService.getUserProfiles(partner.userId);
 
     if (!isBatch) {
-    await this.slackService.sendSingleMatch(
-      requester,
-      matcher,
-      partner.similarity,
-      type
-    );
-  }
+      await this.slackService.sendSingleMatch(
+        requester,
+        matcher,
+        partner.similarity,
+        type
+      );
+    }
 
     await this.createMatch(userId, partner, type);
   }
@@ -79,8 +79,8 @@ export default class MatchingCreationService {
 
   async batch(userIds: string[]) {
     this.cacheManager.del('matching:total-count');
-    
-    const PROCESS_DELAY_MS = 120; 
+
+    const PROCESS_DELAY_MS = 120;
     const totalUsers = userIds.length;
     const notificationInterval = Math.ceil(totalUsers * 0.05); // 5%에 해당하는 사용자 수
     let totalSuccess = 0;
