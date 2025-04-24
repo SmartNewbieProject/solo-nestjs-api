@@ -81,7 +81,8 @@ export class AdminUserAppearanceRepository {
           gender: profiles.gender,
           rank: profiles.rank,
           instagramId: profiles.instagramId,
-          university: universityDetails.universityName,
+          universityDetailId: profiles.universityDetailId,
+          universityName: universityDetails.universityName,
           department: universityDetails.department,
           createdAt: users.createdAt,
           // 최근 접속일은 별도 테이블에서 조회해야 할 수 있음
@@ -93,6 +94,9 @@ export class AdminUserAppearanceRepository {
         .limit(limit)
         .offset(offset)
         .orderBy(desc(users.createdAt));
+
+      // 디버깅을 위한 로그 추가
+      console.log('사용자 목록 조회 결과:', JSON.stringify(usersData, null, 2));
 
       // 프로필 이미지 URL 조회
       const userIds = usersData.map(user => user.id);
@@ -132,7 +136,7 @@ export class AdminUserAppearanceRepository {
           age: user.age,
           gender: user.gender,
           profileImageUrl: imageUrlMap.get(user.id) || null,
-          university: user.university ? `${user.university} ${user.department || ''}` : null,
+          university: user.universityName ? `${user.universityName} ${user.department || ''}` : null,
           instagramId: user.instagramId || null,
           instagramUrl: instagramUrl,
           appearanceGrade: appearanceGrade as AppearanceGrade,
@@ -324,6 +328,7 @@ export class AdminUserAppearanceRepository {
         .select({ count: count() })
         .from(users)
         .leftJoin(profiles, eq(users.id, profiles.userId))
+        .leftJoin(universityDetails, eq(profiles.universityDetailId, universityDetails.id))
         .where(and(
           isNull(users.deletedAt),
           or(
@@ -343,7 +348,8 @@ export class AdminUserAppearanceRepository {
           age: profiles.age,
           gender: profiles.gender,
           instagramId: profiles.instagramId,
-          university: universityDetails.universityName,
+          universityDetailId: profiles.universityDetailId,
+          universityName: universityDetails.universityName,
           department: universityDetails.department,
           createdAt: users.createdAt,
         })
@@ -360,6 +366,9 @@ export class AdminUserAppearanceRepository {
         .limit(limit)
         .offset(offset)
         .orderBy(desc(users.createdAt));
+
+      // 디버깅을 위한 로그 추가
+      console.log('미분류 사용자 목록 조회 결과:', JSON.stringify(usersData, null, 2));
 
       // 프로필 이미지 URL 조회
       const userIds = usersData.map(user => user.id);
@@ -396,7 +405,7 @@ export class AdminUserAppearanceRepository {
           age: user.age,
           gender: user.gender,
           profileImageUrl: imageUrlMap.get(user.id) || null,
-          university: user.university ? `${user.university} ${user.department || ''}` : null,
+          university: user.universityName ? `${user.universityName} ${user.department || ''}` : null,
           instagramId: user.instagramId || null,
           instagramUrl: instagramUrl,
           appearanceGrade: AppearanceGrade.UNKNOWN,

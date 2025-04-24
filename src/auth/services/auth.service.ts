@@ -139,7 +139,7 @@ export class AuthService {
       { id: userId, email, role, gender },
       {
         secret: this.configService.get<string>('JWT_SECRET'),
-        expiresIn: '1h',
+        expiresIn: '7d',
       },
     );
     this.logger.log(`액세스 토큰 생성 완료, 길이: ${accessToken.length}`);
