@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
 import { Type } from 'class-transformer';
 import { Gender } from '@/types/enum';
+import { UserRank } from '@/database/schema/profiles';
 
 /**
  * 외모 등급 enum
@@ -11,8 +12,27 @@ export enum AppearanceGrade {
   A = 'A',
   B = 'B',
   C = 'C',
-  D = 'D',
   UNCLASSIFIED = 'UNCLASSIFIED'
+}
+
+/**
+ * 외모 등급을 UserRank로 변환하는 함수
+ */
+export function appearanceGradeToUserRank(grade: AppearanceGrade): UserRank {
+  if (grade === AppearanceGrade.UNCLASSIFIED) {
+    return UserRank.UNKNOWN;
+  }
+  return grade as unknown as UserRank;
+}
+
+/**
+ * UserRank를 외모 등급으로 변환하는 함수
+ */
+export function userRankToAppearanceGrade(rank: UserRank): AppearanceGrade {
+  if (rank === UserRank.UNKNOWN) {
+    return AppearanceGrade.UNCLASSIFIED;
+  }
+  return rank as unknown as AppearanceGrade;
 }
 
 /**
@@ -195,16 +215,10 @@ export class UserAppearanceGradeStatsResponse {
   C: number;
 
   @ApiProperty({
-    description: 'D등급 사용자 수',
-    example: 50,
-  })
-  D: number;
-
-  @ApiProperty({
     description: '미분류 사용자 수',
     example: 20,
   })
-  UNCLASSIFIED: number;
+  UNKNOWN: number;
 
   @ApiProperty({
     description: '전체 사용자 수',
@@ -257,6 +271,20 @@ export class UserProfileWithAppearance {
     nullable: true,
   })
   university?: string | null;
+
+  @ApiProperty({
+    description: '인스타그램 ID',
+    example: 'instagram_user',
+    nullable: true,
+  })
+  instagramId?: string | null;
+
+  @ApiProperty({
+    description: '인스타그램 프로필 URL',
+    example: 'https://www.instagram.com/instagram_user',
+    nullable: true,
+  })
+  instagramUrl?: string | null;
 
   @ApiProperty({
     description: '외모 등급',

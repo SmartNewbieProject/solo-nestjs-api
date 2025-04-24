@@ -9,7 +9,7 @@ config();
 
 async function runMigrations() {
   const configService = new ConfigService();
-  
+
   // 데이터베이스 연결 설정
   const pool = new Pool({
     host: configService.get('DB_HOST'),
@@ -23,12 +23,12 @@ async function runMigrations() {
   const db = drizzle(pool);
 
   console.log('마이그레이션 시작...');
-  
+
   // 마이그레이션 실행
-  await migrate(db, { migrationsFolder: 'src/database/migrations' });
-  
+  await migrate(db, { migrationsFolder: 'drizzle/migrations' });
+
   console.log('마이그레이션 완료!');
-  
+
   // 연결 종료
   await pool.end();
 }

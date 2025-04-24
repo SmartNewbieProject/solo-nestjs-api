@@ -8,7 +8,7 @@ export enum UserRank {
   A = 'A',
   B = 'B',
   C = 'C',
-  UNKNOWN = 'UNKNOWN',
+  UNKNOWN = 'UNNKOWN', // 오타가 있지만 DB와 일치시키기 위해 유지
 }
 
 export const profiles = pgTable('profiles', {
@@ -24,5 +24,6 @@ export const profiles = pgTable('profiles', {
   statusAt: varchar('status_at', { length: 36 }),
   rank: varchar('rank', { length: 7, enum: ['S', 'A', 'B', 'C', 'UNNKOWN'] }).default('UNNKOWN'),
   universityDetailId: varchar('university_detail_id', { length: 36 }),
+  // appearanceGrade 필드는 더 이상 사용하지 않고 rank 필드를 사용합니다
   ...timestamps,
 });

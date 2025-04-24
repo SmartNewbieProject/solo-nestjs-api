@@ -25,6 +25,9 @@ import { AdminWithdrawalStatsRepository } from './repositories/admin-withdrawal-
 import { AdminSalesStatsController } from './controllers/admin-sales-stats.controller';
 import { AdminSalesStatsService } from './services/admin-sales-stats.service';
 import { AdminSalesStatsRepository } from './repositories/admin-sales-stats.repository';
+import { AdminUserAppearanceController } from './controllers/admin-user-appearance.controller';
+import { AdminUserAppearanceService } from './services/admin-user-appearance.service';
+import { AdminUserAppearanceRepository } from './repositories/admin-user-appearance.repository';
 
 import { UserActivityInterceptor } from './interceptors/user-activity.interceptor';
 import { UserActivityListener } from './listeners/user-activity.listener';
@@ -46,7 +49,7 @@ import SmsService from '@/sms/services/sms.service';
     EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
     RedisModule,
-    
+
   ],
   controllers: [
     AdminUserController,
@@ -56,6 +59,7 @@ import SmsService from '@/sms/services/sms.service';
     AdminWithdrawalStatsController,
     AdminSalesStatsController,
     AdminMailController,
+    AdminUserAppearanceController,
   ],
   providers: [
     SignupService,
@@ -76,6 +80,8 @@ import SmsService from '@/sms/services/sms.service';
     AdminWithdrawalStatsRepository,
     AdminSalesStatsService,
     AdminSalesStatsRepository,
+    AdminUserAppearanceService,
+    AdminUserAppearanceRepository,
     UserActivityListener,
     ActivityAggregatorService,
     {
@@ -83,6 +89,6 @@ import SmsService from '@/sms/services/sms.service';
       useClass: UserActivityInterceptor,
     }
   ],
-  exports: [AdminUserService, AdminMatchService, AdminStatsService, AdminActivityService, AdminWithdrawalStatsService, AdminSalesStatsService]
+  exports: [AdminUserService, AdminMatchService, AdminStatsService, AdminActivityService, AdminWithdrawalStatsService, AdminSalesStatsService, AdminUserAppearanceService]
 })
 export class AdminModule {}
