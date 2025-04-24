@@ -1,0 +1,281 @@
+import { ApiProperty } from '@nestjs/swagger';
+import { IsEnum, IsInt, IsNotEmpty, IsOptional, IsString, IsUUID, Min } from 'class-validator';
+import { Type } from 'class-transformer';
+import { Gender } from '@/types/enum';
+
+/**
+ * 외모 등급 enum
+ */
+export enum AppearanceGrade {
+  S = 'S',
+  A = 'A',
+  B = 'B',
+  C = 'C',
+  D = 'D',
+  UNCLASSIFIED = 'UNCLASSIFIED'
+}
+
+/**
+ * 유저 목록 조회 요청 DTO (필터링 포함)
+ */
+export class AdminUserAppearanceListRequest {
+  @ApiProperty({
+    description: '페이지 번호',
+    example: 1,
+    required: false,
+    default: 1,
+  })
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  @Type(() => Number)
+  page?: number = 1;
+
+  @ApiProperty({
+    description: '페이지당 항목 수',
+    example: 10,
+    required: false,
+    default: 10,
+  })
+  @IsInt()
+  @Min(1)
+  @IsOptional()
+  @Type(() => Number)
+  limit?: number = 10;
+
+  @ApiProperty({
+    description: '성별 필터',
+    enum: Gender,
+    required: false,
+  })
+  @IsEnum(Gender)
+  @IsOptional()
+  gender?: Gender;
+
+  @ApiProperty({
+    description: '외모 등급 필터',
+    enum: AppearanceGrade,
+    required: false,
+  })
+  @IsEnum(AppearanceGrade)
+  @IsOptional()
+  appearanceGrade?: AppearanceGrade;
+
+  @ApiProperty({
+    description: '대학교 이름 필터',
+    example: '서울대학교',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  universityName?: string;
+
+  @ApiProperty({
+    description: '최소 나이 필터',
+    example: 20,
+    required: false,
+  })
+  @IsInt()
+  @Min(18)
+  @IsOptional()
+  @Type(() => Number)
+  minAge?: number;
+
+  @ApiProperty({
+    description: '최대 나이 필터',
+    example: 29,
+    required: false,
+  })
+  @IsInt()
+  @Min(18)
+  @IsOptional()
+  @Type(() => Number)
+  maxAge?: number;
+
+  @ApiProperty({
+    description: '검색어 (이름, 아이디, 전화번호)',
+    example: '홍길동',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  searchTerm?: string;
+}
+
+/**
+ * 유저 외모 등급 설정 요청 DTO
+ */
+export class SetUserAppearanceGradeRequest {
+  @ApiProperty({
+    description: '사용자 ID',
+    example: '01HFGXS6YW1234567890ABCDE',
+  })
+  @IsUUID()
+  @IsNotEmpty()
+  userId: string;
+
+  @ApiProperty({
+    description: '외모 등급',
+    enum: AppearanceGrade,
+    example: AppearanceGrade.A,
+    default: AppearanceGrade.UNCLASSIFIED,
+  })
+  @IsEnum(AppearanceGrade)
+  @IsNotEmpty()
+  grade: AppearanceGrade = AppearanceGrade.UNCLASSIFIED;
+}
+
+/**
+ * 일괄 외모 등급 설정 요청 DTO
+ */
+export class BulkSetUserAppearanceGradeRequest {
+  @ApiProperty({
+    description: '사용자 ID 목록',
+    example: ['01HFGXS6YW1234567890ABCDE', '01HFGXS6YW1234567890ABCDF'],
+    type: [String],
+  })
+  @IsUUID('all', { each: true })
+  @IsNotEmpty()
+  userIds: string[];
+
+  @ApiProperty({
+    description: '외모 등급',
+    enum: AppearanceGrade,
+    example: AppearanceGrade.A,
+    default: AppearanceGrade.UNCLASSIFIED,
+  })
+  @IsEnum(AppearanceGrade)
+  @IsNotEmpty()
+  grade: AppearanceGrade = AppearanceGrade.UNCLASSIFIED;
+}
+
+/**
+ * 외모 등급 설정 응답 DTO
+ */
+export class SetUserAppearanceGradeResponse {
+  @ApiProperty({
+    description: '성공 여부',
+    example: true,
+  })
+  success: boolean;
+
+  @ApiProperty({
+    description: '메시지',
+    example: '외모 등급이 성공적으로 설정되었습니다.',
+  })
+  message: string;
+}
+
+/**
+ * 유저 외모 등급 통계 응답 DTO
+ */
+export class UserAppearanceGradeStatsResponse {
+  @ApiProperty({
+    description: 'S등급 사용자 수',
+    example: 10,
+  })
+  S: number;
+
+  @ApiProperty({
+    description: 'A등급 사용자 수',
+    example: 50,
+  })
+  A: number;
+
+  @ApiProperty({
+    description: 'B등급 사용자 수',
+    example: 100,
+  })
+  B: number;
+
+  @ApiProperty({
+    description: 'C등급 사용자 수',
+    example: 150,
+  })
+  C: number;
+
+  @ApiProperty({
+    description: 'D등급 사용자 수',
+    example: 50,
+  })
+  D: number;
+
+  @ApiProperty({
+    description: '미분류 사용자 수',
+    example: 20,
+  })
+  UNCLASSIFIED: number;
+
+  @ApiProperty({
+    description: '전체 사용자 수',
+    example: 380,
+  })
+  total: number;
+}
+
+/**
+ * 유저 프로필 확장 DTO (외모 등급 포함)
+ */
+export class UserProfileWithAppearance {
+  @ApiProperty({
+    description: '사용자 ID',
+    example: '01HFGXS6YW1234567890ABCDE',
+  })
+  id: string;
+
+  @ApiProperty({
+    description: '이름',
+    example: '홍길동',
+  })
+  name: string;
+
+  @ApiProperty({
+    description: '나이',
+    example: 28,
+    nullable: true,
+  })
+  age: number | null;
+
+  @ApiProperty({
+    description: '성별',
+    enum: Gender,
+    example: Gender.MALE,
+    nullable: true,
+  })
+  gender: Gender | null;
+
+  @ApiProperty({
+    description: '프로필 이미지 URL',
+    example: 'https://example.com/images/profile.jpg',
+    nullable: true,
+  })
+  profileImageUrl?: string | null;
+
+  @ApiProperty({
+    description: '대학교 정보',
+    example: '서울대학교 컴퓨터공학과',
+    nullable: true,
+  })
+  university?: string | null;
+
+  @ApiProperty({
+    description: '외모 등급',
+    enum: AppearanceGrade,
+    example: AppearanceGrade.A,
+    default: AppearanceGrade.UNCLASSIFIED,
+  })
+  appearanceGrade: AppearanceGrade = AppearanceGrade.UNCLASSIFIED;
+
+  @ApiProperty({
+    description: '가입일',
+    example: '2025-04-01T12:00:00Z',
+  })
+  createdAt: Date;
+
+  @ApiProperty({
+    description: '최근 접속일',
+    example: '2025-04-22T15:30:00Z',
+    nullable: true,
+  })
+  lastActiveAt?: Date | null;
+}
