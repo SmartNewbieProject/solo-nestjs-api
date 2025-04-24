@@ -28,9 +28,7 @@ export class AdminStatsRepository {
    * 오늘 00:00:00부터 23:59:59까지 생성된 사용자를 카운트합니다.
    */
   async getDailySignupCount(): Promise<number> {
-    // 오늘 날짜의 시작(00:00:00)과 끝(23:59:59) 설정
     const today = new Date();
-    // 한국 시간 기준으로 00:00:00 설정
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
     startOfDay.setHours(startOfDay.getHours() + 9); // UTC+9 보정
     
@@ -56,20 +54,18 @@ export class AdminStatsRepository {
    * 이번 주의 월요일 00:00:00부터 일요일 23:59:59까지 생성된 사용자를 카운트합니다.
    */
   async getWeeklySignupCount(): Promise<number> {
-    // 이번 주의 월요일과 일요일 가져오기
     const today = new Date();
-    const currentDay = today.getDay(); // 0: 일요일, 1: 월요일, ..., 6: 토요일
-
-    // 이번 주의 월요일 가져오기 (현재가 월요일이면 오늘, 아니면 지난 월요일)
-    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay; // 일요일이면 -6, 월요일이면 0, 화요일이면 -1, ...
+    const currentDay = today.getDay();
+    const mondayOffset = currentDay === 0 ? -6 : 1 - currentDay;
     const monday = new Date(today);
     monday.setDate(today.getDate() + mondayOffset);
     monday.setHours(0, 0, 0, 0);
+    monday.setHours(monday.getHours() + 9); // UTC+9 보정
 
-    // 이번 주의 일요일 가져오기 (현재가 일요일이면 오늘, 아니면 다음 일요일)
     const sunday = new Date(monday);
     sunday.setDate(monday.getDate() + 6);
     sunday.setHours(23, 59, 59, 999);
+    sunday.setHours(sunday.getHours() + 9); // UTC+9 보정
 
     const result = await this.drizzleService.db
       .select({ count: count() })
@@ -77,8 +73,8 @@ export class AdminStatsRepository {
       .where(
         and(
           sql`${users.deletedAt} IS NULL`,
-          gte(users.createdAt, monday),
-          lte(users.createdAt, sunday)
+          sql`${users.createdAt}::text >= ${monday.toISOString().replace('T', ' ').replace('Z', '')}`,
+          sql`${users.createdAt}::text < ${sunday.toISOString().replace('T', ' ').replace('Z', '')}`
         )
       );
 
@@ -99,7 +95,10 @@ export class AdminStatsRepository {
       date.setDate(today.getDate() - i);
 
       const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+      startOfDay.setHours(startOfDay.getHours() + 9); // UTC+9 보정
+      
       const endOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+      endOfDay.setHours(endOfDay.getHours() + 9); // UTC+9 보정
 
       const queryResult = await this.drizzleService.db
         .select({ count: count() })
@@ -107,8 +106,8 @@ export class AdminStatsRepository {
         .where(
           and(
             sql`${users.deletedAt} IS NULL`,
-            gte(users.createdAt, startOfDay),
-            lt(users.createdAt, endOfDay)
+            sql`${users.createdAt}::text >= ${startOfDay.toISOString().replace('T', ' ').replace('Z', '')}`,
+            sql`${users.createdAt}::text < ${endOfDay.toISOString().replace('T', ' ').replace('Z', '')}`
           )
         );
 
@@ -140,6 +139,7 @@ export class AdminStatsRepository {
     const thisMonday = new Date(today);
     thisMonday.setDate(today.getDate() + mondayOffset);
     thisMonday.setHours(0, 0, 0, 0);
+    thisMonday.setHours(thisMonday.getHours() + 9); // UTC+9 보정
 
     // 최근 12주간의 데이터 조회
     for (let i = 11; i >= 0; i--) {
@@ -149,6 +149,7 @@ export class AdminStatsRepository {
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekStart.getDate() + 6);
       weekEnd.setHours(23, 59, 59, 999);
+      weekEnd.setHours(weekEnd.getHours() + 9); // UTC+9 보정
 
       const queryResult = await this.drizzleService.db
         .select({ count: count() })
@@ -156,8 +157,8 @@ export class AdminStatsRepository {
         .where(
           and(
             sql`${users.deletedAt} IS NULL`,
-            gte(users.createdAt, weekStart),
-            lte(users.createdAt, weekEnd)
+            sql`${users.createdAt}::text >= ${weekStart.toISOString().replace('T', ' ').replace('Z', '')}`,
+            sql`${users.createdAt}::text < ${weekEnd.toISOString().replace('T', ' ').replace('Z', '')}`
           )
         );
 
@@ -191,10 +192,12 @@ export class AdminStatsRepository {
     for (let i = 11; i >= 0; i--) {
       const date = new Date(today.getFullYear(), today.getMonth() - i, 1);
       const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0);
+      startOfMonth.setHours(startOfMonth.getHours() + 9); // UTC+9 보정
 
       // 다음 달의 1일에서 1밀리초를 빼서 현재 달의 마지막 날 23:59:59.999 가져오기
       const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 1, 0, 0, 0);
       endOfMonth.setMilliseconds(-1);
+      endOfMonth.setHours(endOfMonth.getHours() + 9); // UTC+9 보정
 
       const queryResult = await this.drizzleService.db
         .select({ count: count() })
@@ -202,8 +205,8 @@ export class AdminStatsRepository {
         .where(
           and(
             sql`${users.deletedAt} IS NULL`,
-            gte(users.createdAt, startOfMonth),
-            lte(users.createdAt, endOfMonth)
+            sql`${users.createdAt}::text >= ${startOfMonth.toISOString().replace('T', ' ').replace('Z', '')}`,
+            sql`${users.createdAt}::text < ${endOfMonth.toISOString().replace('T', ' ').replace('Z', '')}`
           )
         );
 
