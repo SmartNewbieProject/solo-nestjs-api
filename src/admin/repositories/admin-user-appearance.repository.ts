@@ -21,36 +21,34 @@ export class AdminUserAppearanceRepository {
     try {
       const { page = 1, limit = 10, gender, appearanceGrade, universityName, minAge, maxAge, searchTerm } = params;
       const offset = (page - 1) * limit;
-      
+
       // 기본 조건: 삭제되지 않은 사용자
       let conditions = and(isNull(users.deletedAt));
-      
+
       // 성별 필터
       if (gender) {
         conditions = and(conditions, eq(profiles.gender, gender));
       }
-      
+
       // 외모 등급 필터
       if (appearanceGrade) {
-        // UNCLASSIFIED는 UNKNOWN으로 변환
-        const rankValue = appearanceGrade === AppearanceGrade.UNCLASSIFIED ? UserRank.UNKNOWN : appearanceGrade;
-        conditions = and(conditions, eq(profiles.rank, rankValue));
+        conditions = and(conditions, eq(profiles.rank, appearanceGrade));
       }
-      
+
       // 나이 범위 필터
       if (minAge) {
         conditions = and(conditions, gte(profiles.age, minAge));
       }
-      
+
       if (maxAge) {
         conditions = and(conditions, lte(profiles.age, maxAge));
       }
-      
+
       // 대학교 이름 필터
       if (universityName) {
         conditions = and(conditions, ilike(universityDetails.universityName, `%${universityName}%`));
       }
-      
+
       // 검색어 필터 (이름, 이메일, 전화번호)
       if (searchTerm) {
         conditions = and(
@@ -62,7 +60,7 @@ export class AdminUserAppearanceRepository {
           )
         );
       }
-      
+
       // 총 항목 수 조회
       const totalItemsResult = await this.drizzleService.db
         .select({ count: count() })
@@ -70,10 +68,10 @@ export class AdminUserAppearanceRepository {
         .leftJoin(profiles, eq(users.id, profiles.userId))
         .leftJoin(universityDetails, eq(profiles.universityDetailId, universityDetails.id))
         .where(conditions);
-      
+
       const totalItems = totalItemsResult[0].count;
       const totalPages = Math.ceil(totalItems / limit);
-      
+
       // 사용자 목록 조회
       const usersData = await this.drizzleService.db
         .select({
@@ -95,7 +93,7 @@ export class AdminUserAppearanceRepository {
         .limit(limit)
         .offset(offset)
         .orderBy(desc(users.createdAt));
-      
+
       // 프로필 이미지 URL 조회
       const userIds = usersData.map(user => user.id);
       const profileImagesData = await this.drizzleService.db
@@ -111,7 +109,7 @@ export class AdminUserAppearanceRepository {
           inArray(profiles.userId, userIds),
           eq(profileImages.isMain, true)
         ));
-      
+
       // 이미지 URL 매핑
       const imageUrlMap = new Map<string, string>();
       profileImagesData.forEach(item => {
@@ -119,15 +117,15 @@ export class AdminUserAppearanceRepository {
           imageUrlMap.set(item.userId, item.imageUrl);
         }
       });
-      
+
       // 결과 매핑
       const items = usersData.map(user => {
-        // rank가 UNKNOWN이면 UNCLASSIFIED로 변환
-        const appearanceGrade = user.rank === UserRank.UNKNOWN ? AppearanceGrade.UNCLASSIFIED : user.rank;
-        
+        // rank 값 그대로 사용
+        const appearanceGrade = user.rank;
+
         // 인스타그램 URL 생성
         const instagramUrl = user.instagramId ? `https://www.instagram.com/${user.instagramId}` : null;
-        
+
         return {
           id: user.id,
           name: user.name,
@@ -142,7 +140,7 @@ export class AdminUserAppearanceRepository {
           lastActiveAt: null, // 최근 접속일은 별도 로직으로 구현 필요
         };
       });
-      
+
       return {
         items,
         meta: {
@@ -169,20 +167,20 @@ export class AdminUserAppearanceRepository {
         .select({ id: profiles.id })
         .from(profiles)
         .where(eq(profiles.userId, userId));
-      
+
       if (!userProfile || userProfile.length === 0) {
         return false;
       }
-      
-      // UNCLASSIFIED는 UNKNOWN으로 변환
-      const rankValue = grade === AppearanceGrade.UNCLASSIFIED ? UserRank.UNKNOWN : grade;
-      
+
+      // 등급 값 그대로 사용
+      const rankValue = grade;
+
       // 외모 등급 업데이트
       await this.drizzleService.db
         .update(profiles)
         .set({ rank: rankValue })
         .where(eq(profiles.userId, userId));
-      
+
       return true;
     } catch (error) {
       this.logger.error(`사용자 외모 등급 설정 중 오류 발생: ${error.message}`, error.stack);
@@ -200,22 +198,22 @@ export class AdminUserAppearanceRepository {
         .select({ userId: profiles.userId })
         .from(profiles)
         .where(inArray(profiles.userId, userIds));
-      
+
       const validUserIds = userProfiles.map(profile => profile.userId);
-      
+
       if (validUserIds.length === 0) {
         return 0;
       }
-      
-      // UNCLASSIFIED는 UNKNOWN으로 변환
-      const rankValue = grade === AppearanceGrade.UNCLASSIFIED ? UserRank.UNKNOWN : grade;
-      
+
+      // 등급 값 그대로 사용
+      const rankValue = grade;
+
       // 외모 등급 일괄 업데이트
       await this.drizzleService.db
         .update(profiles)
         .set({ rank: rankValue })
         .where(inArray(profiles.userId, validUserIds));
-      
+
       return validUserIds.length;
     } catch (error) {
       this.logger.error(`사용자 외모 등급 일괄 설정 중 오류 발생: ${error.message}`, error.stack);
@@ -230,16 +228,16 @@ export class AdminUserAppearanceRepository {
     try {
       // 각 등급별 사용자 수 조회
       const statsQuery = sql`
-        SELECT 
+        SELECT
           COALESCE(rank, 'UNNKOWN') as grade,
           COUNT(*) as count
         FROM profiles
         WHERE profiles.deleted_at IS NULL
         GROUP BY rank
       `;
-      
+
       const statsResult = await this.drizzleService.db.execute(statsQuery);
-      
+
       // 결과 매핑
       const stats: UserAppearanceGradeStatsResponse = {
         S: 0,
@@ -249,23 +247,23 @@ export class AdminUserAppearanceRepository {
         UNKNOWN: 0,
         total: 0,
       };
-      
+
       // statsResult가 배열이 아닐 수 있으므로 안전하게 처리
       const rows = Array.isArray(statsResult) ? statsResult : statsResult.rows || [];
-      
+
       rows.forEach(row => {
         const grade = row.grade as string;
         const count = parseInt(row.count as string, 10);
-        
+
         if (grade === 'S') stats.S = count;
         else if (grade === 'A') stats.A = count;
         else if (grade === 'B') stats.B = count;
         else if (grade === 'C') stats.C = count;
         else stats.UNKNOWN += count;
-        
+
         stats.total += count;
       });
-      
+
       return stats;
     } catch (error) {
       this.logger.error(`외모 등급 통계 조회 중 오류 발생: ${error.message}`, error.stack);
@@ -279,7 +277,7 @@ export class AdminUserAppearanceRepository {
   async getUnclassifiedUsers(page: number = 1, limit: number = 10): Promise<PaginatedResponse<UserProfileWithAppearance>> {
     try {
       const offset = (page - 1) * limit;
-      
+
       // 미분류 사용자 수 조회
       const totalItemsResult = await this.drizzleService.db
         .select({ count: count() })
@@ -292,10 +290,10 @@ export class AdminUserAppearanceRepository {
             isNull(profiles.rank)
           )
         ));
-      
+
       const totalItems = totalItemsResult[0].count;
       const totalPages = Math.ceil(totalItems / limit);
-      
+
       // 미분류 사용자 목록 조회
       const usersData = await this.drizzleService.db
         .select({
@@ -321,7 +319,7 @@ export class AdminUserAppearanceRepository {
         .limit(limit)
         .offset(offset)
         .orderBy(desc(users.createdAt));
-      
+
       // 프로필 이미지 URL 조회
       const userIds = usersData.map(user => user.id);
       const profileImagesData = await this.drizzleService.db
@@ -337,7 +335,7 @@ export class AdminUserAppearanceRepository {
           inArray(profiles.userId, userIds),
           eq(profileImages.isMain, true)
         ));
-      
+
       // 이미지 URL 매핑
       const imageUrlMap = new Map<string, string>();
       profileImagesData.forEach(item => {
@@ -345,12 +343,12 @@ export class AdminUserAppearanceRepository {
           imageUrlMap.set(item.userId, item.imageUrl);
         }
       });
-      
+
       // 결과 매핑
       const items = usersData.map(user => {
         // 인스타그램 URL 생성
         const instagramUrl = user.instagramId ? `https://www.instagram.com/${user.instagramId}` : null;
-        
+
         return {
           id: user.id,
           name: user.name,
@@ -360,12 +358,12 @@ export class AdminUserAppearanceRepository {
           university: user.university ? `${user.university} ${user.department || ''}` : null,
           instagramId: user.instagramId || null,
           instagramUrl: instagramUrl,
-          appearanceGrade: AppearanceGrade.UNCLASSIFIED,
+          appearanceGrade: AppearanceGrade.UNKNOWN,
           createdAt: user.createdAt,
           lastActiveAt: null,
         };
       });
-      
+
       return {
         items,
         meta: {

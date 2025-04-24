@@ -12,16 +12,13 @@ export enum AppearanceGrade {
   A = 'A',
   B = 'B',
   C = 'C',
-  UNCLASSIFIED = 'UNCLASSIFIED'
+  UNKNOWN = 'UNKNOWN'
 }
 
 /**
  * 외모 등급을 UserRank로 변환하는 함수
  */
 export function appearanceGradeToUserRank(grade: AppearanceGrade): UserRank {
-  if (grade === AppearanceGrade.UNCLASSIFIED) {
-    return UserRank.UNKNOWN;
-  }
   return grade as unknown as UserRank;
 }
 
@@ -29,9 +26,6 @@ export function appearanceGradeToUserRank(grade: AppearanceGrade): UserRank {
  * UserRank를 외모 등급으로 변환하는 함수
  */
 export function userRankToAppearanceGrade(rank: UserRank): AppearanceGrade {
-  if (rank === UserRank.UNKNOWN) {
-    return AppearanceGrade.UNCLASSIFIED;
-  }
   return rank as unknown as AppearanceGrade;
 }
 
@@ -138,11 +132,11 @@ export class SetUserAppearanceGradeRequest {
     description: '외모 등급',
     enum: AppearanceGrade,
     example: AppearanceGrade.A,
-    default: AppearanceGrade.UNCLASSIFIED,
+    default: AppearanceGrade.UNKNOWN,
   })
   @IsEnum(AppearanceGrade)
   @IsNotEmpty()
-  grade: AppearanceGrade = AppearanceGrade.UNCLASSIFIED;
+  grade: AppearanceGrade = AppearanceGrade.UNKNOWN;
 }
 
 /**
@@ -162,11 +156,11 @@ export class BulkSetUserAppearanceGradeRequest {
     description: '외모 등급',
     enum: AppearanceGrade,
     example: AppearanceGrade.A,
-    default: AppearanceGrade.UNCLASSIFIED,
+    default: AppearanceGrade.UNKNOWN,
   })
   @IsEnum(AppearanceGrade)
   @IsNotEmpty()
-  grade: AppearanceGrade = AppearanceGrade.UNCLASSIFIED;
+  grade: AppearanceGrade = AppearanceGrade.UNKNOWN;
 }
 
 /**
@@ -290,9 +284,9 @@ export class UserProfileWithAppearance {
     description: '외모 등급',
     enum: AppearanceGrade,
     example: AppearanceGrade.A,
-    default: AppearanceGrade.UNCLASSIFIED,
+    default: AppearanceGrade.UNKNOWN,
   })
-  appearanceGrade: AppearanceGrade = AppearanceGrade.UNCLASSIFIED;
+  appearanceGrade: AppearanceGrade = AppearanceGrade.UNKNOWN;
 
   @ApiProperty({
     description: '가입일',

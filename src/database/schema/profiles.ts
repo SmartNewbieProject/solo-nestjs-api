@@ -8,7 +8,7 @@ export enum UserRank {
   A = 'A',
   B = 'B',
   C = 'C',
-  UNKNOWN = 'UNNKOWN', // 오타가 있지만 DB와 일치시키기 위해 유지
+  UNKNOWN = 'UNKNOWN',
 }
 
 export const profiles = pgTable('profiles', {
