@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ProfileEmbeddingService } from '@/embedding/profile-embedding.service';
 import matchingPreferenceWeighter from '../domain/matching-preference-weighter';
 import { ProfileService } from '@/user/services/profile.service';
-import { UserPreferenceSummary, Similarity, PartnerDetails } from '@/types/match';
+import { UserPreferenceSummary, Similarity, PartnerDetails, MatchType, MatchDetails } from '@/types/match';
 import MatchRepository from '../repository/match.repository';
 import weekDateService from '../domain/date';
 
@@ -64,15 +64,23 @@ export class MatchingService {
     });
 
     const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3);
-
     return similarProfiles;
   }
 
-  async getLatestPartner(userId: string): Promise<PartnerDetails | null> {
+  async getLatestPartner(userId: string): Promise<MatchDetails> {
     const latestMatch = await this.matchRepository.findLatestMatch(userId);
     if (!latestMatch) {
+      return {
+        endOfView: null,
+        partner: null,
+        type: 'not-found',
+      };
+    }
+
+    if (latestMatch.type === MatchType.REMATCHING) {
       return null;
     }
+
     const publishedDate = weekDateService.createDayjs(latestMatch.publishedAt!);
     const endOfView = publishedDate
       .add(2, 'day')

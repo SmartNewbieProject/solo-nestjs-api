@@ -34,6 +34,7 @@ export class ProfileService {
     const preferences = this.processPreferences(userPreferenceOptions);
     
     return {
+      id: userId,
       name: profileDetails.name,
       age: profileDetails.age,
       gender: profileDetails.gender,
