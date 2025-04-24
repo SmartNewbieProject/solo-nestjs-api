@@ -7,6 +7,7 @@ import { MatchType } from "@database/schema/matches";
 import { eq, isNull, isNotNull, and, sql, count } from "drizzle-orm";
 import { Gender } from "@/types/enum";
 import { PreferenceTypeGroup } from "@/types/user";
+import { RawMatch } from "@/types/match";
 
 @Injectable()
 export default class MatchRepository {
@@ -109,11 +110,12 @@ export default class MatchRepository {
     };
   }
 
-  async findLatestMatch(userId: string) {
-    return await this.db.query.matches.findFirst({
-      where: eq(schema.matches.myId, userId),
-      orderBy: [sql`${schema.matches.publishedAt} DESC`],
-    });
+  async findLatestMatch(userId: string): Promise<RawMatch | null> {
+    return await this.db.select()
+      .from(schema.matches)
+      .where(eq(schema.matches.myId, userId))
+      .orderBy(sql`${schema.matches.publishedAt} DESC`)
+      .execute()[0];
   }
 
   async getTotalMatchingCount() {

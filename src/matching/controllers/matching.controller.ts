@@ -5,10 +5,11 @@ import { CurrentUser, Roles } from "@/auth/decorators";
 import { Role } from "@/auth/domain/user-role.enum";
 import { MatchingService } from "../services/matching.service";
 import { AuthenticationUser } from "@/types";
-import { PartnerDetails } from "@/types/match";
+import { MatchDetails, PartnerDetails } from "@/types/match";
 import { MatchingUserResponse, PartnerResponse, TotalMatchingCountResponse } from "@/docs/matching.docs";
 import { CacheKey, CacheTTL } from "@nestjs/cache-manager";
 import { CustomCacheInterceptor } from '@/common/interceptors/app-cache.interceptors';
+import { UserProfile } from "@/types/user";
 
 @Controller('matching')
 @ApiBearerAuth('access-token')
@@ -66,7 +67,7 @@ export default class UserMatchingController {
     description: '매칭된 파트너 정보',
     type: PartnerResponse
   })
-  async getLatestPartner(@CurrentUser() user: AuthenticationUser): Promise<PartnerDetails | null> {
+  async getLatestPartner(@CurrentUser() user: AuthenticationUser): Promise<MatchDetails> {
     const partner = await this.matchingService.getLatestPartner(user.id);
     return partner;
   }

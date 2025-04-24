@@ -5,6 +5,7 @@ import { ProfileService } from '@/user/services/profile.service';
 import { UserPreferenceSummary, Similarity, PartnerDetails, MatchType, MatchDetails } from '@/types/match';
 import MatchRepository from '../repository/match.repository';
 import weekDateService from '../domain/date';
+import MatchResultRouter from '../domain/match-result-router';
 
 export interface MatchingWeights {
   age: number;
@@ -37,6 +38,7 @@ export interface MatchingResult {
 @Injectable()
 export class MatchingService {
   private readonly logger = new Logger(MatchingService.name);
+  private readonly matchResultRouter = new MatchResultRouter();
 
   constructor(
     private readonly profileEmbeddingService: ProfileEmbeddingService,
@@ -69,54 +71,16 @@ export class MatchingService {
 
   async getLatestPartner(userId: string): Promise<MatchDetails> {
     const latestMatch = await this.matchRepository.findLatestMatch(userId);
-    if (!latestMatch) {
-      return {
-        endOfView: null,
-        partner: null,
-        type: 'not-found',
-      };
-    }
-
-    if (latestMatch.type === MatchType.REMATCHING) {
-      return null;
-    }
-
-    const publishedDate = weekDateService.createDayjs(latestMatch.publishedAt!);
-    const endOfView = publishedDate
-      .add(2, 'day')
-      .set('hour', 0)
-      .set('minute', 0)
-      .set('second', 0)
-      .set('millisecond', 0);
-    const now = weekDateService.createDayjs();
-
-    if (now.isAfter(endOfView)) {
-      return null;
-    }
-
-    const partner = await this.matchRepository.findLatestPartner(userId);
-
-    if (!partner) {
-      return null;
-    }
-
-    return {
-      ...partner,
-      university: partner.university ? {
-        department: partner.university.department,
-        name: partner.university.universityName,
-        grade: partner.university.grade,
-        studentNumber: partner.university.studentNumber,
-      } : null,
-    }
+    return await this.matchResultRouter.resolveMatchingStatus({
+      latestMatch,
+      onRematching: () => this.profileService.getUserProfiles(latestMatch!.matcherId!),
+      onOpen: () => this.profileService.getUserProfiles(latestMatch!.matcherId!),
+    });
   }
 
   async getTotalMatchingCount() {
     const count = await this.matchRepository.getTotalMatchingCount();
-    this.logger.debug(`Total matching count: ${count}`);
-    return {
-      count,
-    };
+    return { count };
   }
 
   getNextMatchingDate() {

@@ -3,6 +3,13 @@ import { uuid, timestamps } from './helper';
 import { users } from './users';
 import { Gender } from '@/types/enum';
 
+export enum UserRank {
+  S = 'S',
+  A = 'A',
+  B = 'B',
+  C = 'C',
+}
+
 export const profiles = pgTable('profiles', {
   id: uuid(),
   userId: varchar('user_id', { length: 128 }).references(() => users.id).notNull().unique(),
@@ -14,6 +21,7 @@ export const profiles = pgTable('profiles', {
   is_matching_enable: boolean('is_matching_enable').default(true).notNull(),
   introduction: varchar('introduction', { length: 255 }),
   statusAt: varchar('status_at', { length: 36 }),
+  rank: varchar('rank', { length: 2, enum: ['S', 'A', 'B', 'C'] }).default('C'),
   universityDetailId: varchar('university_detail_id', { length: 36 }),
   ...timestamps,
 });
