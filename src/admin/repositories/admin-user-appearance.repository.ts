@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { DrizzleService } from '@/database/drizzle.service';
 import { users, profiles, universityDetails, profileImages, images } from '@/database/schema';
 import { and, count, desc, eq, gte, ilike, inArray, isNull, lte, or, sql } from 'drizzle-orm';
-import { AdminUserAppearanceListRequest, AppearanceGrade, UserAppearanceGradeStatsResponse, UserProfileWithAppearance } from '../dto/user-appearance.dto';
+import { AdminUserAppearanceListRequest, AppearanceGrade, GradeStats, UserAppearanceGradeStatsResponse, UserProfileWithAppearance } from '../dto/user-appearance.dto';
 import { PaginatedResponse } from '@/types/pagination';
 import { UserRank } from '@/database/schema/profiles';
 
@@ -226,45 +226,86 @@ export class AdminUserAppearanceRepository {
    */
   async getAppearanceGradeStats(): Promise<UserAppearanceGradeStatsResponse> {
     try {
-      // 각 등급별 사용자 수 조회
-      const statsQuery = sql`
+      // 전체 등급 분포 조회
+      const allStatsQuery = sql`
         SELECT
-          COALESCE(rank, 'UNNKOWN') as grade,
+          COALESCE(rank, 'UNKNOWN') as grade,
           COUNT(*) as count
         FROM profiles
         WHERE profiles.deleted_at IS NULL
         GROUP BY rank
       `;
 
-      const statsResult = await this.drizzleService.db.execute(statsQuery);
+      // 남성 등급 분포 조회
+      const maleStatsQuery = sql`
+        SELECT
+          COALESCE(rank, 'UNKNOWN') as grade,
+          COUNT(*) as count
+        FROM profiles
+        WHERE profiles.deleted_at IS NULL AND gender = 'MALE'
+        GROUP BY rank
+      `;
 
-      // 결과 매핑
-      const stats: UserAppearanceGradeStatsResponse = {
+      // 여성 등급 분포 조회
+      const femaleStatsQuery = sql`
+        SELECT
+          COALESCE(rank, 'UNKNOWN') as grade,
+          COUNT(*) as count
+        FROM profiles
+        WHERE profiles.deleted_at IS NULL AND gender = 'FEMALE'
+        GROUP BY rank
+      `;
+
+      // 병렬로 쿼리 실행
+      const [allStatsResult, maleStatsResult, femaleStatsResult] = await Promise.all([
+        this.drizzleService.db.execute(allStatsQuery),
+        this.drizzleService.db.execute(maleStatsQuery),
+        this.drizzleService.db.execute(femaleStatsQuery),
+      ]);
+
+      // 결과 매핑을 위한 함수
+      const createEmptyStats = (): GradeStats => ({
         S: 0,
         A: 0,
         B: 0,
         C: 0,
         UNKNOWN: 0,
         total: 0,
-      };
-
-      // statsResult가 배열이 아닐 수 있으므로 안전하게 처리
-      const rows = Array.isArray(statsResult) ? statsResult : statsResult.rows || [];
-
-      rows.forEach(row => {
-        const grade = row.grade as string;
-        const count = parseInt(row.count as string, 10);
-
-        if (grade === 'S') stats.S = count;
-        else if (grade === 'A') stats.A = count;
-        else if (grade === 'B') stats.B = count;
-        else if (grade === 'C') stats.C = count;
-        else stats.UNKNOWN += count;
-
-        stats.total += count;
       });
 
-      return stats;
+      // 결과 매핑을 위한 함수
+      const mapStatsResult = (statsResult: any): GradeStats => {
+        const stats = createEmptyStats();
+
+        // statsResult가 배열이 아닐 수 있으므로 안전하게 처리
+        const rows = Array.isArray(statsResult) ? statsResult : statsResult.rows || [];
+
+        rows.forEach(row => {
+          const grade = row.grade as string;
+          const count = parseInt(row.count as string, 10);
+
+          if (grade === 'S') stats.S = count;
+          else if (grade === 'A') stats.A = count;
+          else if (grade === 'B') stats.B = count;
+          else if (grade === 'C') stats.C = count;
+          else stats.UNKNOWN += count;
+
+          stats.total += count;
+        });
+
+        return stats;
+      };
+
+      // 각 통계 결과 매핑
+      const allStats = mapStatsResult(allStatsResult);
+      const maleStats = mapStatsResult(maleStatsResult);
+      const femaleStats = mapStatsResult(femaleStatsResult);
+
+      return {
+        all: allStats,
+        male: maleStats,
+        female: femaleStats,
+      };
     } catch (error) {
       this.logger.error(`외모 등급 통계 조회 중 오류 발생: ${error.message}`, error.stack);
       throw error;

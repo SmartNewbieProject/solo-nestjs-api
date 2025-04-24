@@ -181,9 +181,9 @@ export class SetUserAppearanceGradeResponse {
 }
 
 /**
- * 유저 외모 등급 통계 응답 DTO
+ * 등급별 사용자 수 통계 DTO
  */
-export class UserAppearanceGradeStatsResponse {
+export class GradeStats {
   @ApiProperty({
     description: 'S등급 사용자 수',
     example: 10,
@@ -219,6 +219,29 @@ export class UserAppearanceGradeStatsResponse {
     example: 380,
   })
   total: number;
+}
+
+/**
+ * 유저 외모 등급 통계 응답 DTO
+ */
+export class UserAppearanceGradeStatsResponse {
+  @ApiProperty({
+    description: '전체 등급 분포',
+    type: GradeStats,
+  })
+  all: GradeStats;
+
+  @ApiProperty({
+    description: '남성 등급 분포',
+    type: GradeStats,
+  })
+  male: GradeStats;
+
+  @ApiProperty({
+    description: '여성 등급 분포',
+    type: GradeStats,
+  })
+  female: GradeStats;
 }
 
 /**
