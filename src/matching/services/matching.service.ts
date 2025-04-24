@@ -2,9 +2,10 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ProfileEmbeddingService } from '@/embedding/profile-embedding.service';
 import matchingPreferenceWeighter from '../domain/matching-preference-weighter';
 import { ProfileService } from '@/user/services/profile.service';
-import { UserPreferenceSummary, Similarity, PartnerDetails } from '@/types/match';
+import { UserPreferenceSummary, Similarity, PartnerDetails, MatchType, MatchDetails } from '@/types/match';
 import MatchRepository from '../repository/match.repository';
 import weekDateService from '../domain/date';
+import MatchResultRouter from '../domain/match-result-router';
 
 export interface MatchingWeights {
   age: number;
@@ -37,12 +38,13 @@ export interface MatchingResult {
 @Injectable()
 export class MatchingService {
   private readonly logger = new Logger(MatchingService.name);
-  
+  private readonly matchResultRouter = new MatchResultRouter();
+
   constructor(
     private readonly profileEmbeddingService: ProfileEmbeddingService,
     private readonly profileService: ProfileService,
-    private readonly matchRepository: MatchRepository,  
-  ) {}
+    private readonly matchRepository: MatchRepository,
+  ) { }
 
   /**
    * 사용자에게 맞는 매칭 결과를 반환합니다.
@@ -51,55 +53,43 @@ export class MatchingService {
    * @param weights 가중치 설정 (선택적)
    */
   async findMatches(
-    userId: string, 
+    userId: string,
     limit: number = 10,
     weights?: Partial<MatchingWeights>
   ): Promise<Similarity[]> {
     const { getWeights } = matchingPreferenceWeighter;
     const finalWeights: MatchingWeights = getWeights(weights);
-      
+
     const weightSum = Object.values(finalWeights).reduce((sum, weight) => sum + weight, 0);
     Object.keys(finalWeights).forEach(key => {
-        finalWeights[key as keyof MatchingWeights] /= weightSum;
-      });
-      
-    const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3);
+      finalWeights[key as keyof MatchingWeights] /= weightSum;
+    });
 
+    const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3);
     return similarProfiles;
   }
 
-  async getLatestPartner(userId: string): Promise<PartnerDetails | null> {
-    const partner = await this.matchRepository.findLatestPartner(userId);
-
-    if (!partner) {
-      return null;
-    }
-
-    return {
-      ...partner,
-      university: partner.university ? {
-        department: partner.university.department,
-        name: partner.university.universityName,
-        grade: partner.university.grade,
-        studentNumber: partner.university.studentNumber,
-      } : null,
-    }
+  async getLatestPartner(userId: string): Promise<MatchDetails> {
+    const latestMatch = await this.matchRepository.findLatestMatch(userId);
+    return await this.matchResultRouter.resolveMatchingStatus({
+      latestMatch,
+      onRematching: () => this.profileService.getUserProfiles(latestMatch!.matcherId!),
+      onOpen: () => this.profileService.getUserProfiles(latestMatch!.matcherId!),
+    });
   }
 
   async getTotalMatchingCount() {
     const count = await this.matchRepository.getTotalMatchingCount();
-    this.logger.debug(`Total matching count: ${count}`);
-    return {
-      count,
-    };
+    return { count };
   }
 
   getNextMatchingDate() {
-    // return weekDateService.createDayjs().add(1, 'minute').toDate();
-    const nextMatchingDate = weekDateService.getNextMatchingDate();
-    return nextMatchingDate.toDate();
+    // const nextMatchingDate = weekDateService.getNextMatchingDate();
+    // const nextMatchingDate = weekDateService.test30seconds();
+    const nextMatchingDate = weekDateService.test1Minutes();
+    return nextMatchingDate.format('YYYY-MM-DD HH:mm:ss');
   }
-  
+
   private async getUserPreferenceSummary(userId: string): Promise<UserPreferenceSummary> {
     const userProfile = await this.profileService.getUserProfiles(userId);
     const { preferences } = userProfile;

@@ -1,5 +1,5 @@
 import { Gender } from "./enum";
-import { PreferenceTypeGroup } from "./user";
+import { PreferenceTypeGroup, UserProfile } from "./user";
 
 export type UserPreferenceSummary = {
   id: string;
@@ -45,6 +45,7 @@ export type PartnerDetails = {
   name: string;
   age: number;
   gender: Gender;
+  instagramId: string;
   university: {
     department: string;
     name: string;
@@ -71,3 +72,30 @@ export type TicketSummary = {
   expiredAt: Date | null;
   createdAt: Date;
 }
+
+export enum MatchType {
+  SCHEDULED = 'scheduled',
+  REMATCHING = 'rematching',
+  ADMIN = 'admin',
+}
+
+export type MatchViewType = 'open' | 'waiting' | 'not-found' | 'rematching';
+
+export type MatchDetails = {
+  type: MatchViewType;
+  endOfView: Date | null;
+  partner: UserProfile | null;
+};
+
+export type RawMatch = {
+  type: string;
+  id: string;
+  updatedAt: Date | null;
+  createdAt: Date;
+  deletedAt: Date | null;
+  myId: string;
+  matcherId: string | null;
+  score: string;
+  direct: boolean | null;
+  publishedAt: Date;
+};

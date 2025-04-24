@@ -9,15 +9,15 @@ export class AdminUserService {
   constructor(
     private readonly adminRepository: AdminRepository,
     private readonly profileService: ProfileService,
-  ) {}
+  ) { }
 
   async getUsersList(params: PaginationParams): Promise<PaginatedResponse<UserProfile>> {
     const { page, limit } = params;
-    
+
     const totalItems = await this.adminRepository.getUsersCount();
     const totalPages = Math.ceil(totalItems / limit);
     const usersData = await this.adminRepository.getUsers(params);
-    
+
     const items = await Promise.all(
       usersData.map(async (user) => {
         try {
@@ -32,6 +32,7 @@ export class AdminUserService {
               profileImages: [],
               instagramId: null,
               universityDetails: null,
+              id: user.id,
               preferences: [],
             } as UserProfile;
           }

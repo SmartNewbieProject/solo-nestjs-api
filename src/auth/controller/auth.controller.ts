@@ -25,7 +25,7 @@ import { RefreshToken } from '../dto/token';
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   private setRefreshTokenCookie(
     response: Response,
@@ -70,6 +70,23 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
   ): Promise<Omit<TokenResponse, 'refreshToken'>> {
     this.logger.debug(`refresh: ${token.refreshToken}`);
+
+    // 토큰 값 상세 로깅
+    this.logger.debug(`토큰 길이: ${token.refreshToken?.length}`);
+    this.logger.debug(`토큰 처음 10자: ${token.refreshToken?.substring(0, 10)}`);
+    this.logger.debug(`토큰 마지막 10자: ${token.refreshToken?.substring(token.refreshToken.length - 10)}`);
+
+    // 토큰에 이상한 문자가 있는지 확인
+    const hasSpecialChars = /[\s\n\r\t]/g.test(token.refreshToken);
+    if (hasSpecialChars) {
+      this.logger.debug('토큰에 이상한 문자가 포함되어 있습니다.');
+
+      // 이상한 문자 제거
+      const cleanToken = token.refreshToken.replace(/[\s\n\r\t]/g, '');
+      this.logger.debug(`정제된 토큰 길이: ${cleanToken.length}`);
+      token.refreshToken = cleanToken;
+    }
+
     const result = await this.authService.refreshToken(token.refreshToken);
     this.setRefreshTokenCookie(response, result.refreshToken);
     return result;
