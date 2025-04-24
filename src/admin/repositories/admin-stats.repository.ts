@@ -30,8 +30,12 @@ export class AdminStatsRepository {
   async getDailySignupCount(): Promise<number> {
     // 오늘 날짜의 시작(00:00:00)과 끝(23:59:59) 설정
     const today = new Date();
+    // 한국 시간 기준으로 00:00:00 설정
     const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
+    startOfDay.setHours(startOfDay.getHours() + 9); // UTC+9 보정
+    
     const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59, 999);
+    endOfDay.setHours(endOfDay.getHours() + 9); // UTC+9 보정
 
     const result = await this.drizzleService.db
       .select({ count: count() })
@@ -39,8 +43,8 @@ export class AdminStatsRepository {
       .where(
         and(
           sql`${users.deletedAt} IS NULL`,
-          gte(users.createdAt, startOfDay),
-          lt(users.createdAt, endOfDay)
+          sql`${users.createdAt}::text >= ${startOfDay.toISOString().replace('T', ' ').replace('Z', '')}`,
+          sql`${users.createdAt}::text < ${endOfDay.toISOString().replace('T', ' ').replace('Z', '')}`
         )
       );
 
