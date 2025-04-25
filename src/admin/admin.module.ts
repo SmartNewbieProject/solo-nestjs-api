@@ -28,6 +28,9 @@ import { AdminSalesStatsRepository } from './repositories/admin-sales-stats.repo
 import { AdminUserAppearanceController } from './controllers/admin-user-appearance.controller';
 import { AdminUserAppearanceService } from './services/admin-user-appearance.service';
 import { AdminUserAppearanceRepository } from './repositories/admin-user-appearance.repository';
+import { AdminUserDetailController } from './controllers/admin-user-detail.controller';
+import { AdminUserDetailService } from './services/admin-user-detail.service';
+import { AdminUserDetailRepository } from './repositories/admin-user-detail.repository';
 
 import { UserActivityInterceptor } from './interceptors/user-activity.interceptor';
 import { UserActivityListener } from './listeners/user-activity.listener';
@@ -60,6 +63,7 @@ import SmsService from '@/sms/services/sms.service';
     AdminSalesStatsController,
     AdminMailController,
     AdminUserAppearanceController,
+    AdminUserDetailController,
   ],
   providers: [
     SignupService,
@@ -82,6 +86,8 @@ import SmsService from '@/sms/services/sms.service';
     AdminSalesStatsRepository,
     AdminUserAppearanceService,
     AdminUserAppearanceRepository,
+    AdminUserDetailService,
+    AdminUserDetailRepository,
     UserActivityListener,
     ActivityAggregatorService,
     {
@@ -89,6 +95,6 @@ import SmsService from '@/sms/services/sms.service';
       useClass: UserActivityInterceptor,
     }
   ],
-  exports: [AdminUserService, AdminMatchService, AdminStatsService, AdminActivityService, AdminWithdrawalStatsService, AdminSalesStatsService, AdminUserAppearanceService]
+  exports: [AdminUserService, AdminMatchService, AdminStatsService, AdminActivityService, AdminWithdrawalStatsService, AdminSalesStatsService, AdminUserAppearanceService, AdminUserDetailService]
 })
 export class AdminModule {}
