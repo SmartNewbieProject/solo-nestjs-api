@@ -4,7 +4,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
-import { AllExceptionsFilter, TransformInterceptor, LoggerMiddleware } from '@common/index';
+import { TransformInterceptor, LoggerMiddleware } from '@common/index';
 import { Request, Response, NextFunction } from 'express';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
@@ -34,7 +34,6 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new TransformInterceptor());
 
   app.use((req: Request, res: Response, next: NextFunction) => {
