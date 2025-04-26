@@ -6,13 +6,10 @@ import { QdrantService } from '@/config/qdrant/qdrant.service';
 import { DrizzleService } from '@/database/drizzle.service';
 import { ProfileUpdatedEvent } from '@/events/profile-updated.event';
 import { UserProfile } from '@/types/user';
-import { profiles, users } from '@/database/schema';
-import { ConsoleLogWriter, eq } from 'drizzle-orm';
-import { profile } from 'console';
 import { Gender } from '@/types/enum';
 import compabilities from '@/matching/domain/compability';
 import { ProfileService } from '@/user/services/profile.service';
-import { UserVectorPayload } from '@/types/match';
+import { MatchType, UserVectorPayload } from '@/types/match';
 import { VectorFilter } from '../matching/domain/filter';
 
 @Injectable()
@@ -163,19 +160,16 @@ export class ProfileEmbeddingService {
    * @param limit 결과 제한 수
    * @param gender 성별 필터 (선택적)
    */
-  async findSimilarProfiles(userId: string, limit: number = 10): Promise<Array<{ userId: string; similarity: number }>> {
+  async findSimilarProfiles(userId: string, limit: number = 10, type: MatchType): Promise<Array<{ userId: string; similarity: number }>> {
     const { payload, vector } = await this.getUserPoint(userId);
     const gender = payload.profileSummary.gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
     const profile = await this.profileService.getUserProfiles(userId);
     this.logger.log(profile);
 
     const mbti = profile.preferences.find(pref => pref.typeName === 'MBTI 유형')?.selectedOptions?.[0].displayName;
-    const rankFilter = VectorFilter.Rank(profile.rank);
-    const drinkFilter = VectorFilter.Drinking(profile.preferences);
-    const smokingFilter = VectorFilter.Smoking(profile.preferences);
-    const tattooFilter = VectorFilter.Tattoo(profile.preferences);
+    const { rankFilter, drinkFilter, smokingFilter, tattooFilter } = VectorFilter.getFilters(profile, type === MatchType.REMATCHING);
 
-    if ([rankFilter].some(v => !v)) {
+    if ([rankFilter].some(v => !v) && type !== MatchType.REMATCHING) {
       return [];
     }
 
@@ -196,7 +190,7 @@ export class ProfileEmbeddingService {
         {
           key: 'profileSummary.rank',
           match: {
-            any: rankFilter,
+            any: rankFilter || [],
           }
         },
         {
@@ -215,8 +209,6 @@ export class ProfileEmbeddingService {
         },
       ],
     };
-
-    this.logger.log(filter);
 
     // 유사한 프로필 검색
     const searchResults = await this.qdrantService.searchPoints(

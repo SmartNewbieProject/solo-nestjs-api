@@ -4,11 +4,11 @@ import { TicketSummary, TicketStatus, TicketType } from '@/types/match';
 
 @Injectable()
 export class TicketService {
-  constructor(private readonly ticketRepository: TicketRepository) {}
+  constructor(private readonly ticketRepository: TicketRepository) { }
 
   async getRematchingTickets(userId: string): Promise<TicketSummary[]> {
     const tickets = await this.ticketRepository.getRematchingTickets(userId);
-    
+
     return tickets.map((ticket) => ({
       id: ticket.id,
       status: ticket.status as TicketStatus,
@@ -22,5 +22,13 @@ export class TicketService {
   createRematchingTickets(userId: string, count: number) {
     return this.ticketRepository.createTickets(userId, count, TicketType.REMATCHING, '연인 재매칭권');
   }
-  
+
+  getAvailableTicket(userId: string, ticket: TicketType) {
+    return this.ticketRepository.getAvailableTicket(userId, ticket);
+  }
+
+  useTicket(ticketId: string) {
+    return this.ticketRepository.use(ticketId);
+  }
+
 }

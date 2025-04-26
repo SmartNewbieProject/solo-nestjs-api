@@ -55,6 +55,7 @@ export class MatchingService {
   async findMatches(
     userId: string,
     limit: number = 10,
+    type: MatchType,
     weights?: Partial<MatchingWeights>
   ): Promise<Similarity[]> {
     const { getWeights } = matchingPreferenceWeighter;
@@ -66,7 +67,7 @@ export class MatchingService {
       finalWeights[key as keyof MatchingWeights] /= weightSum;
     });
 
-    const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3);
+    const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3, type);
     this.logger.log(similarProfiles);
     return similarProfiles;
   }

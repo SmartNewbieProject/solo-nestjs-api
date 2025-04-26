@@ -36,6 +36,7 @@ export class ProfileService {
 
     return {
       id: userId,
+      mbti: profileDetails.mbti,
       name: profileDetails.name,
       age: profileDetails.age,
       gender: profileDetails.gender,

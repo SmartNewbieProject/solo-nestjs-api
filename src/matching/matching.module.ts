@@ -13,6 +13,7 @@ import MatchRepository from './repository/match.repository';
 import { ScheduleModule } from '@nestjs/schedule';
 import AdminMatchRepository from '@/admin/repositories/match.repository';
 import AdminMatchService from '@/admin/services/match.service';
+import { PaymentModule } from '@/payment/payment.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import AdminMatchService from '@/admin/services/match.service';
     QdrantModule,
     ScheduleModule.forRoot(),
     CommonModule,
+    PaymentModule,
   ],
   providers: [
     MatchingService,

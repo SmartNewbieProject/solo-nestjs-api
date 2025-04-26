@@ -40,6 +40,7 @@ export interface ProfileRawDetails {
   deletedAt: Date | null;
   userId: string;
   age: number;
+  mbti: string | null;
   rank: UserRank;
   gender: Gender;
   instagramId: string | null;
@@ -84,6 +85,7 @@ export interface UniversityDetail {
 export interface UserProfile {
   id: string;
   name: string;
+  mbti: string | null;
   age: number;
   gender: Gender;
   rank: UserRank;

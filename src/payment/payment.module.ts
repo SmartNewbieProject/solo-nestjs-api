@@ -12,6 +12,6 @@ import { DrizzleService } from '@/database/drizzle.service';
   imports: [ConfigModule],
   controllers: [PaymentController, TicketController],
   providers: [PayService, DrizzleService, PayRepository, TicketService, TicketRepository],
-  exports: [PayService]
+  exports: [PayService, TicketService, TicketRepository],
 })
-export class PaymentModule {}
+export class PaymentModule { }

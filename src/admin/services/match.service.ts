@@ -4,7 +4,7 @@ import AdminMatchRepository from "../repositories/match.repository";
 import { AdminMatchRequest } from "@/matching/dto/matching";
 import { ProfileService } from "@/user/services/profile.service";
 import { PaginatedResponse, Pagination } from "@/types/common";
-import { UnmatchedUser } from "@/types/match";
+import { MatchType, UnmatchedUser } from "@/types/match";
 import { Gender } from "@/types/enum";
 import weekDateService from "@/matching/domain/date";
 import dayjs from "dayjs";
@@ -24,7 +24,7 @@ export default class AdminMatchService {
   ) { }
 
   async findMatches(matchingRequest: AdminMatchRequest) {
-    const similarUsers = await this.matchingService.findMatches(matchingRequest.userId, matchingRequest.limit);
+    const similarUsers = await this.matchingService.findMatches(matchingRequest.userId, matchingRequest.limit, MatchType.ADMIN);
     const ids = similarUsers.map(user => user.userId);
     const profiles = await this.profileService.getProfilesByIds(ids);
     return { profiles, similarUsers };

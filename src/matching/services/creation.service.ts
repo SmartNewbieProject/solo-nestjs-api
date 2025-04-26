@@ -1,15 +1,15 @@
-import { Injectable, Logger } from "@nestjs/common";
+import { ForbiddenException, Injectable, Logger } from "@nestjs/common";
 import weekDateService from "../domain/date";
 import { MatchingService } from "./matching.service";
-import { Similarity } from "@/types/match";
+import { MatchType, Similarity, TicketType } from "@/types/match";
 import { choiceRandom } from "../domain/random";
 import MatchRepository from "../repository/match.repository";
-import { MatchType } from "@/database/schema/matches";
 import { Cron } from "@nestjs/schedule";
 import { SlackService } from "@/slack-notification/slack.service";
 import ProfileRepository from "@/user/repository/profile.repository";
 import { ProfileService } from "@/user/services/profile.service";
 import { Cache } from "@nestjs/cache-manager";
+import { TicketService } from "@/payment/services/ticket.service";
 
 enum CronFrequency {
   // MATCHING_DAY = '0 0 * * 2,4',
@@ -25,6 +25,7 @@ export default class MatchingCreationService {
     private readonly matchRepository: MatchRepository,
     private readonly profileService: ProfileService,
     private readonly slackService: SlackService,
+    private readonly ticketService: TicketService,
     private readonly cacheManager: Cache,
   ) { }
 
@@ -36,11 +37,20 @@ export default class MatchingCreationService {
     await this.batch(userIds);
   }
 
+  async rematch(userId: string) {
+    const ticket = await this.ticketService.getAvailableTicket(userId, TicketType.REMATCHING);
+    if (!ticket) {
+      throw new ForbiddenException('재매칭권이 없습니다.');
+    }
+    await this.createPartner(userId, MatchType.REMATCHING);
+    await this.ticketService.useTicket(ticket.id);
+  }
+
   async createPartner(userId: string, type: MatchType, isBatch: boolean = false) {
-    const partners = await this.matchingService.findMatches(userId, 10);
+    const partners = await this.matchingService.findMatches(userId, 10, type);
     if (partners.length === 0) {
       this.logger.debug(`대상 ID: ${userId}, 파트너 ID: 없음, 유사도: 0`);
-      return;
+      return false;
     }
     const partner = this.getOnePartner(partners);
     const requester = await this.profileService.getUserProfiles(userId);
@@ -56,6 +66,7 @@ export default class MatchingCreationService {
     }
 
     await this.createMatch(userId, partner, type);
+    return true;
   }
 
   private async createMatch(userId: string, partner: Similarity, type: MatchType) {
@@ -65,7 +76,7 @@ export default class MatchingCreationService {
       partner.userId,
       partner.similarity,
       publishedDate,
-      'scheduled',
+      'admin',
     );
   }
 
@@ -90,7 +101,7 @@ export default class MatchingCreationService {
     for (let i = 0; i < totalUsers; i++) {
       const userId = userIds[i];
       try {
-        await this.createPartner(userId, 'scheduled', true);
+        await this.createPartner(userId, MatchType.SCHEDULED, true);
         results.push({ status: 'fulfilled' });
         totalSuccess++;
       } catch (error) {

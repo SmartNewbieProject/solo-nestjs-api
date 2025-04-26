@@ -1,4 +1,4 @@
-import { Controller, Get, UseInterceptors } from "@nestjs/common";
+import { Controller, Get, Post, UseInterceptors } from "@nestjs/common";
 import MatchingCreationService from "../services/creation.service";
 import { ApiBearerAuth, ApiOperation, ApiTags, ApiResponse } from "@nestjs/swagger";
 import { CurrentUser, Roles } from "@/auth/decorators";
@@ -70,6 +70,11 @@ export default class UserMatchingController {
   async getLatestPartner(@CurrentUser() user: AuthenticationUser): Promise<MatchDetails> {
     const partner = await this.matchingService.getLatestPartner(user.id);
     return partner;
+  }
+
+  @Post('/rematch')
+  async rematch(@CurrentUser() user: AuthenticationUser) {
+    this.matchingCreationService.rematch(user.id);
   }
 
   @Get('next-date')
