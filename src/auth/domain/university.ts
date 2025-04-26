@@ -10,7 +10,7 @@ export interface DepartmentsByUniversity {
  * 대전 지역 대학 목록
  */
 export const universities = [
-  '건양대학교(메디컬캠퍼스)',
+  '건양대학교',
   '대전대학교',
   '목원대학교',
   '배재대학교',
