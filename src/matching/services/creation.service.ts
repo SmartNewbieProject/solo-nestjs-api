@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, Logger } from "@nestjs/common";
+import { ForbiddenException, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import weekDateService from "../domain/date";
 import { MatchingService } from "./matching.service";
 import { MatchType, Similarity, TicketType } from "@/types/match";
@@ -13,7 +13,7 @@ import { TicketService } from "@/payment/services/ticket.service";
 
 enum CronFrequency {
   // MATCHING_DAY = '0 0 * * 2,4',
-  MATCHING_DAY = '50 23 * * *',
+  MATCHING_DAY = '50 23 * * 2,4',
 }
 
 @Injectable()
@@ -42,7 +42,11 @@ export default class MatchingCreationService {
     if (!ticket) {
       throw new ForbiddenException('재매칭권이 없습니다.');
     }
-    await this.createPartner(userId, MatchType.REMATCHING);
+    const success = await this.createPartner(userId, MatchType.REMATCHING);
+    if (!success) {
+      throw new NotFoundException('매칭상대를 찾을 수 없습니다.');
+    }
+
     await this.ticketService.useTicket(ticket.id);
   }
 
@@ -70,13 +74,21 @@ export default class MatchingCreationService {
   }
 
   private async createMatch(userId: string, partner: Similarity, type: MatchType) {
-    const publishedDate = weekDateService.createPublishDate(weekDateService.createDayjs());
+    const publishedDate = (() => {
+      if ([MatchType.REMATCHING, MatchType.ADMIN].includes(type)) {
+        return weekDateService.createDayjs().toDate();
+      }
+      return weekDateService.createPublishDate(weekDateService.createDayjs());
+    })();
+
+    this.logger.log(`published date: ${weekDateService.createDayjs(publishedDate).format('YYYY-MM-DD HH:mm:ss')}`)
+
     await this.matchRepository.createMatch(
       userId,
       partner.userId,
       partner.similarity,
       publishedDate,
-      'admin',
+      type,
     );
   }
 

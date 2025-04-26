@@ -74,7 +74,7 @@ export default class UserMatchingController {
 
   @Post('/rematch')
   async rematch(@CurrentUser() user: AuthenticationUser) {
-    this.matchingCreationService.rematch(user.id);
+    await this.matchingCreationService.rematch(user.id);
   }
 
   @Get('next-date')
