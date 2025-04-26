@@ -15,6 +15,20 @@
       "when": 1745467888472,
       "tag": "0001_clean_wallow",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1745558789010,
+      "tag": "0002_thin_black_cat",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1745613597118,
+      "tag": "0003_demonic_tusk",
+      "breakpoints": true
     }
   ]
 }
