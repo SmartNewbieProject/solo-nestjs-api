@@ -2,7 +2,6 @@ import { pgTable, varchar, timestamp, pgEnum, boolean, decimal } from 'drizzle-o
 import { uuid, timestamps } from './helper';
 import { users } from './users';
 
-const matchTypeEnum = pgEnum('type', ['scheduled', 'rematching', 'admin']);
 export type MatchType = 'scheduled' | 'rematching' | 'admin';
 
 export const matches = pgTable('matches', {

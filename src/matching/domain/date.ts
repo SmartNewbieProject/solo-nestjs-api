@@ -116,15 +116,11 @@ const createPublishDate = (date: dayjs.Dayjs) => {
 }
 
 const setDeadline = (d: Date) => {
-  // Date 객체를 직접 수정하는 대신 dayjs를 사용하여 시간대 일관성 유지
   const dayjsDate = createDayjs(d)
     .set('hour', 21)
     .set('minute', 0)
     .set('second', 0)
     .set('millisecond', 0);
-
-  // 디버깅용 로그
-  console.log(`setDeadline 함수 - 입력: ${d.toISOString()}, 결과: ${dayjsDate.format('YYYY-MM-DD HH:mm:ss')}`);
 
   return dayjsDate.toDate();
 }
@@ -132,15 +128,6 @@ const setDeadline = (d: Date) => {
 const getNextMatchingDate = () => {
   const { thursday, sunday } = getWeekDates();
   const now = createDayjs();
-
-  // 디버깅용 로그 - 한국 시간 포맷과 ISO 문자열 모두 출력
-  console.log('getNextMatchingDate 함수 내부 값:', {
-    now: now.format('YYYY-MM-DD HH:mm:ss'),
-    thursday_format: createDayjs(thursday).format('YYYY-MM-DD HH:mm:ss'),
-    sunday_format: createDayjs(sunday).format('YYYY-MM-DD HH:mm:ss'),
-    thursday_iso: thursday.toISOString(),
-    sunday_iso: sunday.toISOString(),
-  });
 
   // 현재 시간이 목요일 전이면 목요일 21시로 설정
   if (now.isBefore(createDayjs(thursday))) {
@@ -175,5 +162,19 @@ const weekDateService = {
   test30seconds,
   test1Minutes,
 };
+
+
+export const matchingDayUtils = {
+  getEndOfView(d: Date) {
+    const day = createDayjs(d);
+    return day
+      .add(2, 'day')
+      .set('hour', 0)
+      .set('minute', 0)
+      .set('second', 0)
+      .set('millisecond', 0);
+  }
+}
+
 
 export default weekDateService;

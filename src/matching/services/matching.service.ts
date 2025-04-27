@@ -74,11 +74,12 @@ export class MatchingService {
 
   async getLatestPartner(userId: string): Promise<MatchDetails> {
     const latestMatch = await this.matchRepository.findLatestMatch(userId);
-    return await this.matchResultRouter.resolveMatchingStatus({
+    const result = await this.matchResultRouter.resolveMatchingStatus({
       latestMatch,
       onRematching: () => this.profileService.getUserProfiles(latestMatch!.matcherId!),
       onOpen: () => this.profileService.getUserProfiles(latestMatch!.matcherId!),
     });
+    return result;
   }
 
   async getTotalMatchingCount() {

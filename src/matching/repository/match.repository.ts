@@ -117,7 +117,6 @@ export default class MatchRepository {
       .orderBy(sql`${schema.matches.createdAt} DESC`)
       .execute();
 
-    console.log(results);
     return results[0] || null;
   }
 
