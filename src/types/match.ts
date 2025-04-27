@@ -82,6 +82,7 @@ export enum MatchType {
 export type MatchViewType = 'open' | 'waiting' | 'not-found' | 'rematching';
 
 export type MatchDetails = {
+  id: string | null;
   type: MatchViewType;
   endOfView: Date | null;
   partner: UserProfile | null;
