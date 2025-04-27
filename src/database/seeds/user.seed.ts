@@ -24,6 +24,9 @@ const PREFERENCE_TYPE_CODES = {
   MILITARY_PREFERENCE_FEMALE: 'MILITARY_PREFERENCE_FEMALE'
 } as const;
 
+const MAN_MOCK_IMAGE = 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/resources/mock_man_0.png';
+const WOMAN_MOCK_IMAGE = 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/resources/mock_woman_0.png';
+
 @Injectable()
 export class UserSeeder {
   constructor(private readonly drizzleService: DrizzleService) { }
@@ -32,7 +35,7 @@ export class UserSeeder {
     const db = this.drizzleService.db;
     const pool: Pool = this.drizzleService.getPool();
     const saltRounds = 10;
-    const defaultPassword = await bcrypt.hash('password123', saltRounds);
+    const defaultPassword = await bcrypt.hash('test1234!', saltRounds);
 
     // 데이터베이스 연결 상태 확인
     let client: PoolClient | undefined;
@@ -114,7 +117,7 @@ export class UserSeeder {
               defaultPassword,
               '01026554276',
               profileId,
-              'USER', // 기본 역할 추가
+              'user', // 기본 역할 추가
               new Date(),
               new Date()
             ]

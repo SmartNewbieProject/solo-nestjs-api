@@ -61,7 +61,7 @@ export default class MatchResultRouter {
 
   checkRematchingEligibility(match: RawMatch): Rematching {
     const endOfView = this.getEndOfView(match.publishedAt);
-    const typeCorrected = match.type === MatchType.REMATCHING;
+    const typeCorrected = [MatchType.REMATCHING, MatchType.ADMIN].includes(match.type as MatchType);
 
     return {
       endOfView: endOfView.toDate(),

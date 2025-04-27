@@ -26,6 +26,7 @@ export class AdminUserService {
         } catch (error) {
           if (error instanceof NotFoundException) {
             return {
+              mbti: 'EEEE',
               name: user.name || '이름 없음',
               age: 0,
               gender: user.profile?.gender || '미지정',

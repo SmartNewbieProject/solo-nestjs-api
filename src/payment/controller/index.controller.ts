@@ -1,7 +1,7 @@
 import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { PaymentBeforeHistory, PaymentConfirm } from '../dto';
-import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Roles } from '@/auth/decorators/roles.decorator';
 import { Role } from '@/auth/domain/user-role.enum';
 import { CurrentUser } from '@/auth/decorators';
 import { AuthenticationUser } from '@/types';
@@ -18,7 +18,7 @@ export class PaymentController {
   @Post('history')
   async history(@CurrentUser() user: AuthenticationUser, @Body() payBeforeHistory: PaymentBeforeHistory) {
     return this.payService.createHistory({
-      userId: user.id, 
+      userId: user.id,
       ...payBeforeHistory
     });
   }

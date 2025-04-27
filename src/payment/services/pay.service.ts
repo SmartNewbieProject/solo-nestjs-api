@@ -43,7 +43,7 @@ export default class PayService {
     const history = await this.payRepository.findPayHistory(merchantUid);
     const accessToken = await this.getServiceToken();
     this.logger.log({ accessToken });
-    
+
     const { response: portOnePayment } = await this.getPayment(impUid, accessToken) as { response: PaymentDetails };
     this.logger.debug({ portOnePayment });
 

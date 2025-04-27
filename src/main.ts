@@ -3,16 +3,21 @@ process.env.TZ = 'Asia/Seoul';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import { ValidationPipe } from '@nestjs/common';
-import { AllExceptionsFilter, TransformInterceptor, LoggerMiddleware } from '@common/index';
+import { ValidationPipe, LogLevel } from '@nestjs/common';
+import { TransformInterceptor, LoggerMiddleware } from '@common/index';
 import { Request, Response, NextFunction } from 'express';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
+  const logLevels: LogLevel[] = process.env.NODE_ENV === 'development'
+    ? ['error', 'warn', 'log', 'debug', 'verbose']
+    : ['error', 'warn', 'log'];
+
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
-    logger: ['error', 'warn', 'log', 'debug', 'verbose'],
+    logger: logLevels,
+    bufferLogs: true,
   });
 
   app.useStaticAssets(join(__dirname, '..', 'public'));
@@ -34,7 +39,6 @@ async function bootstrap() {
     }),
   );
 
-  app.useGlobalFilters(new AllExceptionsFilter());
   app.useGlobalInterceptors(new TransformInterceptor());
 
   app.use((req: Request, res: Response, next: NextFunction) => {

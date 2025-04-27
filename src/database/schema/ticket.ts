@@ -11,6 +11,7 @@ export const tickets = pgTable('tickets', {
   userId: varchar('user_id', { length: 128 }).references(() => users.id).notNull(),
   status: varchar('status', { length: 10 }).notNull(),
   type: varchar('type', { length: 10 }).notNull(),
+  usedAt: timestamp('used_at'),
   expiredAt: timestamp('expired_at'),
   ...timestamps,
 });

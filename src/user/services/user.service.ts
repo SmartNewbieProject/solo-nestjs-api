@@ -25,11 +25,11 @@ export default class UserService {
     const universityDetails = userRaw!.profile!.universityDetail;
 
     const university: UniversityDetail = {
-      name: universityDetails!.universityName,
-      authentication: universityDetails!.authentication,
-      department: universityDetails!.department,
-      grade: universityDetails!.grade,
-      studentNumber: universityDetails!.studentNumber,
+      name: universityDetails?.universityName ?? '',
+      authentication: universityDetails?.authentication ?? false,
+      department: universityDetails?.department ?? '',
+      grade: universityDetails?.grade ?? '',
+      studentNumber: universityDetails?.studentNumber ?? '',
     };
 
     return {

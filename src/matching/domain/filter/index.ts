@@ -1,6 +1,7 @@
 import { PreferenceTypeGroup } from "@/docs/matching.docs";
 import { createRankFilter } from "./rank";
 import compatibilities from "../compability";
+import { UserProfile } from "@/types/user";
 
 enum Key {
   DRINKING = '음주 선호도',
@@ -35,10 +36,19 @@ const createTattooFilter = (group: PreferenceTypeGroup[]) => {
   return compatibilities.TATTOO[tattoo.displayName];
 };
 
+const getFilters = (profile: UserProfile, isPremium: boolean) => {
+  const rankFilter = createRankFilter(profile.rank, isPremium);
+  const drinkFilter = createDrinkFilter(profile.preferences);
+  const smokingFilter = createSmokingFilter(profile.preferences);
+  const tattooFilter = createTattooFilter(profile.preferences);
+  return { rankFilter, drinkFilter, smokingFilter, tattooFilter };
+};
+
 export const VectorFilter = {
   Rank: createRankFilter,
   Key,
   Drinking: createDrinkFilter,
   Smoking: createSmokingFilter,
   Tattoo: createTattooFilter,
+  getFilters,
 };

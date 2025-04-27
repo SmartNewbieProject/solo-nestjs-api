@@ -111,11 +111,14 @@ export default class MatchRepository {
   }
 
   async findLatestMatch(userId: string): Promise<RawMatch | null> {
-    return await this.db.select()
+    const results = await this.db.select()
       .from(schema.matches)
       .where(eq(schema.matches.myId, userId))
-      .orderBy(sql`${schema.matches.publishedAt} DESC`)
-      .execute()[0];
+      .orderBy(sql`${schema.matches.createdAt} DESC`)
+      .execute();
+
+    console.log(results);
+    return results[0] || null;
   }
 
   async getTotalMatchingCount() {

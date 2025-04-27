@@ -59,9 +59,27 @@ export default class ProfileRepository {
       .innerJoin(schema.images, eq(schema.profileImages.imageId, schema.images.id))
       .execute();
 
+    const mbtiResults = await this.db.select({
+      mbti: schema.preferenceOptions.displayName,
+    })
+      .from(schema.userPreferences)
+      .leftJoin(schema.userPreferenceOptions, eq(schema.userPreferenceOptions.userPreferenceId, schema.userPreferences.id))
+      .leftJoin(schema.preferenceOptions, eq(schema.userPreferenceOptions.preferenceOptionId, schema.preferenceOptions.id))
+      .leftJoin(schema.preferenceTypes, eq(schema.preferenceOptions.preferenceTypeId, schema.preferenceTypes.id))
+      .where(
+        and(
+          eq(schema.preferenceTypes.name, 'MBTI 유형'),
+          eq(schema.userPreferences.userId, userId)
+        ),
+      )
+      .execute();
 
     return {
       ...union.profiles,
+      mbti: (() => {
+        if (mbtiResults.length === 0) return null;
+        return mbtiResults[0].mbti;
+      })(),
       rank: union.profiles.rank as UserRank,
       universityDetail: union.university_details ? {
         name: union.university_details.universityName,
