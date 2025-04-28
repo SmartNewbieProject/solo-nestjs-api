@@ -15,3 +15,4 @@ export * from './comments.relations';
 export * from './likes.relations';
 export * from './ticket.relations';
 export * from './image.relations';
+export * from './article-categories.relations';
