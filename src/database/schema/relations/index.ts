@@ -16,3 +16,4 @@ export * from './likes.relations';
 export * from './ticket.relations';
 export * from './image.relations';
 export * from './article-categories.relations';
+export * from './hot_articles.relations';
