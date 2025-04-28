@@ -19,14 +19,13 @@ export class ArticleUpload {
   anonymous: boolean;
 
   @ApiProperty({
-    description: '게시글 이모티콘',
-    example: '😊'
+    description: '게시글 제목',
+    example: '아무나 친해지실분 계신가요??',
   })
   @IsString()
-  @MaxLength(10, { message: '게시글 이모티콘은 10자 이하입니다.' })
-  emoji: string;
+  @MaxLength(30, { message: '게시글 제목은 30자 이하입니다.' })
+  title: string;
 }
-
 
 export class CommentUpload {
   @ApiProperty({
@@ -38,15 +37,11 @@ export class CommentUpload {
   content: string;
 
   @ApiProperty({
-    description: '댓글 이모티콘',
-    example: '😊'
+    description: '익명 처리 여부',
+    example: true
   })
-  @IsBoolean()
+  @IsBoolean({ message: '익명 처리 여부는 불리언 값이어야 합니다.' })
   anonymous: boolean;
-
-  @IsString()
-  @MaxLength(10, { message: '댓글 이모티콘은 10자 이하입니다.' })
-  emoji: string;
 }
 
 
