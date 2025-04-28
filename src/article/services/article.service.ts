@@ -3,7 +3,7 @@ import { ArticleRepository } from '../repository/article.repository';
 import { ArticleUpload } from '../dto';
 import { LikeRepository } from '../repository/like.repository';
 import { PaginatedResponse } from '@/types/common';
-import { ArticleWithRelations, InferUniversityDetail } from '../types/article.types';
+import { ArticleDetails, ArticleWithRelations, InferUniversityDetail } from '../types/article.types';
 import { UniversityDetail } from '@/types/user';
 import { paginationUtils } from '@/common/helper';
 
@@ -19,7 +19,7 @@ export class ArticleService {
   }
 
   async createArticle(userId: string, articleData: ArticleUpload) {
-    return await this.articleRepository.createArticle(userId, articleData);
+    await this.articleRepository.createArticle(userId, articleData);
   }
 
   async getArticles(categoryId: string, page: number = 1, limit: number = 10, userId: string): Promise<PaginatedResponse<any>> {

@@ -9,8 +9,6 @@ export class ArticleUpload {
     description: '게시글 카테고리 ID',
     example: '123e4567-e89b-12d3-a456-426614174000'
   })
-  @IsString()
-  categoryId: string;
 
   @ApiProperty({
     description: '게시글 내용',

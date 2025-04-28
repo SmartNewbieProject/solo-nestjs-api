@@ -41,6 +41,7 @@ const getFilters = (profile: UserProfile, isPremium: boolean) => {
   const drinkFilter = createDrinkFilter(profile.preferences);
   const smokingFilter = createSmokingFilter(profile.preferences);
   const tattooFilter = createTattooFilter(profile.preferences);
+
   return { rankFilter, drinkFilter, smokingFilter, tattooFilter };
 };
 

@@ -1,5 +1,7 @@
 import { articles, users, articleCategory, comments, profiles, universityDetails } from '@/database/schema';
 import { InferSelectModel } from 'drizzle-orm';
+import { UniversityDetail } from '@/types/user';
+import { Gender } from '@/types/enum';
 
 type Article = InferSelectModel<typeof articles>;
 type User = InferSelectModel<typeof users>;
@@ -25,6 +27,29 @@ export interface ArticleWithRelations extends Article {
   }>;
   likes: Array<{ id: string }>;
 }
+
+export type AuthorDetails = {
+  id: string;
+  name: string;
+  gender: Gender;
+  universityDetails: UniversityDetail;
+};
+
+export type CommentDetails = {
+  id: string;
+  content: string;
+  author: AuthorDetails;
+  updatedAt: Date;
+};
+
+export type ArticleDetails = {
+  id: string;
+  category: ArticleRequestType;
+  content: string;
+  author: AuthorDetails;
+  updatedAt: Date;
+  isLiked: boolean;
+};
 
 export enum ArticleRequestType {
   GENERAL = 'general',

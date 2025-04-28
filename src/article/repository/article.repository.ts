@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { articles } from '@/database/schema';
 import { ArticleUpload } from '../dto';
 import { sql, eq, and, isNull, desc } from 'drizzle-orm';
@@ -6,7 +6,7 @@ import { generateUuidV7 } from '@/database/schema/helper';
 import * as schema from '@database/schema';
 import { ArticleWithRelations } from '../types/article.types';
 
-import { InjectDrizzle } from '@/common';
+import { InjectDrizzle } from '@/common/decorators';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { generateAnonymousName } from '../domain';
 
@@ -26,13 +26,22 @@ export class ArticleRepository {
   }
 
   async createArticle(authorId: string, articleData: ArticleUpload) {
+    const category = await this.db.query.articleCategory.findFirst({
+      where: eq(schema.articleCategory.code, articleData.type),
+    });
+
+    if (!category) {
+      throw new NotFoundException('존재하지 않는 카테고리입니다.');
+    }
+
     const result = await this.db.insert(articles).values({
       id: generateUuidV7(),
       authorId,
-      categoryId: articleData.categoryId,
+      categoryId: category.id,
       content: articleData.content,
       anonymous: articleData.anonymous ? generateAnonymousName() : null,
       likeCount: 0,
+      readCount: 0,
       blindedAt: null,
     }).returning();
 
