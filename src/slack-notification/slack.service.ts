@@ -4,6 +4,21 @@ import { WebClient } from '@slack/web-api';
 import { Gender } from '@/types/enum';
 import { PreferenceTypeGroup, UserProfile } from '@/types/user';
 import { SignupRequest } from '@/auth/dto';
+import weekDateService from '@/matching/domain/date';
+
+// Slack Block Kit 타입 정의
+type SlackBlock = {
+  type: 'header' | 'section' | 'divider';
+  text?: {
+    type: 'plain_text' | 'mrkdwn';
+    text: string;
+    emoji?: boolean;
+  };
+  fields?: Array<{
+    type: 'mrkdwn' | 'plain_text';
+    text: string;
+  }>;
+};
 
 @Injectable()
 export class SlackService {
@@ -28,9 +43,117 @@ export class SlackService {
     });
   }
 
-  async sendErrorNotification(error: Error, context: string) {
-    const message = `🚨 Error in ${context}:\n\`\`\`${error.stack}\`\`\``;
-    await this.sendNotification(message, 'errors');
+  async sendErrorNotification(
+    error: Error,
+    errorContext: {
+      path: string;
+      method: string;
+      timestamp: string;
+      error: string;
+      exception?: unknown;
+      user?: { id: string; email: string; name: string; };
+    }
+  ) {
+    const environment = this.configService.get('NODE_ENV', 'development');
+
+    const errorJson = {
+      message: error.message,
+      name: error.name,
+      stack: error.stack,
+      exception: errorContext.exception
+    };
+
+    const blocks: SlackBlock[] = [
+      {
+        type: "header",
+        text: {
+          type: "plain_text",
+          text: `🚨 예상치 못한 서버 오류 발생`,
+          emoji: true
+        }
+      }
+    ];
+
+    if (environment === 'development') {
+      blocks.push({
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "ℹ️ *해당 오류는 개발 테스트간 발생한 오류이므로 안전합니다.*"
+        }
+      });
+    }
+
+    blocks.push(
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: "*HTTP Method:*\n" + `\`${errorContext.method}\``
+          },
+          {
+            type: "mrkdwn",
+            text: "*Endpoint:*\n" + `\`${errorContext.path}\``
+          }
+        ]
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: "*시간:*\n" + `\`${errorContext.timestamp}\``
+          },
+          {
+            type: "mrkdwn",
+            text: "*환경:*\n" + `\`${environment}\``
+          }
+        ]
+      }
+    );
+
+    if (errorContext.user) {
+      blocks.push(
+        {
+          type: "divider"
+        },
+        {
+          type: "section",
+          fields: [
+            {
+              type: "mrkdwn",
+              text: "*사용자 ID:*\n" + `\`${errorContext.user.id}\``
+            },
+            {
+              type: "mrkdwn",
+              text: "*사용자 이메일:*\n" + `\`${errorContext.user.email}\``
+            }
+          ]
+        }
+      );
+    }
+
+    blocks.push(
+      {
+        type: "divider"
+      },
+      {
+        type: "section",
+        text: {
+          type: "mrkdwn",
+          text: "*에러 상세:*\n```" + JSON.stringify(errorJson, null, 2) + "```"
+        }
+      }
+    );
+
+    await this.slack.chat.postMessage({
+      channel: '#emergency',
+      blocks,
+      text: `🚨 Error: ${error.message}`,
+      username: '썸타임 긴급 오류 알리미',
+      icon_url: 'https://i.pinimg.com/736x/03/78/fe/0378febd3b192bd1a8dd10335fd1f718.jpg',
+    });
   }
 
   async sendMatchingNotification(userId: string, partnerId: string, similarity: number) {

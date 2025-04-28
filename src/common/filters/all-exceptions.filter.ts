@@ -4,6 +4,7 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ApiErrorResponse } from '@common/interfaces';
@@ -15,6 +16,8 @@ import { SlackService } from '@/slack-notification/slack.service';
  */
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
+  private readonly logger = new Logger(AllExceptionsFilter.name);
+
   constructor(private readonly slackService: SlackService) { }
 
   catch(exception: unknown, host: ArgumentsHost) {
@@ -22,22 +25,29 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest();
 
-    // HTTP 예외인 경우
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
       const exceptionResponse = exception.getResponse() as any;
 
       if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
+        this.logger.error('서버 오류', {
+          path: request.path,
+          method: request.method,
+          error: exception.stack || exception.message,
+        });
+
         const errorContext = {
           path: request.path,
           method: request.method,
           timestamp: new Date().toISOString(),
           error: exception.stack || exception.message,
+          exception,
+          user: request.user,
         };
 
         this.slackService.sendErrorNotification(
           exception as Error,
-          `Internal Server Error at ${errorContext.method} ${errorContext.path}`
+          errorContext,
         );
       }
 
@@ -64,11 +74,31 @@ export class AllExceptionsFilter implements ExceptionFilter {
       return response.status(status).json(errorResponse);
     }
 
-    // 처리되지 않은 예외 (500 Internal Server Error)
-    console.error(exception);
+    // HttpException이 아닌 일반 에러 처리
     const errorResponse: ApiErrorResponse = {
       error: '서버 내부 오류가 발생했습니다.',
     };
+
+    // 일반 에러도 로깅
+    this.logger.error('예상치 못한 서버 오류', {
+      error: exception instanceof Error ? exception.stack : String(exception),
+      path: request.path,
+      method: request.method,
+    });
+
+    const errorContext = {
+      path: request.path,
+      method: request.method,
+      timestamp: new Date().toISOString(),
+      error: (exception as any).stack || (exception as any).message,
+      exception,
+      user: request.user,
+    };
+
+    this.slackService.sendErrorNotification(
+      exception as Error,
+      errorContext,
+    );
 
     return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(errorResponse);
   }
