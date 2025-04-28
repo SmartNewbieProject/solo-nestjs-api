@@ -1,8 +1,17 @@
 import { ReportReason } from "@/types/report";
 import { IsBoolean, IsString, MaxLength, IsEnum } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
+import { ArticleRequestType } from "../types/article.types";
 
 export class ArticleUpload {
+
+  @ApiProperty({
+    description: '게시글 카테고리 ID',
+    example: '123e4567-e89b-12d3-a456-426614174000'
+  })
+  @IsString()
+  categoryId: string;
+
   @ApiProperty({
     description: '게시글 내용',
     example: '게시글 내용'
@@ -10,6 +19,14 @@ export class ArticleUpload {
   @IsString()
   @MaxLength(255, { message: '게시글 내용은 255자 이하입니다.' })
   content: string;
+
+  @ApiProperty({
+    description: '게시글 카테고리',
+    enum: ArticleRequestType,
+    example: ArticleRequestType.GENERAL,
+  })
+  @IsEnum(ArticleRequestType, { message: '게시글 타입이 잘못되었습니다.' })
+  type: ArticleRequestType;
 
   @ApiProperty({
     description: '익명 처리 여부',

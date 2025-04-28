@@ -10,10 +10,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ArticleService } from '../services/article.service';
-import { ArticleUpload, LikeArticle } from '../dto';
+import { ArticleUpload } from '../dto';
 import {
   ApiBearerAuth,
   ApiOperation,
+  ApiParam,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
@@ -21,6 +22,7 @@ import {
   createArticleApiResponse,
   deleteArticleApiResponse,
   getArticleByIdApiResponse,
+  getArticleCategoriesApiResponse,
   getArticlesApiResponse,
   likeArticleApiResponse,
   updateArticleApiResponse,
@@ -34,7 +36,7 @@ import { AuthenticationUser } from '@/types/auth';
 @Roles(Role.USER, Role.ADMIN)
 @Controller('articles')
 export class ArticleController {
-  constructor(private readonly articleService: ArticleService) {}
+  constructor(private readonly articleService: ArticleService) { }
 
   @Post()
   @ApiOperation({
@@ -49,18 +51,37 @@ export class ArticleController {
     return await this.articleService.createArticle(user.id, articleData);
   }
 
-  @Get()
+  @ApiOperation({
+    summary: '게시글 카테고리 조회',
+    description: '게시글 카테고리 목록을 조회합니다.',
+  })
+  @ApiResponse(getArticleCategoriesApiResponse)
+  @Get('category/list')
+  async getArticleCategories() {
+    return await this.articleService.getArticleCategories();
+  }
+
+  @Get(':categoryId')
   @ApiOperation({
     summary: '게시글 목록 조회',
     description: '게시글 목록을 페이지네이션으로 조회합니다.',
   })
+  @ApiParam({
+    name: 'categoryId',
+    required: true,
+    description: '게시글 카테고리 ID',
+    example: '123e4567-e89b-12d3-a456-426614174000',
+    type: 'string'
+  })
   @ApiResponse(getArticlesApiResponse)
   async getArticles(
+    @Param('categoryId')
+    categoryId: string,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
     @CurrentUser() user: AuthenticationUser,
   ) {
-    return await this.articleService.getArticles(page, limit, user.id);
+    return await this.articleService.getArticles(categoryId, page, limit, user.id);
   }
 
   @Get(':id')

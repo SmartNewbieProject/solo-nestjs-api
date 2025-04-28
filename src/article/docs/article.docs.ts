@@ -182,3 +182,32 @@ export const likeArticleApiResponse: ApiResponseOptions = {
     }
   }
 };
+
+export const getArticleCategoriesApiResponse: ApiResponseOptions = {
+  status: 200,
+  description: '게시글 카테고리 목록 조회 성공',
+  schema: {
+    type: 'array',
+    items: {
+      type: 'object',
+      properties: {
+        code: {
+          type: 'string',
+          example: 'general',
+          description: '카테고리 코드',
+          enum: ['general', 'review', 'love-concerns']
+        },
+        displayName: {
+          type: 'string',
+          example: '실시간',
+          description: '화면에 표시될 카테고리 이름'
+        },
+        emojiUrl: {
+          type: 'string',
+          example: 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/resources/realtime.png',
+          description: '카테고리 이모지 이미지 URL'
+        }
+      }
+    }
+  }
+};
