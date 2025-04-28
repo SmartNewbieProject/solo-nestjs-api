@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { articles } from '@/database/schema';
 import { ArticleUpload } from '../dto';
-import { sql, eq, and, isNull } from 'drizzle-orm';
+import { sql, eq, and, isNull, desc } from 'drizzle-orm';
 import { generateUuidV7 } from '@/database/schema/helper';
 import * as schema from '@database/schema';
+import { ArticleWithRelations } from '../types/article.types';
 
 import { InjectDrizzle } from '@/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
@@ -12,46 +13,82 @@ import { generateAnonymousName } from '../domain';
 @Injectable()
 export class ArticleRepository {
   constructor(@InjectDrizzle() private readonly db: NodePgDatabase<typeof schema>,
-) {}
+  ) { }
+
+  getArticleCategories() {
+    return this.db.query.articleCategory.findMany({
+      columns: {
+        displayName: true,
+        emojiUrl: true,
+        code: true,
+      },
+    });
+  }
 
   async createArticle(authorId: string, articleData: ArticleUpload) {
     const result = await this.db.insert(articles).values({
       id: generateUuidV7(),
       authorId,
+      categoryId: articleData.categoryId,
       content: articleData.content,
       anonymous: articleData.anonymous ? generateAnonymousName() : null,
-      emoji: articleData.emoji,
       likeCount: 0,
-      blindedAt: null
+      blindedAt: null,
     }).returning();
 
     return result[0];
   }
 
-  async getArticles(limit: number = 10, offset: number = 0) {
+  async getArticles(
+    categoryId: string,
+    limit: number = 10,
+    offset: number = 0
+  ): Promise<ArticleWithRelations[]> {
     return await this.db.query.articles.findMany({
       with: {
-        comments: {
-          limit: 3,
-          where: ({ deletedAt }) => isNull(deletedAt),
-        },
         author: {
           columns: {
             id: true,
             name: true,
           },
+          with: {
+            profile: {
+              with: {
+                universityDetail: true,
+              },
+            }
+          },
+        },
+        comments: {
+          limit: 3,
+          with: {
+            author: {
+              with: {
+                profile: {
+                  with: {
+                    universityDetail: true,
+                  },
+                },
+              }
+            }
+          },
+          where: ({ deletedAt }) => isNull(deletedAt),
         },
         likes: {
           columns: {
             id: true,
           },
           where: ({ up }) => eq(up, true)
-        }
+        },
       },
-      where: ({ deletedAt }) => isNull(deletedAt),
+      where: ({ deletedAt, categoryId: queryCategoryId }) =>
+        and(
+          eq(queryCategoryId, categoryId),
+          isNull(deletedAt)
+        ),
       limit,
       offset,
-      orderBy: [sql`${articles.createdAt} DESC`]
+      orderBy: desc(articles.createdAt),
     });
   }
 
@@ -74,10 +111,10 @@ export class ArticleRepository {
       .set({ deletedAt: now })
       .where(and(eq(articles.id, id), isNull(articles.deletedAt)))
       .returning();
-    
+
     return result.length > 0 ? result[0] : null;
   }
-  
+
   async getArticleAuthorId(id: string) {
     const result = await this.db.select({ authorId: articles.authorId })
       .from(articles)
@@ -85,7 +122,7 @@ export class ArticleRepository {
         eq(articles.id, id),
         isNull(articles.deletedAt)
       ));
-    
+
     return result.length > 0 ? result[0].authorId : null;
   }
 
@@ -93,7 +130,6 @@ export class ArticleRepository {
     const result = await this.db.update(articles)
       .set({
         content: data.content,
-        emoji: data.emoji,
         updatedAt: new Date(),
       })
       .where(and(
@@ -101,7 +137,7 @@ export class ArticleRepository {
         isNull(articles.deletedAt)
       ))
       .returning();
-    
+
     return result.length > 0 ? result[0] : null;
   }
 }

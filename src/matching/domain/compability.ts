@@ -25,10 +25,25 @@ const MBTI_COMPATIBILITY = {
   'ESFP': ['ISFJ', 'ISTJ', 'ISTP', 'ISFP', 'ESTP', 'ESFP']
 };
 
+const SMOKING_COMPATIBILITY = {
+  "흡연자도 괜찮음": ["흡연자도 괜찮음", "상관없음"],
+  "비흡연자였으면 좋겠음": ["비흡연자였으면 좋겠음", "반드시 비흡연자였으면 좋겠음", "상관없음"],
+  "반드시 비흡연자였으면 좋겠음": ["비흡연자였으면 좋겠음", "반드시 비흡연자였으면 좋겠음", "상관없음"],
+  "상관없음": ["흡연자도 괜찮음", "비흡연자였으면 좋겠음", "반드시 비흡연자였으면 좋겠음", "상관없음"]
+};
+
+const TATTOO_COMPATIBILITY = {
+  "문신 있어도 괜찮음": ["문신 있어도 괜찮음", "작은 문신 정도는 괜찮음", "상관없음"],
+  "작은 문신 정도는 괜찮음": ["작은 문신 정도는 괜찮음", "문신이 없는 사람이었으면 좋겠음", "상관없음"],
+  "문신이 없는 사람이었으면 좋겠음": ["문신이 없는 사람이었으면 좋겠음", "상관없음"],
+  "상관없음": ["문신 있어도 괜찮음", "작은 문신 정도는 괜찮음", "문신이 없는 사람이었으면 좋겠음", "상관없음"]
+};
 
 const compabilities = {
   DRINKING: DRINKING_COMPATIBILITY,
   MBTI: MBTI_COMPATIBILITY,
+  SMOKING: SMOKING_COMPATIBILITY,
+  TATTOO: TATTOO_COMPATIBILITY,
 };
 
 export default compabilities;

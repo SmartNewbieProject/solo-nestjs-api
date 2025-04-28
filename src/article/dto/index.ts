@@ -1,8 +1,17 @@
 import { ReportReason } from "@/types/report";
 import { IsBoolean, IsString, MaxLength, IsEnum } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
+import { ArticleRequestType } from "../types/article.types";
 
 export class ArticleUpload {
+
+  @ApiProperty({
+    description: '게시글 카테고리 ID',
+    example: '123e4567-e89b-12d3-a456-426614174000'
+  })
+  @IsString()
+  categoryId: string;
+
   @ApiProperty({
     description: '게시글 내용',
     example: '게시글 내용'
@@ -12,6 +21,14 @@ export class ArticleUpload {
   content: string;
 
   @ApiProperty({
+    description: '게시글 카테고리',
+    enum: ArticleRequestType,
+    example: ArticleRequestType.GENERAL,
+  })
+  @IsEnum(ArticleRequestType, { message: '게시글 타입이 잘못되었습니다.' })
+  type: ArticleRequestType;
+
+  @ApiProperty({
     description: '익명 처리 여부',
     example: true
   })
@@ -19,14 +36,13 @@ export class ArticleUpload {
   anonymous: boolean;
 
   @ApiProperty({
-    description: '게시글 이모티콘',
-    example: '😊'
+    description: '게시글 제목',
+    example: '아무나 친해지실분 계신가요??',
   })
   @IsString()
-  @MaxLength(10, { message: '게시글 이모티콘은 10자 이하입니다.' })
-  emoji: string;
+  @MaxLength(30, { message: '게시글 제목은 30자 이하입니다.' })
+  title: string;
 }
-
 
 export class CommentUpload {
   @ApiProperty({
@@ -38,15 +54,11 @@ export class CommentUpload {
   content: string;
 
   @ApiProperty({
-    description: '댓글 이모티콘',
-    example: '😊'
+    description: '익명 처리 여부',
+    example: true
   })
-  @IsBoolean()
+  @IsBoolean({ message: '익명 처리 여부는 불리언 값이어야 합니다.' })
   anonymous: boolean;
-
-  @IsString()
-  @MaxLength(10, { message: '댓글 이모티콘은 10자 이하입니다.' })
-  emoji: string;
 }
 
 

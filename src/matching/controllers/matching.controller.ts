@@ -1,15 +1,13 @@
-import { Controller, Get, UseInterceptors } from "@nestjs/common";
+import { Controller, Get, Param, Post } from "@nestjs/common";
 import MatchingCreationService from "../services/creation.service";
 import { ApiBearerAuth, ApiOperation, ApiTags, ApiResponse } from "@nestjs/swagger";
 import { CurrentUser, Roles } from "@/auth/decorators";
 import { Role } from "@/auth/domain/user-role.enum";
 import { MatchingService } from "../services/matching.service";
 import { AuthenticationUser } from "@/types";
-import { MatchDetails, PartnerDetails } from "@/types/match";
+import { MatchDetails } from "@/types/match";
 import { MatchingUserResponse, PartnerResponse, TotalMatchingCountResponse } from "@/docs/matching.docs";
 import { CacheKey, CacheTTL } from "@nestjs/cache-manager";
-import { CustomCacheInterceptor } from '@/common/interceptors/app-cache.interceptors';
-import { UserProfile } from "@/types/user";
 
 @Controller('matching')
 @ApiBearerAuth('access-token')
@@ -72,6 +70,11 @@ export default class UserMatchingController {
     return partner;
   }
 
+  @Post('/rematch')
+  async rematch(@CurrentUser() user: AuthenticationUser) {
+    await this.matchingCreationService.rematch(user.id);
+  }
+
   @Get('next-date')
   @ApiOperation({
     summary: '다음 매칭 날짜 조회',
@@ -80,5 +83,10 @@ export default class UserMatchingController {
   getNextMatchingDate() {
     const nextMatchingDate = this.matchingService.getNextMatchingDate();
     return { nextMatchingDate };
+  }
+
+  @Get('/:id')
+  async getPartnerById(@Param('id') id: string) {
+
   }
 }

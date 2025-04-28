@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { Response } from 'express';
 import { ApiErrorResponse } from '@common/interfaces';
+import { SlackService } from '@/slack-notification/slack.service';
 
 /**
  * 모든 예외를 처리하는 전역 필터
@@ -14,14 +15,31 @@ import { ApiErrorResponse } from '@common/interfaces';
  */
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
+  constructor(private readonly slackService: SlackService) { }
+
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+    const request = ctx.getRequest();
 
     // HTTP 예외인 경우
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
       const exceptionResponse = exception.getResponse() as any;
+
+      if (status === HttpStatus.INTERNAL_SERVER_ERROR) {
+        const errorContext = {
+          path: request.path,
+          method: request.method,
+          timestamp: new Date().toISOString(),
+          error: exception.stack || exception.message,
+        };
+
+        this.slackService.sendErrorNotification(
+          exception as Error,
+          `Internal Server Error at ${errorContext.method} ${errorContext.path}`
+        );
+      }
 
       // 유효성 검사 오류 처리 (class-validator에서 발생)
       if (

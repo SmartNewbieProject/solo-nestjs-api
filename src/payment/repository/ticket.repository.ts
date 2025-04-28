@@ -1,8 +1,7 @@
-import { DrizzleService } from '@/database/drizzle.service';
 import { tickets } from '@/database/schema/index';
 import { TicketStatus, TicketType } from '@/types/match';
 import { Injectable } from '@nestjs/common';
-import { eq, and, isNull, ne } from 'drizzle-orm';
+import { eq, and, isNull, ne, desc } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { InjectDrizzle } from '@/common/decorators';
 import * as schema from '@/database/schema';
@@ -13,7 +12,7 @@ export class TicketRepository {
   constructor(
     @InjectDrizzle()
     private readonly db: NodePgDatabase<typeof schema>,
-  ) {}
+  ) { }
 
   getRematchingTickets(userId: string) {
     return this.db.query.tickets.findMany({
@@ -43,6 +42,25 @@ export class TicketRepository {
       type,
       tickets: ticketValues,
     };
+  }
+
+  // TODO: 쿼리 최적화하기
+  async getAvailableTicket(userId: string, ticket: TicketType) {
+    return await this.db.query.tickets.findFirst({
+      where: and(
+        eq(tickets.userId, userId),
+        eq(tickets.type, ticket),
+        isNull(tickets.deletedAt),
+        eq(tickets.status, 'available'),
+      ),
+      orderBy: [desc(tickets.createdAt)],
+    });
+  }
+
+  async use(ticketId: string) {
+    return await this.db.update(tickets)
+      .set({ status: 'used', usedAt: new Date() })
+      .where(eq(tickets.id, ticketId));
   }
 
 }

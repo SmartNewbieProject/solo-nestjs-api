@@ -40,6 +40,7 @@ export default class UserRepository {
           },
         },
       },
+      where: eq(schema.users.id, userId),
     });
   }
 

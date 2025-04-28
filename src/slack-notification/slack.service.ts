@@ -93,11 +93,11 @@ export class SlackService {
         fields: [
           {
             type: "mrkdwn",
-            text: "*매칭 요청자:*\n" + `${requester.name}\n${requester.age}세 ${getGenderKor(requester.gender)}\n ${requesterPreferences}`
+            text: "*매칭 요청자:*\n" + `${requester.name} (랭크: *${requester.rank}*)\n${requester.age}세 ${getGenderKor(requester.gender)}\n ${requesterPreferences}`
           },
           {
             type: "mrkdwn",
-            text: "*매칭 대상:*\n" + `${matcher.name}\n${matcher.age}세 ${getGenderKor(matcher.gender)}\n ${matcherPreferences}`
+            text: "*매칭 대상:*\n" + `${matcher.name} (랭크: *${matcher.rank}*)\n${matcher.age}세 ${getGenderKor(matcher.gender)}\n ${matcherPreferences}`
           }
         ]
       }

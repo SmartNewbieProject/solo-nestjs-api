@@ -12,6 +12,9 @@ import { MatchingModule } from './matching/matching.module';
 import { ArticleModule } from './article/article.module';
 import { PaymentModule } from './payment/payment.module';
 import { HealthModule } from './health/health.module';
+import { SlackNotificationModule } from './slack-notification/slack-notification.module';
+import { APP_FILTER } from '@nestjs/core';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
 
 @Module({
   imports: [
@@ -30,6 +33,13 @@ import { HealthModule } from './health/health.module';
     ArticleModule,
     PaymentModule,
     HealthModule,
+    SlackNotificationModule,
+  ],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: AllExceptionsFilter,
+    }
   ],
 })
 export class AppModule { }

@@ -6,14 +6,15 @@ import { ApiProperty, ApiResponse, ApiTags, ApiBearerAuth, ApiOperation, ApiQuer
 import AdminMatchService from '../services/match.service';
 import MatchingCreationService from '@/matching/services/creation.service';
 import { Gender } from '@/types/enum';
+import { MatchType } from '@/types/match';
 
 export class MatchResult {
   @ApiProperty({ description: '사용자 ID' })
   userId: string;
-  
+
   @ApiProperty({ description: '매칭 점수' })
   score: number;
-  
+
   @ApiProperty({ description: '상세 점수 정보' })
   details: {
     ageScore: number;
@@ -34,7 +35,7 @@ export class AdminMatchingController {
   constructor(
     private readonly adminMatchService: AdminMatchService,
     private readonly matchingCreationService: MatchingCreationService,
-  ) {}
+  ) { }
 
   @Post('/user/read')
   @ApiOperation({ summary: '어드민 - 사용자 매칭 결과만 보기', description: '특정 사용자의 매칭을 수행해서 결과만 조회합니다. (실제로 매칭이 수행되지않습니다.)' })
@@ -51,7 +52,7 @@ export class AdminMatchingController {
   async getUnmatchedUsers(
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
-  ) { 
+  ) {
     return this.adminMatchService.getUnmatchedUsers({ page, limit });
   }
 
@@ -65,7 +66,7 @@ export class AdminMatchingController {
   @Post('user')
   @Roles(Role.ADMIN)
   async processMatchingSingle(@Body() request: AdminMatchSingleRequest) {
-    await this.matchingCreationService.createPartner(request.userId, 'admin');
+    await this.matchingCreationService.createPartner(request.userId, MatchType.ADMIN);
   }
 
   @Get('match-stats')

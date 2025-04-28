@@ -9,6 +9,7 @@ import { ProfileDocs } from "../docs/profile.docs";
 import { EventEmitter2 } from "@nestjs/event-emitter";
 import { ProfileUpdatedEvent } from "@/events/profile-updated.event";
 import { NameUpdated } from "../dto/user";
+import { CommonProfile } from "@/types/user";
 
 @Controller('profile')
 @ProfileDocs.controller()
@@ -21,8 +22,9 @@ export default class ProfileController {
 
   @Get()
   @ProfileDocs.getProfile()
-  async getProfile(@CurrentUser() user: AuthenticationUser) {
-    return await this.profileService.getUserProfiles(user.id);
+  async getProfile(@CurrentUser() user: AuthenticationUser): Promise<CommonProfile> {
+    const { rank, ...profiles } = await this.profileService.getUserProfiles(user.id);
+    return profiles;
   }
 
   @Get('preferences')

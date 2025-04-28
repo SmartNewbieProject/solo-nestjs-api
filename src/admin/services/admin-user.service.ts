@@ -26,6 +26,7 @@ export class AdminUserService {
         } catch (error) {
           if (error instanceof NotFoundException) {
             return {
+              mbti: 'EEEE',
               name: user.name || '이름 없음',
               age: 0,
               gender: user.profile?.gender || '미지정',
@@ -33,6 +34,7 @@ export class AdminUserService {
               instagramId: null,
               universityDetails: null,
               id: user.id,
+              rank: user.profile?.rank,
               preferences: [],
             } as UserProfile;
           }

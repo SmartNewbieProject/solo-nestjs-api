@@ -6,13 +6,14 @@ import { eq, and, isNull } from "drizzle-orm";
 import { PreferenceSave } from "../dto/profile.dto";
 import { generateUuidV7 } from "@database/schema/helper";
 import { ProfileRawDetails, ProfileSummary } from "@/types/user";
+import { UserRank } from "@/database/schema/profiles";
 
 @Injectable()
 export default class ProfileRepository {
-    constructor(
-      @InjectDrizzle()
-      private readonly db: NodePgDatabase<typeof schema>,
-    ) {}
+  constructor(
+    @InjectDrizzle()
+    private readonly db: NodePgDatabase<typeof schema>,
+  ) { }
 
   async getProfileSummary(userId: string): Promise<ProfileSummary> {
     const result = await this.db.select({
@@ -23,9 +24,9 @@ export default class ProfileRepository {
       title: schema.profiles.title,
       introduction: schema.profiles.introduction,
     })
-    .from(schema.profiles)
-    .where(eq(schema.profiles.userId, userId))
-    .execute();
+      .from(schema.profiles)
+      .where(eq(schema.profiles.userId, userId))
+      .execute();
 
     if (result.length === 0) {
       throw new NotFoundException('프로필 정보를 찾을 수 없습니다.');
@@ -52,29 +53,48 @@ export default class ProfileRepository {
     if (profileResults.length === 0) return null;
 
     const union = profileResults[0];
-      const profileImages = await this.db.select()
-        .from(schema.profileImages)
-        .where(and(eq(schema.profileImages.profileId, union.profiles.id), isNull(schema.profileImages.deletedAt)))
-        .innerJoin(schema.images, eq(schema.profileImages.imageId, schema.images.id))
-        .execute();
+    const profileImages = await this.db.select()
+      .from(schema.profileImages)
+      .where(and(eq(schema.profileImages.profileId, union.profiles.id), isNull(schema.profileImages.deletedAt)))
+      .innerJoin(schema.images, eq(schema.profileImages.imageId, schema.images.id))
+      .execute();
 
-    
-      return {
-        ...union.profiles,
-        universityDetail: union.university_details ? {
-          name: union.university_details.universityName,
-          authentication: union.university_details.authentication,
-          department: union.university_details.department,
-          grade: union.university_details.grade,
-          studentNumber: union.university_details.studentNumber,
-        } : null,
-        profileImages: profileImages.map(({ images: { s3Url }, profile_images: { imageOrder, isMain, id } }) => ({
-          id,
-          order: imageOrder,
-          isMain,
-          url: s3Url,
-        }))
-      };
+    const mbtiResults = await this.db.select({
+      mbti: schema.preferenceOptions.displayName,
+    })
+      .from(schema.userPreferences)
+      .leftJoin(schema.userPreferenceOptions, eq(schema.userPreferenceOptions.userPreferenceId, schema.userPreferences.id))
+      .leftJoin(schema.preferenceOptions, eq(schema.userPreferenceOptions.preferenceOptionId, schema.preferenceOptions.id))
+      .leftJoin(schema.preferenceTypes, eq(schema.preferenceOptions.preferenceTypeId, schema.preferenceTypes.id))
+      .where(
+        and(
+          eq(schema.preferenceTypes.name, 'MBTI 유형'),
+          eq(schema.userPreferences.userId, userId)
+        ),
+      )
+      .execute();
+
+    return {
+      ...union.profiles,
+      mbti: (() => {
+        if (mbtiResults.length === 0) return null;
+        return mbtiResults[0].mbti;
+      })(),
+      rank: union.profiles.rank as UserRank,
+      universityDetail: union.university_details ? {
+        name: union.university_details.universityName,
+        authentication: union.university_details.authentication,
+        department: union.university_details.department,
+        grade: union.university_details.grade,
+        studentNumber: union.university_details.studentNumber,
+      } : null,
+      profileImages: profileImages.map(({ images: { s3Url }, profile_images: { imageOrder, isMain, id } }) => ({
+        id,
+        order: imageOrder,
+        isMain,
+        url: s3Url,
+      }))
+    };
   }
 
   async getPreferenceTypeByName(typeName: string) {
@@ -88,7 +108,7 @@ export default class ProfileRepository {
       const userPreference = await tx.query.userPreferences.findFirst({
         where: eq(schema.userPreferences.userId, userId)
       });
-      
+
       if (!userPreference) {
         throw new NotFoundException('사용자 선호도 정보를 찾을 수 없습니다.');
       }
@@ -98,16 +118,16 @@ export default class ProfileRepository {
         optionDisplayName: schema.preferenceOptions.displayName,
         typeName: schema.preferenceTypes.name,
       })
-      .from(schema.userPreferenceOptions)
-      .innerJoin(
-        schema.preferenceOptions,
-        eq(schema.userPreferenceOptions.preferenceOptionId, schema.preferenceOptions.id)
-      )
-      .innerJoin(
-        schema.preferenceTypes,
-        eq(schema.preferenceOptions.preferenceTypeId, schema.preferenceTypes.id)
-      )
-      .where(eq(schema.userPreferenceOptions.userPreferenceId, userPreference.id));
+        .from(schema.userPreferenceOptions)
+        .innerJoin(
+          schema.preferenceOptions,
+          eq(schema.userPreferenceOptions.preferenceOptionId, schema.preferenceOptions.id)
+        )
+        .innerJoin(
+          schema.preferenceTypes,
+          eq(schema.preferenceOptions.preferenceTypeId, schema.preferenceTypes.id)
+        )
+        .where(eq(schema.userPreferenceOptions.userPreferenceId, userPreference.id));
 
       return userPreferenceOptions;
     });
@@ -118,7 +138,7 @@ export default class ProfileRepository {
       .set({ instagramId })
       .where(eq(schema.profiles.userId, userId));
   }
-  
+
   async getAllPreferences() {
     return await this.db.select({
       typeName: schema.preferenceTypes.name,
@@ -144,16 +164,16 @@ export default class ProfileRepository {
       await this.insertPreferenceOptions(tx, userPreferenceId, data);
     });
   }
-  
+
   async getUserPreferenceId(tx: any, userId: string): Promise<string> {
     const userPreference = await tx.query.userPreferences.findFirst({
       where: eq(schema.userPreferences.userId, userId)
     });
-    
+
     if (!userPreference) {
       throw new Error('사용자 선호도 정보를 찾을 수 없습니다.');
     }
-    
+
     return userPreference.id;
   }
 
@@ -162,24 +182,24 @@ export default class ProfileRepository {
       .set({ name: nickname })
       .where(eq(schema.profiles.userId, userId));
   }
-  
+
   private async deleteExistingOptions(tx: any, userPreferenceId: string): Promise<void> {
     await tx.delete(schema.userPreferenceOptions)
       .where(eq(schema.userPreferenceOptions.userPreferenceId, userPreferenceId));
   }
-  
+
   private async insertPreferenceOptions(tx: any, userPreferenceId: string, data: PreferenceSave['data']): Promise<void> {
     const preferencePromises = data.map(async (preference) => {
       const preferenceType = await tx.query.preferenceTypes.findFirst({
         where: eq(schema.preferenceTypes.name, preference.typeName)
       });
-      
+
       if (!preferenceType || preference.optionIds.length === 0) return;
 
       const optionPromises = preference.optionIds.map(async (optionId) => {
         const optionEntryId = generateUuidV7();
         const now = new Date();
-        
+
         await tx.insert(schema.userPreferenceOptions)
           .values({
             id: optionEntryId,
@@ -190,10 +210,10 @@ export default class ProfileRepository {
             deletedAt: null
           });
       });
-      
+
       await Promise.all(optionPromises);
     });
-    
+
     await Promise.all(preferencePromises);
   }
 

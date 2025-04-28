@@ -18,6 +18,8 @@ import { comments } from './comments';
 import { likes } from './likes';
 import { tickets } from './ticket';
 import { smsAuthorization } from './sms_authorization';
+import { articleCategory } from './article_categories';
+import { hotArticles } from './hot_articles';
 import { withdrawalReasons } from './withdrawal_reasons';
 
 // 관계형 매핑 파일 가져오기
@@ -51,6 +53,8 @@ export {
   likes,
   smsAuthorization,
   withdrawalReasons,
+  articleCategory,
+  hotArticles,
 };
 
 // 모든 테이블 스키마를 배열로 내보내기
@@ -74,4 +78,6 @@ export const schemas = [
   likes,
   tickets,
   withdrawalReasons,
+  articleCategory,
+  hotArticles,
 ];

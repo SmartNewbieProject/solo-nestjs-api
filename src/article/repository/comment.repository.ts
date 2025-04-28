@@ -12,11 +12,11 @@ import { generateConsistentAnonymousName } from '../domain';
 export class CommentRepository {
   constructor(
     @InjectDrizzle() private readonly db: NodePgDatabase<typeof schema>,
-  ) {}
+  ) { }
 
   async createComment(postId: string, authorId: string, authorNickname: string, data: CommentUpload) {
     const id = generateUuidV7();
-    const { anonymous, content, emoji } = data;
+    const { anonymous, content } = data;
 
     const result = await this.db.insert(comments).values({
       id,
@@ -24,7 +24,6 @@ export class CommentRepository {
       authorId,
       nickname: anonymous ? generateConsistentAnonymousName(authorId) : authorNickname,
       content,
-      emoji,
     }).returning();
 
     return result[0];
@@ -44,12 +43,12 @@ export class CommentRepository {
         name: comments.nickname,
       },
     })
-    .from(comments)
-    .where(and(
-      eq(comments.postId, postId),
-      isNull(comments.deletedAt),
-    ))
-    .orderBy(comments.createdAt);
+      .from(comments)
+      .where(and(
+        eq(comments.postId, postId),
+        isNull(comments.deletedAt),
+      ))
+      .orderBy(comments.createdAt);
   }
 
   async updateComment(id: string, data: Partial<CommentUpload>) {
@@ -63,7 +62,7 @@ export class CommentRepository {
         isNull(comments.deletedAt)
       ))
       .returning();
-    
+
     return result.length > 0 ? result[0] : null;
   }
 
@@ -76,7 +75,7 @@ export class CommentRepository {
         isNull(comments.deletedAt)
       ))
       .returning();
-    
+
     return result.length > 0 ? result[0] : null;
   }
 
@@ -87,7 +86,7 @@ export class CommentRepository {
         eq(comments.id, id),
         isNull(comments.deletedAt)
       ));
-    
+
     return result.length > 0 ? result[0].authorId : null;
   }
 }
