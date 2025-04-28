@@ -51,18 +51,12 @@ export class SlackService {
       timestamp: string;
       error: string;
       exception?: unknown;
-      user?: { id: string; email: string; name: string; };
+      user?: { id: string; email: string; };
     }
   ) {
     const environment = this.configService.get('NODE_ENV', 'development');
 
-    const errorJson = {
-      message: error.message,
-      name: error.name,
-      stack: error.stack,
-      exception: errorContext.exception
-    };
-
+    // 메인 메시지용 간단한 블록
     const blocks: SlackBlock[] = [
       {
         type: "header",
@@ -71,6 +65,19 @@ export class SlackService {
           text: `🚨 예상치 못한 서버 오류 발생`,
           emoji: true
         }
+      },
+      {
+        type: "section",
+        fields: [
+          {
+            type: "mrkdwn",
+            text: "*HTTP Method:*\n" + `\`${errorContext.method}\``
+          },
+          {
+            type: "mrkdwn",
+            text: "*Endpoint:*\n" + `\`${errorContext.path}\``
+          }
+        ]
       }
     ];
 
@@ -84,41 +91,35 @@ export class SlackService {
       });
     }
 
-    blocks.push(
-      {
-        type: "section",
-        fields: [
-          {
-            type: "mrkdwn",
-            text: "*HTTP Method:*\n" + `\`${errorContext.method}\``
-          },
-          {
-            type: "mrkdwn",
-            text: "*Endpoint:*\n" + `\`${errorContext.path}\``
-          }
-        ]
-      },
-      {
-        type: "section",
-        fields: [
-          {
-            type: "mrkdwn",
-            text: "*시간:*\n" + `\`${errorContext.timestamp}\``
-          },
-          {
-            type: "mrkdwn",
-            text: "*환경:*\n" + `\`${environment}\``
-          }
-        ]
-      }
-    );
+    // 메인 메시지 전송
+    const result = await this.slack.chat.postMessage({
+      channel: '#emergency',
+      blocks,
+      text: `🚨 Error: ${error.message}`,
+      username: '썸타임 긴급 오류 알리미',
+      icon_url: 'https://i.pinimg.com/736x/03/78/fe/0378febd3b192bd1a8dd10335fd1f718.jpg',
+    });
 
-    if (errorContext.user) {
-      blocks.push(
+    // 상세 정보를 스레드로 전송
+    if (result.ts) {
+      const detailBlocks: SlackBlock[] = [
         {
-          type: "divider"
-        },
-        {
+          type: "section",
+          fields: [
+            {
+              type: "mrkdwn",
+              text: "*시간:*\n" + `\`${errorContext.timestamp}\``
+            },
+            {
+              type: "mrkdwn",
+              text: "*환경:*\n" + `\`${environment}\``
+            }
+          ]
+        }
+      ];
+
+      if (errorContext.user) {
+        detailBlocks.push({
           type: "section",
           fields: [
             {
@@ -130,30 +131,33 @@ export class SlackService {
               text: "*사용자 이메일:*\n" + `\`${errorContext.user.email}\``
             }
           ]
-        }
-      );
-    }
+        });
+      }
 
-    blocks.push(
-      {
-        type: "divider"
-      },
-      {
+      const errorJson = {
+        message: error.message,
+        name: error.name,
+        stack: error.stack,
+        exception: errorContext.exception
+      };
+
+      detailBlocks.push({
         type: "section",
         text: {
           type: "mrkdwn",
           text: "*에러 상세:*\n```" + JSON.stringify(errorJson, null, 2) + "```"
         }
-      }
-    );
+      });
 
-    await this.slack.chat.postMessage({
-      channel: '#emergency',
-      blocks,
-      text: `🚨 Error: ${error.message}`,
-      username: '썸타임 긴급 오류 알리미',
-      icon_url: 'https://i.pinimg.com/736x/03/78/fe/0378febd3b192bd1a8dd10335fd1f718.jpg',
-    });
+      await this.slack.chat.postMessage({
+        channel: '#emergency',
+        thread_ts: result.ts,
+        blocks: detailBlocks,
+        text: "에러 상세 정보",
+        username: '썸타임 긴급 오류 알리미',
+        icon_url: 'https://i.pinimg.com/736x/03/78/fe/0378febd3b192bd1a8dd10335fd1f718.jpg',
+      });
+    }
   }
 
   async sendMatchingNotification(userId: string, partnerId: string, similarity: number) {
