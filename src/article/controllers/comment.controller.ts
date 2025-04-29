@@ -1,13 +1,13 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { CommentService } from '../services/comment.service';
-import { CommentUpload } from '../dto';
+import { CommentUpload, ContentUpdate } from '../dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { createCommentApiResponse, deleteCommentApiResponse, getCommentsByPostIdApiResponse, updateCommentApiResponse } from '../docs/comment.docs';
 import { CurrentUser } from '@/auth/decorators';
 import { Role } from '@/types/enum';
 import { AuthenticationUser } from '@/types/auth';
 import { Roles } from '@/auth/decorators';
-import { CommentDetails, CommentWithRelations } from '../types/comment.type';
+import { CommentDetails } from '../types/comment.type';
 
 @Controller('articles/:articleId/comments')
 @ApiTags('댓글')
@@ -39,7 +39,7 @@ export class CommentController {
   @ApiResponse(updateCommentApiResponse)
   async updateComment(
     @Param('id') id: string,
-    @Body() data: CommentUpload,
+    @Body() data: ContentUpdate,
     @CurrentUser() user: AuthenticationUser,
   ) {
     const isAdmin = user.role === Role.ADMIN;

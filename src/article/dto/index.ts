@@ -42,6 +42,17 @@ export class ArticleUpload {
   title: string;
 }
 
+// Article, Comment 에서 모두 사용함
+export class ContentUpdate {
+  @ApiProperty({
+    description: '게시글 내용',
+    example: '게시글 내용'
+  })
+  @IsString()
+  @MaxLength(255, { message: '게시글 내용은 255자 이하입니다.' })
+  content: string;
+}
+
 export class CommentUpload {
   @ApiProperty({
     description: '댓글 내용',

@@ -10,7 +10,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ArticleService } from '../services/article.service';
-import { ArticleUpload } from '../dto';
+import { ArticleUpload, ContentUpdate } from '../dto';
 import {
   ApiBearerAuth,
   ApiOperation,
@@ -106,7 +106,7 @@ export class ArticleController {
   @ApiResponse(updateArticleApiResponse)
   async updateArticle(
     @Param('id') id: string,
-    @Body() data: ArticleUpload,
+    @Body() data: ContentUpdate,
     @CurrentUser() user: AuthenticationUser,
   ) {
     const isAdmin = user.role === Role.ADMIN;
