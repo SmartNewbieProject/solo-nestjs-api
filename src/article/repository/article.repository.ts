@@ -36,6 +36,7 @@ export class ArticleRepository {
 
     const result = await this.db.insert(articles).values({
       id: generateUuidV7(),
+      title: articleData.title,
       authorId,
       categoryId: category.id,
       content: articleData.content,

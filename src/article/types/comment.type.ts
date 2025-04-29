@@ -12,6 +12,7 @@ export interface CommentWithRelations extends InferComment {
     name: string;
     profile: {
       gender: Gender;
+      age: number;
       user: UserModel;
       universityDetail: UniversityDetailModel;
     },

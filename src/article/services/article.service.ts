@@ -117,8 +117,10 @@ export class ArticleService {
   processArticles(articles: ArticleWithRelations[]): ArticleDetails[] {
     return articles.map(article => ({
       id: article.id,
+      title: article.title,
       author: {
         id: article.author.id,
+        age: article.author.profile.age,
         name: article.anonymous ? article.anonymous : article.author.name,
         gender: article.author.profile.gender as Gender,
         universityDetails: this.university(article.author?.profile?.universityDetail as UniversityDetailModel),

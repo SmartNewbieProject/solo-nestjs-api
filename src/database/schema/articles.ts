@@ -5,6 +5,7 @@ import { articleCategory } from "./article_categories";
 
 export const articles = pgTable('articles', {
   id: uuid(),
+  title: varchar('title', { length: 30 }).notNull(),
   authorId: varchar('author_id', { length: 128 }).references(() => users.id).notNull(),
   content: varchar('content', { length: 255 }).notNull(),
   categoryId: varchar('category_id', { length: 128 }).references(() => articleCategory.id).notNull(),

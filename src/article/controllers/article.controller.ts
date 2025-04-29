@@ -84,7 +84,7 @@ export class ArticleController {
     return await this.articleService.getArticles(categoryId, page, limit, user.id);
   }
 
-  @Get(':id')
+  @Get('details/:id')
   @ApiOperation({
     summary: '게시글 상세 조회',
     description: '특정 게시글의 상세 정보를 조회합니다.',

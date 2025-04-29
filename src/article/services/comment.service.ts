@@ -71,6 +71,7 @@ export class CommentService {
       content: comment.content,
       author: {
         id: comment.author.id,
+        age: comment.author.profile.age,
         name: comment.nickname || comment.author.name,
         gender: comment.author.profile.gender,
         universityDetails: {

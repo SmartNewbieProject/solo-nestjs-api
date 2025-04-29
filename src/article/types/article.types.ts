@@ -12,6 +12,7 @@ export interface ArticleWithRelations extends ArticleModel {
     profile: {
       universityDetail: UniversityDetailModel | null;
       gender: Gender;
+      age: number;
       user: UserModel,
     },
   };
@@ -25,6 +26,7 @@ export interface ArticleWithRelations extends ArticleModel {
 export type AuthorDetails = {
   id: string;
   name: string;
+  age: number;
   gender: Gender;
   universityDetails: UniversityDetail;
 };
@@ -34,6 +36,9 @@ export type ArticleDetails = {
   category: ArticleRequestType;
   content: string;
   author: AuthorDetails;
+  likeCount: number;
+  readCount: number;
+  title: string;
   updatedAt: Date;
   isLiked: boolean;
 };
