@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { comments } from '@/database/schema';
 import { CommentUpload } from '../dto';
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq, and, isNull, desc } from 'drizzle-orm';
 import { generateUuidV7 } from '@/database/schema/helper';
 import * as schema from '@database/schema';
 import { InjectDrizzle } from '@/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { generateConsistentAnonymousName } from '../domain';
+import { CommentWithRelations } from '../types/comment.type';
 
 @Injectable()
 export class CommentRepository {
@@ -29,26 +30,32 @@ export class CommentRepository {
     return result[0];
   }
 
-  async getCommentsByPostId(postId: string) {
-    return await this.db.select({
-      id: comments.id,
-      postId: comments.postId,
-      content: comments.content,
-      emoji: comments.emoji,
-      nickname: comments.nickname,
-      createdAt: comments.createdAt,
-      updatedAt: comments.updatedAt,
-      author: {
-        id: comments.authorId,
-        name: comments.nickname,
+  async getCommentsByPostId(postId: string): Promise<CommentWithRelations[]> {
+    const results = await this.db.query.comments.findMany({
+      where: ({ postId: queryPostId, deletedAt }) =>
+        and(
+          eq(queryPostId, postId),
+          isNull(deletedAt)
+        ),
+      orderBy: desc(comments.createdAt),
+      with: {
+        author: {
+          columns: {
+            id: true,
+            name: true,
+          },
+          with: {
+            profile: {
+              with: {
+                universityDetail: true,
+                user: true,
+              },
+            }
+          },
+        },
       },
-    })
-      .from(comments)
-      .where(and(
-        eq(comments.postId, postId),
-        isNull(comments.deletedAt),
-      ))
-      .orderBy(comments.createdAt);
+    });
+    return results as CommentWithRelations[];
   }
 
   async updateComment(id: string, data: Partial<CommentUpload>) {

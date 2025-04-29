@@ -3,6 +3,7 @@ import { CommentRepository } from '../repository/comment.repository';
 import { CommentUpload } from '../dto';
 import { ArticleRepository } from '../repository/article.repository';
 import ProfileRepository from '@/user/repository/profile.repository';
+import { CommentDetails, CommentWithRelations } from '../types/comment.type';
 
 @Injectable()
 export class CommentService {
@@ -10,7 +11,7 @@ export class CommentService {
     private readonly commentRepository: CommentRepository,
     private readonly articleRepository: ArticleRepository,
     private readonly profileRepository: ProfileRepository,
-  ) {}
+  ) { }
 
 
   async createComment(postId: string, userId: string, data: CommentUpload) {
@@ -25,13 +26,14 @@ export class CommentService {
   }
 
 
-  async getCommentsByPostId(postId: string) {
+  async getCommentsByPostId(postId: string): Promise<CommentDetails[]> {
     const article = await this.articleRepository.getArticleById(postId);
     if (!article) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
 
-    return await this.commentRepository.getCommentsByPostId(postId);
+    const results = await this.commentRepository.getCommentsByPostId(postId);
+    return results.map(this.processComment);
   }
 
 
@@ -61,5 +63,25 @@ export class CommentService {
     }
 
     return await this.commentRepository.deleteComment(id);
+  }
+
+  private processComment(comment: CommentWithRelations): CommentDetails {
+    return {
+      id: comment.id,
+      content: comment.content,
+      author: {
+        id: comment.author.id,
+        name: comment.nickname || comment.author.name,
+        gender: comment.author.profile.gender,
+        universityDetails: {
+          name: comment.author.profile.universityDetail?.universityName || '',
+          authentication: comment.author.profile.universityDetail?.authentication || false,
+          department: comment.author.profile.universityDetail?.department || '',
+          grade: comment.author.profile.universityDetail?.grade || '',
+          studentNumber: comment.author.profile.universityDetail?.studentNumber || '',
+        }
+      },
+      updatedAt: comment.updatedAt || comment.createdAt,
+    };
   }
 }

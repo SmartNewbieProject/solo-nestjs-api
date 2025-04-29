@@ -7,13 +7,14 @@ import { CurrentUser } from '@/auth/decorators';
 import { Role } from '@/types/enum';
 import { AuthenticationUser } from '@/types/auth';
 import { Roles } from '@/auth/decorators';
+import { CommentDetails, CommentWithRelations } from '../types/comment.type';
 
 @Controller('articles/:articleId/comments')
 @ApiTags('댓글')
 @Roles(Role.USER, Role.ADMIN)
 @ApiBearerAuth('access-token')
 export class CommentController {
-  constructor(private readonly commentService: CommentService) {}
+  constructor(private readonly commentService: CommentService) { }
 
   @Post()
   @ApiOperation({ summary: '댓글 생성', description: '특정 게시글에 댓글을 작성합니다.' })
@@ -29,7 +30,7 @@ export class CommentController {
   @Get()
   @ApiOperation({ summary: '댓글 목록 조회', description: '특정 게시글의 모든 댓글을 조회합니다.' })
   @ApiResponse(getCommentsByPostIdApiResponse)
-  async getCommentsByPostId(@Param('articleId') articleId: string) {
+  async getCommentsByPostId(@Param('articleId') articleId: string): Promise<CommentDetails[]> {
     return await this.commentService.getCommentsByPostId(articleId);
   }
 
