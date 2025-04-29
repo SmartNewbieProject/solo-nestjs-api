@@ -4,7 +4,7 @@ import { ArticleUpload } from '../dto';
 import { sql, eq, and, isNull, desc } from 'drizzle-orm';
 import { generateUuidV7 } from '@/database/schema/helper';
 import * as schema from '@database/schema';
-import { ArticleWithRelations } from '../types/article.types';
+import { ArticleRequestType, ArticleWithRelations } from '../types/article.types';
 
 import { InjectDrizzle } from '@/common/decorators';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
@@ -50,10 +50,19 @@ export class ArticleRepository {
   }
 
   async getArticles(
-    categoryId: string,
+    categoryCode: ArticleRequestType,
     limit: number = 10,
     offset: number = 0
   ): Promise<ArticleWithRelations[]> {
+
+    const category = await this.db.query.articleCategory.findFirst({
+      where: eq(schema.articleCategory.code, categoryCode),
+    });
+
+    if (!category) {
+      throw new NotFoundException('존재하지 않는 카테고리입니다.');
+    }
+
     const results = await this.db.query.articles.findMany({
       with: {
         author: {
@@ -98,10 +107,11 @@ export class ArticleRepository {
           where: ({ up }) => eq(up, true)
         },
       },
-      where: ({ deletedAt, categoryId: queryCategoryId }) =>
+      where: ({ deletedAt, categoryId: queryCategoryId, blindedAt }) =>
         and(
-          eq(queryCategoryId, categoryId),
-          isNull(deletedAt)
+          eq(queryCategoryId, category.id),
+          isNull(deletedAt),
+          isNull(blindedAt),
         ),
       limit,
       offset,

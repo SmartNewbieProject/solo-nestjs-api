@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
 import { ArticleRepository } from '../repository/article.repository';
 import { ArticleUpload } from '../dto';
 import { LikeRepository } from '../repository/like.repository';
@@ -11,6 +11,8 @@ import { UniversityDetailModel } from '@/types/database';
 
 @Injectable()
 export class ArticleService {
+  private readonly logger = new Logger(ArticleService.name);
+
   constructor(
     private readonly articleRepository: ArticleRepository,
     private readonly likeRepository: LikeRepository
@@ -24,9 +26,10 @@ export class ArticleService {
     await this.articleRepository.createArticle(userId, articleData);
   }
 
-  async getArticles(categoryId: string, page: number = 1, limit: number = 10, userId: string): Promise<PaginatedResponse<any>> {
+  async getArticles(categoryCode: ArticleRequestType, page: number = 1, limit: number = 10, userId: string): Promise<PaginatedResponse<any>> {
     const offset = paginationUtils.getOffset(page, limit);
-    const articles = await this.articleRepository.getArticles(categoryId, limit, offset);
+    const articles = await this.articleRepository.getArticles(categoryCode, limit, offset);
+    this.logger.debug({ articles });
 
     const articleIds = articles.map(article => article.id);
     const likedMap = await this.likeRepository.hasUserLikedArticles(userId, articleIds);

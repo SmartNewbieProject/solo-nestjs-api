@@ -30,6 +30,7 @@ import {
 import { CurrentUser, Roles } from '@/auth/decorators';
 import { Role } from '@/types/enum';
 import { AuthenticationUser } from '@/types/auth';
+import { ArticleRequestType } from '../types/article.types';
 
 @ApiTags('게시글')
 @ApiBearerAuth('access-token')
@@ -61,7 +62,7 @@ export class ArticleController {
     return await this.articleService.getArticleCategories();
   }
 
-  @Get(':categoryId')
+  @Get(':categoryCode')
   @ApiOperation({
     summary: '게시글 목록 조회',
     description: '게시글 목록을 페이지네이션으로 조회합니다.',
@@ -75,13 +76,13 @@ export class ArticleController {
   })
   @ApiResponse(getArticlesApiResponse)
   async getArticles(
-    @Param('categoryId')
-    categoryId: string,
+    @Param('categoryCode')
+    categoryCode: ArticleRequestType,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
     @CurrentUser() user: AuthenticationUser,
   ) {
-    return await this.articleService.getArticles(categoryId, page, limit, user.id);
+    return await this.articleService.getArticles(categoryCode, page, limit, user.id);
   }
 
   @Get('details/:id')
