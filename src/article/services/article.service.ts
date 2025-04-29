@@ -3,9 +3,11 @@ import { ArticleRepository } from '../repository/article.repository';
 import { ArticleUpload } from '../dto';
 import { LikeRepository } from '../repository/like.repository';
 import { PaginatedResponse } from '@/types/common';
-import { ArticleDetails, ArticleWithRelations, InferUniversityDetail } from '../types/article.types';
+import { ArticleDetails, ArticleRequestType, ArticleWithRelations } from '../types/article.types';
 import { UniversityDetail } from '@/types/user';
 import { paginationUtils } from '@/common/helper';
+import { Gender } from '@/types/enum';
+import { UniversityDetailModel } from '@/types/database';
 
 @Injectable()
 export class ArticleService {
@@ -48,7 +50,34 @@ export class ArticleService {
     }
 
     const isLiked = await this.likeRepository.hasUserLikedArticle(userId, id);
-    return { ...article, isLiked };
+
+    const processedArticle = {
+      id: article.id,
+      author: {
+        id: article.author.id,
+        name: article.anonymous ? article.anonymous : article.author.name,
+        gender: article.author.profile.gender as Gender,
+        universityDetails: this.university(article.author?.profile?.universityDetail as UniversityDetailModel),
+      },
+      updatedAt: article.updatedAt || article.createdAt,
+      category: article.articleCategory.code as ArticleRequestType,
+      content: article.content,
+      likeCount: article.likes.length,
+      readCount: article.readCount,
+      comments: article.comments.map(comment => ({
+        id: comment.id,
+        content: comment.content,
+        author: {
+          id: comment.authorId,
+          name: comment.nickname || '익명',
+          universityDetails: this.university(comment.author?.profile?.universityDetail as UniversityDetailModel),
+        },
+        updatedAt: comment.updatedAt || comment.createdAt,
+      })),
+      isLiked,
+    };
+
+    return processedArticle;
   }
 
   async updateArticle(id: string, userId: string, isAdmin: boolean, data: Partial<ArticleUpload>) {
@@ -85,17 +114,18 @@ export class ArticleService {
     await this.likeRepository.like(userId, id);
   }
 
-  processArticles(articles: ArticleWithRelations[]) {
-
+  processArticles(articles: ArticleWithRelations[]): ArticleDetails[] {
     return articles.map(article => ({
       id: article.id,
       author: {
         id: article.author.id,
         name: article.anonymous ? article.anonymous : article.author.name,
-        universityDetails: {
-          ...article.author.profile?.universityDetail,
-        },
+        gender: article.author.profile.gender as Gender,
+        universityDetails: this.university(article.author?.profile?.universityDetail as UniversityDetailModel),
       },
+      updatedAt: article.updatedAt || article.createdAt,
+      isLiked: false,
+      category: article.articleCategory.code as ArticleRequestType,
       content: article.content,
       likeCount: article.likes.length,
       readCount: article.readCount,
@@ -105,13 +135,13 @@ export class ArticleService {
         author: {
           id: comment.authorId,
           name: comment.nickname,
-          universityDetails: this.university(comment.author.profile?.universityDetail as InferUniversityDetail),
+          universityDetails: this.university(comment.author.profile?.universityDetail as UniversityDetailModel),
         },
       })),
     }));
   }
 
-  private university(universityDetails?: InferUniversityDetail): UniversityDetail {
+  private university(universityDetails?: UniversityDetailModel): UniversityDetail {
     if (!universityDetails) return {
       name: '익명대학교',
       authentication: false,

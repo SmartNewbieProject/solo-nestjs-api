@@ -53,7 +53,7 @@ export class ArticleRepository {
     limit: number = 10,
     offset: number = 0
   ): Promise<ArticleWithRelations[]> {
-    return await this.db.query.articles.findMany({
+    const results = await this.db.query.articles.findMany({
       with: {
         author: {
           columns: {
@@ -64,8 +64,14 @@ export class ArticleRepository {
             profile: {
               with: {
                 universityDetail: true,
+                user: true,
               },
             }
+          },
+        },
+        articleCategory: {
+          columns: {
+            code: true,
           },
         },
         comments: {
@@ -76,6 +82,7 @@ export class ArticleRepository {
                 profile: {
                   with: {
                     universityDetail: true,
+                    user: true,
                   },
                 },
               }
@@ -99,19 +106,59 @@ export class ArticleRepository {
       offset,
       orderBy: desc(articles.createdAt),
     });
+
+    return results as ArticleWithRelations[];
   }
 
-  async getArticleById(id: string) {
-    return await this.db.query.articles.findFirst({
+  async getArticleById(id: string): Promise<ArticleWithRelations | null> {
+    const result = await this.db.query.articles.findFirst({
       where: sql`${articles.id} = ${id} AND ${articles.deletedAt} IS NULL`,
       with: {
-        author: true,
+        author: {
+          columns: {
+            id: true,
+            name: true,
+          },
+          with: {
+            profile: {
+              with: {
+                universityDetail: true,
+                user: true,
+              },
+            }
+          },
+        },
+        articleCategory: {
+          columns: {
+            code: true,
+          },
+        },
         comments: {
           limit: 3,
+          with: {
+            author: {
+              with: {
+                profile: {
+                  with: {
+                    universityDetail: true,
+                    user: true,
+                  },
+                },
+              }
+            }
+          },
           where: ({ deletedAt }) => isNull(deletedAt),
-        }
-      }
+        },
+        likes: {
+          columns: {
+            id: true,
+          },
+          where: ({ up }) => eq(up, true)
+        },
+      },
     });
+
+    return result as ArticleWithRelations | null;
   }
 
   async deleteArticle(id: string) {
