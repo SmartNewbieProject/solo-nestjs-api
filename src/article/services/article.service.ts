@@ -29,7 +29,6 @@ export class ArticleService {
   async getArticles(categoryCode: ArticleRequestType, page: number = 1, limit: number = 10, userId: string): Promise<PaginatedResponse<any>> {
     const offset = paginationUtils.getOffset(page, limit);
     const articles = await this.articleRepository.getArticles(categoryCode, limit, offset);
-    this.logger.debug({ articles });
 
     const articleIds = articles.map(article => article.id);
     const likedMap = await this.likeRepository.hasUserLikedArticles(userId, articleIds);
@@ -39,10 +38,12 @@ export class ArticleService {
       ...article,
       isLiked: !!likedMap[article.id]
     }));
+    const { count: totalCategoryArticleCount } = await this.articleRepository.getArticleTotalCount(categoryCode);
+    this.logger.debug(`게시글 조회 완료: ${totalCategoryArticleCount}개의 게시글을 조회했습니다.`);
 
     return {
       items: results,
-      meta: paginationUtils.createMetdata(page, limit, articles.length),
+      meta: paginationUtils.createMetdata(page, limit, totalCategoryArticleCount),
     };
   }
 

@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { articles } from '@/database/schema';
 import { ArticleUpload } from '../dto';
-import { sql, eq, and, isNull, desc } from 'drizzle-orm';
+import { sql, eq, and, isNull, desc, count } from 'drizzle-orm';
 import { generateUuidV7 } from '@/database/schema/helper';
 import * as schema from '@database/schema';
 import { ArticleRequestType, ArticleWithRelations } from '../types/article.types';
@@ -49,12 +49,37 @@ export class ArticleRepository {
     return result[0];
   }
 
+  async getArticleTotalCount(
+    categoryCode: ArticleRequestType,
+  ) {
+    const category = await this.db.query.articleCategory.findFirst({
+      where: eq(schema.articleCategory.code, categoryCode),
+    });
+
+    if (!category) {
+      throw new NotFoundException('존재하지 않는 카테고리입니다.');
+    }
+
+
+    const results = await this.db.select({ count: count() })
+      .from(articles)
+      .where(
+        and(
+          eq(schema.articles.categoryId, category.id),
+          isNull(schema.articles.deletedAt),
+          isNull(schema.articles.blindedAt),
+        ),
+      )
+      .execute();
+
+    return results[0];
+  }
+
   async getArticles(
     categoryCode: ArticleRequestType,
     limit: number = 10,
     offset: number = 0
   ): Promise<ArticleWithRelations[]> {
-
     const category = await this.db.query.articleCategory.findFirst({
       where: eq(schema.articleCategory.code, categoryCode),
     });
