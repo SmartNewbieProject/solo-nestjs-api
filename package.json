@@ -23,6 +23,8 @@
     "test:e2e:matching": "jest --config ./test/jest-e2e.json test/matching/matching.e2e-spec.ts",
     "seed": "ts-node -r dotenv/config -r tsconfig-paths/register src/console.ts seed:users",
     "seed:clear": "ts-node -r dotenv/config -r tsconfig-paths/register src/console.ts seed:users --clear",
+    "seed:articles": "ts-node -r dotenv/config -r tsconfig-paths/register src/console.ts seed:articles",
+    "seed:articles:clear": "ts-node -r dotenv/config -r tsconfig-paths/register src/console.ts seed:articles --clear",
     "embedding:interest": "node -r dotenv/config -r ts-node/register -r tsconfig-paths/register src/console.ts generate:embeddings",
     "embedding:interest:user": "node -r dotenv/config -r ts-node/register -r tsconfig-paths/register src/console.ts generate:embeddings -u",
     "embedding:interest:option": "node -r dotenv/config -r ts-node/register -r tsconfig-paths/register src/console.ts generate:embeddings -o",
