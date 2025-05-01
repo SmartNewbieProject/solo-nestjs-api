@@ -3,11 +3,12 @@ import { ArticleRepository } from '../repository/article.repository';
 import { ArticleUpload } from '../dto';
 import { LikeRepository } from '../repository/like.repository';
 import { PaginatedResponse } from '@/types/common';
-import { ArticleDetails, ArticleRequestType, ArticleWithRelations } from '../types/article.types';
+import { ArticleDetails, ArticleRequestType } from '../types/article.types';
 import { UniversityDetail } from '@/types/user';
 import { paginationUtils } from '@/common/helper';
 import { Gender } from '@/types/enum';
 import { UniversityDetailModel } from '@/types/database';
+import { ArticleMapper } from '../domain/article-mapper';
 
 @Injectable()
 export class ArticleService {
@@ -26,62 +27,31 @@ export class ArticleService {
     await this.articleRepository.createArticle(userId, articleData);
   }
 
-  async getArticles(categoryCode: ArticleRequestType, page: number = 1, limit: number = 10, userId: string): Promise<PaginatedResponse<any>> {
-    const offset = paginationUtils.getOffset(page, limit);
-    const articles = await this.articleRepository.getArticles(categoryCode, limit, offset);
+  async getArticles(categoryCode: ArticleRequestType, page: number = 1, limit: number = 10, userId: string): Promise<PaginatedResponse<ArticleDetails>> {
+    const articles = await this.articleRepository.executeArticleQuery({
+      categoryCode,
+      page,
+      limit,
+      comment: { limit: 3 },
+      authorId: userId,
+      userId,
+    });
 
-    const articleIds = articles.map(article => article.id);
-    const likedMap = await this.likeRepository.hasUserLikedArticles(userId, articleIds);
-    const articleProcesseds = this.processArticles(articles);
-
-    const results = articleProcesseds.map(article => ({
-      ...article,
-      isLiked: !!likedMap[article.id]
-    }));
     const { count: totalCategoryArticleCount } = await this.articleRepository.getArticleTotalCount(categoryCode);
     this.logger.debug(`게시글 조회 완료: ${totalCategoryArticleCount}개의 게시글을 조회했습니다.`);
 
     return {
-      items: results,
+      items: articles,
       meta: paginationUtils.createMetdata(page, limit, totalCategoryArticleCount),
     };
   }
 
-  async getArticleById(id: string, userId: string) {
+  async getArticleById(id: string, userId: string): Promise<ArticleDetails> {
     const article = await this.articleRepository.getArticleById(id);
     if (!article) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
-
-    const isLiked = await this.likeRepository.hasUserLikedArticle(userId, id);
-
-    const processedArticle = {
-      id: article.id,
-      author: {
-        id: article.author.id,
-        name: article.anonymous ? article.anonymous : article.author.name,
-        gender: article.author.profile.gender as Gender,
-        universityDetails: this.university(article.author?.profile?.universityDetail as UniversityDetailModel),
-      },
-      updatedAt: article.updatedAt || article.createdAt,
-      category: article.articleCategory.code as ArticleRequestType,
-      content: article.content,
-      likeCount: article.likes.length,
-      readCount: article.readCount,
-      comments: article.comments.map(comment => ({
-        id: comment.id,
-        content: comment.content,
-        author: {
-          id: comment.authorId,
-          name: comment.nickname || '익명',
-          universityDetails: this.university(comment.author?.profile?.universityDetail as UniversityDetailModel),
-        },
-        updatedAt: comment.updatedAt || comment.createdAt,
-      })),
-      isLiked,
-    };
-
-    return processedArticle;
+    return article;
   }
 
   async updateArticle(id: string, userId: string, isAdmin: boolean, data: Partial<ArticleUpload>) {
@@ -118,34 +88,11 @@ export class ArticleService {
     await this.likeRepository.like(userId, id);
   }
 
-  processArticles(articles: ArticleWithRelations[]): ArticleDetails[] {
-    return articles.map(article => ({
-      id: article.id,
-      title: article.title,
-      author: {
-        id: article.author.id,
-        age: article.author.profile.age,
-        name: article.anonymous ? article.anonymous : article.author.name,
-        gender: article.author.profile.gender as Gender,
-        universityDetails: this.university(article.author?.profile?.universityDetail as UniversityDetailModel),
-      },
-      updatedAt: article.updatedAt || article.createdAt,
-      isLiked: false,
-      category: article.articleCategory.code as ArticleRequestType,
-      content: article.content,
-      likeCount: article.likes.length,
-      readCount: article.readCount,
-      comments: article.comments.map(comment => ({
-        id: comment.id,
-        content: comment.content,
-        author: {
-          id: comment.authorId,
-          name: comment.nickname,
-          universityDetails: this.university(comment.author.profile?.universityDetail as UniversityDetailModel),
-        },
-      })),
-    }));
-  }
+  /**
+   * 대학 정보를 변환합니다.
+   * @param universityDetails 대학 정보 모델
+   * @returns 변환된 대학 정보
+   */
 
   private university(universityDetails?: UniversityDetailModel): UniversityDetail {
     if (!universityDetails) return {
