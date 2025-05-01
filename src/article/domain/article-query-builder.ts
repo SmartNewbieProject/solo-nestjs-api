@@ -101,14 +101,11 @@ export class ArticleQueryBuilder {
 
   private buildCommentsSubquery() {
     const o = this.options;
-    // comment.limit이 없는 경우 모든 댓글을 불러오도록 수정
-    // limit이 undefined인 경우 null로 설정하여 제한 없이 모든 댓글을 불러옴
     const commentLimit = o.comment?.limit !== undefined ? o.comment.limit : null;
     const includeReplies = o.comment?.reply || false;
 
     const parentCommentCondition = isNull(comments.parentId);
 
-    // SQL 표현식을 사용하여 camelCase로 변환
     let commentsQuery = this.db.select({
       id: sql`${comments.id}`.as('id'),
       authorId: sql`${comments.authorId}`.as('authorId'),
