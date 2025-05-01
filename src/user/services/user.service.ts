@@ -22,7 +22,14 @@ export default class UserService {
 
   async getUserDetails(userId: string): Promise<UserDetails> {
     const userRaw = await this.userRepository.getMyDetails(userId);
-    const universityDetails = userRaw!.profile!.universityDetail;
+
+    if (!userRaw || !userRaw.profile) {
+      throw new NotFoundException('사용자 정보를 찾을 수 없습니다.');
+    }
+
+    const profile = userRaw.profile as any;
+
+    const universityDetails = profile.universityDetail;
 
     const university: UniversityDetail = {
       name: universityDetails?.universityName ?? '',
@@ -32,18 +39,24 @@ export default class UserService {
       studentNumber: universityDetails?.studentNumber ?? '',
     };
 
-    return {
-      age: userRaw!.profile!.age,
-      gender: userRaw!.profile!.gender,
-      name: userRaw!.name,
-      phoneNumber: userRaw!.phoneNumber,
-      profileImages: userRaw!.profile!.profileImages.map(d => ({
+    const profileImages = Array.isArray(profile.profileImages)
+      ? profile.profileImages.map((d: any) => ({
         id: d.id,
         order: d.imageOrder,
         isMain: d.isMain,
         url: d.image.s3Url,
-      })),
-      instagramId: userRaw!.profile!.instagramId,
+      }))
+      : [];
+
+    const instagramId = profile.instagramId ?? '';
+
+    return {
+      age: profile.age,
+      gender: profile.gender,
+      name: userRaw.name,
+      phoneNumber: userRaw.phoneNumber,
+      profileImages,
+      instagramId,
       universityDetails: university,
     };
   }

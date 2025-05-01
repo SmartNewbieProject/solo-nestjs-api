@@ -9,7 +9,11 @@ export const commentsRelations = relations(comments, ({ one }) => ({
     references: [users.id],
   }),
   post: one(articles, {
-    fields: [comments.postId],
+    fields: [comments.articleId],
     references: [articles.id],
+  }),
+  parent: one(comments, {
+    fields: [comments.parentId],
+    references: [comments.id],
   }),
 }));

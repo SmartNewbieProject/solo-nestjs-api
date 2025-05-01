@@ -13,4 +13,6 @@ export default defineConfig({
     password: process.env.DATABASE_PASSWORD!,
     ssl: false,
   },
+  strict: false,
+  breakpoints: false,
 });

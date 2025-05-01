@@ -12,11 +12,6 @@ import AdminMatchService from './services/match.service';
 import AdminMatchRepository from './repositories/match.repository';
 import { MatchingModule } from '@/matching/matching.module';
 import { SlackNotificationModule } from '@/slack-notification/slack-notification.module';
-import { AdminStatsRepository } from './repositories/admin-stats.repository';
-import { AdminWithdrawalStatsRepository } from './repositories/admin-withdrawal-stats.repository';
-import { AdminSalesStatsRepository } from './repositories/admin-sales-stats.repository';
-import { AdminUserAppearanceRepository } from './repositories/admin-user-appearance.repository';
-import { AdminUserDetailRepository } from './repositories/admin-user-detail.repository';
 
 import { UserActivityInterceptor } from './interceptors/user-activity.interceptor';
 import { UserActivityListener } from './listeners/user-activity.listener';
@@ -53,11 +48,6 @@ import SmsService from '@/sms/services/sms.service';
     ProfileRepository,
     AdminMatchService,
     AdminMatchRepository,
-    AdminStatsRepository,
-    AdminWithdrawalStatsRepository,
-    AdminSalesStatsRepository,
-    AdminUserAppearanceRepository,
-    AdminUserDetailRepository,
     UserActivityListener,
     {
       provide: APP_INTERCEPTOR,

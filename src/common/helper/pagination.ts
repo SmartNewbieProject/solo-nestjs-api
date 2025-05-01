@@ -12,7 +12,7 @@ export const paginationUtils = {
     currentPage: page,
     itemsPerPage: limit,
     totalItems: totalItems,
-    hasNextPage: totalItems > limit,
+    hasNextPage: (totalItems - page * limit) > limit,
     hasPreviousPage: page > 1,
   }),
 };

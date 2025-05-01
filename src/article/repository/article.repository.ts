@@ -1,17 +1,25 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { articles } from '@/database/schema';
 import { ArticleUpload } from '../dto';
-import { sql, eq, and, isNull, desc } from 'drizzle-orm';
+import { sql, eq, and, isNull, desc, count, SQL } from 'drizzle-orm';
 import { generateUuidV7 } from '@/database/schema/helper';
 import * as schema from '@database/schema';
-import { ArticleRequestType, ArticleWithRelations } from '../types/article.types';
+import { ArticleDetails, ArticleQueryOptions, ArticleRequestType, ArticleWithRelations } from '../types/article.types';
 
 import { InjectDrizzle } from '@/common/decorators';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { generateAnonymousName } from '../domain';
+import { CommentWithRelations } from '../types/comment.type';
+import { PgSelect } from 'drizzle-orm/pg-core';
+import { ArticleQueryBuilder, ArticleQueryResult } from '../domain/article-query-builder';
+import { ArticleMapper } from '../domain/article-mapper';
+
+const { comments, likes, universityDetails, profiles, users } = schema;
 
 @Injectable()
 export class ArticleRepository {
+  private logger = new Logger(ArticleRepository.name);
+
   constructor(@InjectDrizzle() private readonly db: NodePgDatabase<typeof schema>,
   ) { }
 
@@ -49,12 +57,9 @@ export class ArticleRepository {
     return result[0];
   }
 
-  async getArticles(
+  async getArticleTotalCount(
     categoryCode: ArticleRequestType,
-    limit: number = 10,
-    offset: number = 0
-  ): Promise<ArticleWithRelations[]> {
-
+  ) {
     const category = await this.db.query.articleCategory.findFirst({
       where: eq(schema.articleCategory.code, categoryCode),
     });
@@ -63,113 +68,40 @@ export class ArticleRepository {
       throw new NotFoundException('존재하지 않는 카테고리입니다.');
     }
 
-    const results = await this.db.query.articles.findMany({
-      with: {
-        author: {
-          columns: {
-            id: true,
-            name: true,
-          },
-          with: {
-            profile: {
-              with: {
-                universityDetail: true,
-                user: true,
-              },
-            }
-          },
-        },
-        articleCategory: {
-          columns: {
-            code: true,
-          },
-        },
-        comments: {
-          limit: 3,
-          with: {
-            author: {
-              with: {
-                profile: {
-                  with: {
-                    universityDetail: true,
-                    user: true,
-                  },
-                },
-              }
-            }
-          },
-          where: ({ deletedAt }) => isNull(deletedAt),
-        },
-        likes: {
-          columns: {
-            id: true,
-          },
-          where: ({ up }) => eq(up, true)
-        },
-      },
-      where: ({ deletedAt, categoryId: queryCategoryId, blindedAt }) =>
-        and(
-          eq(queryCategoryId, category.id),
-          isNull(deletedAt),
-          isNull(blindedAt),
-        ),
-      limit,
-      offset,
-      orderBy: desc(articles.createdAt),
-    });
 
-    return results as ArticleWithRelations[];
+    const results = await this.db.select({ count: count() })
+      .from(articles)
+      .where(
+        and(
+          eq(schema.articles.categoryId, category.id),
+          isNull(schema.articles.deletedAt),
+          isNull(schema.articles.blindedAt),
+        ),
+      )
+      .execute();
+
+    return results[0];
   }
 
-  async getArticleById(id: string): Promise<ArticleWithRelations | null> {
-    const result = await this.db.query.articles.findFirst({
-      where: sql`${articles.id} = ${id} AND ${articles.deletedAt} IS NULL`,
-      with: {
-        author: {
-          columns: {
-            id: true,
-            name: true,
-          },
-          with: {
-            profile: {
-              with: {
-                universityDetail: true,
-                user: true,
-              },
-            }
-          },
-        },
-        articleCategory: {
-          columns: {
-            code: true,
-          },
-        },
-        comments: {
-          limit: 3,
-          with: {
-            author: {
-              with: {
-                profile: {
-                  with: {
-                    universityDetail: true,
-                    user: true,
-                  },
-                },
-              }
-            }
-          },
-          where: ({ deletedAt }) => isNull(deletedAt),
-        },
-        likes: {
-          columns: {
-            id: true,
-          },
-          where: ({ up }) => eq(up, true)
-        },
-      },
-    });
+  async executeArticleQuery(options: ArticleQueryOptions): Promise<ArticleDetails[]> {
+    const results = await new ArticleQueryBuilder(this.db, options)
+      .create()
+      .execute() as ArticleQueryResult[];
 
-    return result as ArticleWithRelations | null;
+    const articleDetails = ArticleMapper.toArticleDetailsList(results);
+
+    this.logger.debug(`${results.length}개의 게시글을 조회했습니다.`);
+    return articleDetails;
+  }
+
+  async getArticleById(id: string): Promise<ArticleDetails | null> {
+    const results = await new ArticleQueryBuilder(this.db, { articleId: id })
+      .create()
+      .execute() as ArticleQueryResult[];
+
+    if (results.length === 0) return null;
+
+    return ArticleMapper.toArticleDetails(results[0]);
   }
 
   async deleteArticle(id: string) {
