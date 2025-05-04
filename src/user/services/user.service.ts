@@ -51,6 +51,7 @@ export default class UserService {
     const instagramId = profile.instagramId ?? '';
 
     return {
+      id: userRaw.id,
       age: profile.age,
       gender: profile.gender,
       name: userRaw.name,

@@ -98,6 +98,7 @@ export interface UserProfile {
 export type CommonProfile = Omit<UserProfile, 'rank'>;
 
 export interface UserDetails {
+  id: string;
   name: string;
   age: number;
   gender: Gender;

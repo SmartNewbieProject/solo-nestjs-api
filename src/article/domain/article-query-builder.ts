@@ -33,7 +33,6 @@ export interface ArticleQueryResult {
     title: string;
     content: string;
     anonymous: string | null;
-    likeCount: number;
     readCount: number;
     createdAt: Date;
     updatedAt: Date | null;
@@ -46,6 +45,7 @@ export interface ArticleQueryResult {
     nickname: string;
   };
   universityName: string;
+  likeCount: number;
   universityAuthentication: boolean;
   universityDepartment: string;
   universityGrade: string;
@@ -203,6 +203,13 @@ export class ArticleQueryBuilder {
         FROM (${commentsSubquery}) c
       )`.as('comments'),
       isLiked: isLikedSubquery,
+      likeCount: sql<number>`(
+        SELECT COUNT(*)
+        FROM ${schema.likes} l
+        WHERE l.article_id = ${articles.id}
+        AND l.up = true
+        AND l.deleted_at IS NULL
+      )`.as('likeCount'),
     })
       .from(articles)
       .leftJoin(users, eq(articles.authorId, users.id))

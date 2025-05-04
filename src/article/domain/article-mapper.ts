@@ -15,7 +15,7 @@ export class ArticleMapper {
       comments: result.comments ? result.comments.map(comment => this.toCommentDetails(comment)) : [],
       category: this.getCategoryCode(result),
       author: this.toAuthorDetails(result),
-      likeCount: result.article.likeCount,
+      likeCount: Number(result.likeCount),
       commentCount: Number(result.commentCount),
       readCount: result.article.readCount,
       updatedAt: result.article.updatedAt || result.article.createdAt,
@@ -48,7 +48,6 @@ export class ArticleMapper {
   }
 
   static toCommentDetails(comment: CommentResult): CommentDetails {
-    this.logger.debug({ comment });
     return {
       id: comment.id,
       content: comment.content,

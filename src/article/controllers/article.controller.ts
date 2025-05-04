@@ -141,4 +141,5 @@ export class ArticleController {
   ) {
     return await this.articleService.updateLikeCount(id, user.id);
   }
+
 }
