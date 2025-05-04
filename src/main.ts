@@ -21,10 +21,13 @@ async function bootstrap() {
   });
 
   app.useStaticAssets(join(__dirname, '..', 'public'));
-
   const apiPrefix = process.env.NODE_ENV === 'development' ? 'api' : 'app/api';
+  const excludePaths = process.env.NODE_ENV === 'development'
+    ? ['docs', 'docs-json', 'swagger-ui-bundle.js', 'swagger-ui-standalone-preset.js', 'swagger-ui.css']
+    : ['app/docs', 'app/docs-json', 'swagger-ui-bundle.js', 'swagger-ui-standalone-preset.js', 'swagger-ui.css'];
+
   app.setGlobalPrefix(apiPrefix, {
-    exclude: ['docs', 'docs-json', 'swagger-ui-bundle.js', 'swagger-ui-standalone-preset.js', 'swagger-ui.css']
+    exclude: excludePaths
   });
 
   app.enableCors({
@@ -71,19 +74,21 @@ async function bootstrap() {
     )
     .build();
 
-  if (process.env.NODE_ENV !== 'production') {
-    const document = SwaggerModule.createDocument(app, config, {
-      extraModels: [],
-      ignoreGlobalPrefix: false,
-    });
-    SwaggerModule.setup('docs', app, document, {
-      jsonDocumentUrl: '/docs-json',
-      swaggerOptions: {
-        docExpansion: 'list',
-        persistAuthorization: true,
-      },
-    });
-  }
+  const document = SwaggerModule.createDocument(app, config, {
+    extraModels: [],
+    ignoreGlobalPrefix: false,
+  });
+
+  const docsPath = process.env.NODE_ENV === 'development' ? 'docs' : 'app/docs';
+  const jsonDocumentUrl = process.env.NODE_ENV === 'development' ? '/docs-json' : '/app/docs-json';
+
+  SwaggerModule.setup(docsPath, app, document, {
+    jsonDocumentUrl: jsonDocumentUrl,
+    swaggerOptions: {
+      docExpansion: 'list',
+      persistAuthorization: true,
+    },
+  });
 
   await app.listen(process.env.PORT ?? 8044, '0.0.0.0');
 }
