@@ -17,7 +17,6 @@ import { PaymentModule } from '@/payment/payment.module';
 import { MatchHistoryService } from './services/history.service';
 import { MatchHistoryRepository } from './repository/history.repository';
 import { HistoryController } from './controllers/history.controller';
-import { MatchingFailureLogRepository } from './repository/matching-failure-log.repository';
 
 @Module({
   imports: [
@@ -38,7 +37,6 @@ import { MatchingFailureLogRepository } from './repository/matching-failure-log.
     MatchRepository,
     AdminMatchRepository,
     AdminMatchService,
-    MatchingFailureLogRepository,
   ],
   controllers: [
     AdminMatchingController,

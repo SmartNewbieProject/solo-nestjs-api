@@ -10,7 +10,6 @@ import ProfileRepository from "@/user/repository/profile.repository";
 import { ProfileService } from "@/user/services/profile.service";
 import { Cache } from "@nestjs/cache-manager";
 import { TicketService } from "@/payment/services/ticket.service";
-import { MatchingFailureLogRepository } from "../repository/matching-failure-log.repository";
 
 enum CronFrequency {
   // MATCHING_DAY = '0 0 * * 2,4',
@@ -28,7 +27,6 @@ export default class MatchingCreationService {
     private readonly slackService: SlackService,
     private readonly ticketService: TicketService,
     private readonly cacheManager: Cache,
-    private readonly matchingFailureLogRepository: MatchingFailureLogRepository,
   ) { }
 
 
@@ -56,11 +54,6 @@ export default class MatchingCreationService {
     const partners = await this.matchingService.findMatches(userId, 10, type);
     if (partners.length === 0) {
       this.logger.debug(`대상 ID: ${userId}, 파트너 ID: 없음, 유사도: 0`);
-      // 매칭 실패 로그 저장
-      await this.matchingFailureLogRepository.createFailureLog(
-        userId,
-        '적합한 매칭 상대를 찾을 수 없음'
-      );
       return false;
     }
     const partner = this.getOnePartner(partners);
@@ -126,13 +119,6 @@ export default class MatchingCreationService {
       } catch (error) {
         results.push({ status: 'rejected', reason: error });
         this.slackService.sendNotification(`${userId} 매칭 처리 실패\n\`\`\`${JSON.stringify(error, null, 2)}\`\`\``);
-
-        // 매칭 실패 로그 저장
-        await this.matchingFailureLogRepository.createFailureLog(
-          userId,
-          `매칭 처리 중 오류 발생: ${error.message || JSON.stringify(error)}`
-        );
-
         totalFailure++;
         this.logger.error(error);
       }
