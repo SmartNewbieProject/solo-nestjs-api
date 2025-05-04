@@ -22,7 +22,7 @@ async function bootstrap() {
 
   app.useStaticAssets(join(__dirname, '..', 'public'));
 
-  const apiPrefix = process.env.NODE_ENV === 'development' ? 'api' : 'app/api';
+  const apiPrefix = process.env.NODE_ENV === 'development' ? 'api' : 'app';
   app.setGlobalPrefix(apiPrefix, {
     exclude: ['docs', 'docs-json', 'swagger-ui-bundle.js', 'swagger-ui-standalone-preset.js', 'swagger-ui.css']
   });
