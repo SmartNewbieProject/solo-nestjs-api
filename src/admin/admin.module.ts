@@ -22,6 +22,9 @@ import { SignupRepository } from '@/auth/repository/signup.repository';
 import UniversityRepository from '@/auth/repository/university.repository';
 import { ImageService } from '@/user/services/image.service';
 import SmsService from '@/sms/services/sms.service';
+import { MatchingFailureLogService } from './services/matching-failure-log.service';
+import { AdminMatchingFailureLogController } from './controllers/admin-matching-failure-log.controller';
+import { MatchingFailureLogRepository } from '@/matching/repository/matching-failure-log.repository';
 
 @Module({
   imports: [
@@ -36,6 +39,8 @@ import SmsService from '@/sms/services/sms.service';
   ],
   controllers: [
     AdminMatchingController,
+    AdminMatchingFailureLogController,
+    AdminMailController,
   ],
   providers: [
     SignupService,
@@ -49,6 +54,8 @@ import SmsService from '@/sms/services/sms.service';
     AdminMatchService,
     AdminMatchRepository,
     UserActivityListener,
+    MatchingFailureLogService,
+    MatchingFailureLogRepository,
     {
       provide: APP_INTERCEPTOR,
       useClass: UserActivityInterceptor,

@@ -17,3 +17,4 @@ export * from './ticket.relations';
 export * from './image.relations';
 export * from './article-categories.relations';
 export * from './hot_articles.relations';
+export * from './matching_failure_logs.relations';
