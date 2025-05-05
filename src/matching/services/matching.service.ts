@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ProfileEmbeddingService } from '@/embedding/profile-embedding.service';
 import matchingPreferenceWeighter from '../domain/matching-preference-weighter';
 import { ProfileService } from '@/user/services/profile.service';
@@ -67,9 +67,19 @@ export class MatchingService {
       finalWeights[key as keyof MatchingWeights] /= weightSum;
     });
 
-    const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3, type);
-    this.logger.log(similarProfiles);
-    return similarProfiles;
+    try {
+      const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3, type);
+      this.logger.log(similarProfiles);
+      return similarProfiles;
+    } catch (error) {
+      if (error instanceof NotFoundException) {
+        this.logger.warn(`사용자 ${userId}의 프로필 임베딩을 찾을 수 없습니다: ${error.message}`);
+        // 임베딩을 찾을 수 없는 경우 빈 배열 반환
+        return [];
+      }
+      // 다른 예외는 그대로 전파
+      throw error;
+    }
   }
 
   async getLatestPartner(userId: string): Promise<MatchDetails> {

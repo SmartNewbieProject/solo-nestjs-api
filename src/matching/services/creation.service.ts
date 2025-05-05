@@ -40,63 +40,154 @@ export default class MatchingCreationService {
   }
 
   async rematch(userId: string) {
-    const ticket = await this.ticketService.getAvailableTicket(userId, TicketType.REMATCHING);
-    if (!ticket) {
-      throw new ForbiddenException('재매칭권이 없습니다.');
-    }
-    const success = await this.createPartner(userId, MatchType.REMATCHING);
-    if (!success) {
-      // 매칭 실패 로그 저장 (이미 createPartner 내부에서 저장되지만, 추가 정보를 위해 여기서도 저장)
-      await this.matchingFailureLogService.logMatchingFailure(userId, '재매칭 요청 시 매칭상대를 찾을 수 없음');
-
-      // 재매칭 실패 시 추가 슬랙 알림 전송
-      try {
-        const userProfile = await this.profileService.getUserProfiles(userId);
-        const failureMessage = `❌ 재매칭 실패 알림\n사용자: ${userProfile.name} (ID: ${userId})\n이유: 재매칭 요청 시 매칭상대를 찾을 수 없음`;
-        await this.slackService.sendNotification(failureMessage);
-      } catch (error) {
-        this.logger.error(`재매칭 실패 슬랙 알림 전송 중 오류 발생: ${error.message}`, error.stack);
+    try {
+      // 재매칭권 확인
+      const ticket = await this.ticketService.getAvailableTicket(userId, TicketType.REMATCHING);
+      if (!ticket) {
+        throw new ForbiddenException('재매칭권이 없습니다.');
       }
 
-      throw new NotFoundException('매칭상대를 찾을 수 없습니다.');
-    }
+      // 매칭 시도
+      const success = await this.createPartner(userId, MatchType.REMATCHING);
+      if (!success) {
+        // 매칭 실패 로그 저장 (이미 createPartner 내부에서 저장되지만, 추가 정보를 위해 여기서도 저장)
+        await this.matchingFailureLogService.logMatchingFailure(userId, '재매칭 요청 시 매칭상대를 찾을 수 없음');
 
-    await this.ticketService.useTicket(ticket.id);
+        // 재매칭 실패 시 추가 슬랙 알림 전송
+        try {
+          const userProfile = await this.profileService.getUserProfiles(userId);
+          const failureMessage = `❌ 재매칭 실패 알림\n사용자: ${userProfile.name} (ID: ${userId})\n이유: 재매칭 요청 시 매칭상대를 찾을 수 없음`;
+          await this.slackService.sendNotification(failureMessage);
+        } catch (error) {
+          this.logger.error(`재매칭 실패 슬랙 알림 전송 중 오류 발생: ${error.message}`, error.stack);
+        }
+
+        throw new NotFoundException('매칭상대를 찾을 수 없습니다.');
+      }
+
+      // 매칭 성공 시 티켓 사용 처리
+      await this.ticketService.useTicket(ticket.id);
+    } catch (error) {
+      // ForbiddenException(재매칭권 없음)과 NotFoundException(매칭상대 없음)은 그대로 전파
+      if (error instanceof ForbiddenException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+      // 그 외 예외는 로그 저장 및 슬랙 알림 전송 후 NotFoundException으로 변환
+      this.logger.error(`재매칭 처리 중 오류 발생: ${error.message}`, error.stack);
+
+      // 매칭 실패 로그 저장
+      await this.matchingFailureLogService.logMatchingFailure(userId, `재매칭 처리 중 오류 발생: ${error.message}`);
+
+      // 슬랙 알림 전송
+      try {
+        let userName = '알 수 없음';
+        try {
+          const userProfile = await this.profileService.getUserProfiles(userId);
+          userName = userProfile.name;
+        } catch (profileError) {
+          this.logger.error(`사용자 프로필 조회 중 오류 발생: ${profileError.message}`, profileError.stack);
+        }
+
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const failureMessage = `❌ 재매칭 처리 중 오류 발생\n사용자: ${userName} (ID: ${userId})\n이유: ${errorMessage}`;
+        await this.slackService.sendNotification(failureMessage);
+      } catch (slackError) {
+        this.logger.error(`슬랙 알림 전송 중 오류 발생: ${slackError.message}`, slackError.stack);
+      }
+
+      throw new NotFoundException('매칭 처리 중 오류가 발생했습니다.');
+    }
   }
 
   async createPartner(userId: string, type: MatchType, isBatch: boolean = false) {
-    const partners = await this.matchingService.findMatches(userId, 10, type);
-    if (partners.length === 0) {
-      this.logger.debug(`대상 ID: ${userId}, 파트너 ID: 없음, 유사도: 0`);
-      // 매칭 실패 로그 저장
-      await this.matchingFailureLogService.logMatchingFailure(userId, '적합한 매칭 파트너를 찾을 수 없음');
+    try {
+      // 매칭 가능한 파트너 찾기
+      const partners = await this.matchingService.findMatches(userId, 10, type);
+      if (partners.length === 0) {
+        this.logger.debug(`대상 ID: ${userId}, 파트너 ID: 없음, 유사도: 0`);
 
-      // 매칭 실패 시 슬랙 알림 전송
+        // 매칭 실패 로그 저장
+        await this.matchingFailureLogService.logMatchingFailure(userId, '적합한 매칭 파트너를 찾을 수 없음');
+
+        // 매칭 실패 시 슬랙 알림 전송
+        try {
+          const userProfile = await this.profileService.getUserProfiles(userId);
+          const failureMessage = `❌ 매칭 실패 알림\n사용자: ${userProfile.name} (ID: ${userId})\n이유: 적합한 매칭 파트너를 찾을 수 없음`;
+          await this.slackService.sendNotification(failureMessage);
+        } catch (error) {
+          this.logger.error(`매칭 실패 슬랙 알림 전송 중 오류 발생: ${error.message}`, error.stack);
+        }
+
+        return false;
+      }
+
+      // 파트너 선택 및 매칭 생성
+      const partner = this.getOnePartner(partners);
+
       try {
-        const userProfile = await this.profileService.getUserProfiles(userId);
-        const failureMessage = `❌ 매칭 실패 알림\n사용자: ${userProfile.name} (ID: ${userId})\n이유: 적합한 매칭 파트너를 찾을 수 없음`;
-        await this.slackService.sendNotification(failureMessage);
+        const requester = await this.profileService.getUserProfiles(userId);
+        const matcher = await this.profileService.getUserProfiles(partner.userId);
+
+        if (!isBatch) {
+          await this.slackService.sendSingleMatch(
+            requester,
+            matcher,
+            partner.similarity,
+            type
+          );
+        }
+
+        await this.createMatch(userId, partner, type);
+        return true;
       } catch (error) {
-        this.logger.error(`매칭 실패 슬랙 알림 전송 중 오류 발생: ${error.message}`, error.stack);
+        // 프로필 조회 또는 매칭 생성 중 오류 발생 시 로그 저장
+        this.logger.error(`매칭 생성 중 오류 발생: ${error.message}`, error.stack);
+        await this.matchingFailureLogService.logMatchingFailure(userId, `매칭 생성 중 오류 발생: ${error.message}`);
+
+        // 슬랙 알림 전송
+        try {
+          let userName = '알 수 없음';
+          try {
+            const userProfile = await this.profileService.getUserProfiles(userId);
+            userName = userProfile.name;
+          } catch (profileError) {
+            // 프로필 조회 실패 시 무시하고 계속 진행
+          }
+
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          const failureMessage = `❌ 매칭 생성 중 오류 발생\n사용자: ${userName} (ID: ${userId})\n이유: ${errorMessage}`;
+          await this.slackService.sendNotification(failureMessage);
+        } catch (slackError) {
+          this.logger.error(`슬랙 알림 전송 중 오류 발생: ${slackError.message}`, slackError.stack);
+        }
+
+        return false;
+      }
+    } catch (error) {
+      // 예상치 못한 오류 발생 시 로그 저장
+      this.logger.error(`매칭 처리 중 예상치 못한 오류 발생: ${error.message}`, error.stack);
+      await this.matchingFailureLogService.logMatchingFailure(userId, `매칭 처리 중 예상치 못한 오류 발생: ${error.message}`);
+
+      // 슬랙 알림 전송
+      try {
+        let userName = '알 수 없음';
+        try {
+          const userProfile = await this.profileService.getUserProfiles(userId);
+          userName = userProfile.name;
+        } catch (profileError) {
+          // 프로필 조회 실패 시 무시하고 계속 진행
+        }
+
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const failureMessage = `❌ 매칭 처리 중 예상치 못한 오류 발생\n사용자: ${userName} (ID: ${userId})\n이유: ${errorMessage}`;
+        await this.slackService.sendNotification(failureMessage);
+      } catch (slackError) {
+        this.logger.error(`슬랙 알림 전송 중 오류 발생: ${slackError.message}`, slackError.stack);
       }
 
       return false;
     }
-    const partner = this.getOnePartner(partners);
-    const requester = await this.profileService.getUserProfiles(userId);
-    const matcher = await this.profileService.getUserProfiles(partner.userId);
-
-    if (!isBatch) {
-      await this.slackService.sendSingleMatch(
-        requester,
-        matcher,
-        partner.similarity,
-        type
-      );
-    }
-
-    await this.createMatch(userId, partner, type);
-    return true;
   }
 
   private async createMatch(userId: string, partner: Similarity, type: MatchType) {

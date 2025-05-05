@@ -71,8 +71,41 @@ export default class UserMatchingController {
   }
 
   @Post('/rematch')
-  async rematch(@CurrentUser() user: AuthenticationUser) {
+  @ApiOperation({
+    summary: '재매칭 요청',
+    description: '재매칭권을 사용하여 새로운 매칭을 요청합니다.'
+  })
+  @ApiResponse({
+    status: 200,
+    description: '재매칭 성공',
+    type: PartnerResponse
+  })
+  @ApiResponse({
+    status: 403,
+    description: '재매칭권이 없음',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 403 },
+        message: { type: 'string', example: '재매칭권이 없습니다.' }
+      }
+    }
+  })
+  @ApiResponse({
+    status: 404,
+    description: '프로필 임베딩을 찾을 수 없습니다.',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 404 },
+        message: { type: 'string', example: '프로필 임베딩을 찾을 수 없습니다.' }
+      }
+    }
+  })
+  async rematch(@CurrentUser() user: AuthenticationUser): Promise<MatchDetails> {
     await this.matchingCreationService.rematch(user.id);
+    // 재매칭 후 최신 파트너 정보 반환
+    return await this.matchingService.getLatestPartner(user.id);
   }
 
   @Get('next-date')
@@ -89,4 +122,6 @@ export default class UserMatchingController {
   async getPartnerById(@Param('id') id: string) {
 
   }
+
+
 }
