@@ -51,6 +51,19 @@ export class ContentUpdate {
   @IsString()
   @MaxLength(255, { message: '게시글 내용은 255자 이하입니다.' })
   content: string;
+
+  @ApiProperty({
+    description: '게시글 제모',
+    example: '게시글 내용'
+  })
+
+  @ApiProperty({
+    description: '게시글 제목',
+    example: '아무나 친해지실분 계신가요??',
+  })
+  @IsString()
+  @MaxLength(30, { message: '게시글 제목은 30자 이하입니다.' })
+  title: string;
 }
 
 export class CommentUpload {

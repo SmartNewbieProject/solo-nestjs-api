@@ -12,9 +12,10 @@ import { generateAnonymousName } from '../domain';
 import { CommentWithRelations } from '../types/comment.type';
 import { PgSelect } from 'drizzle-orm/pg-core';
 import { ArticleQueryBuilder, ArticleQueryResult } from '../domain/article-query-builder';
+import { HotArticleQueryBuilder } from '../domain/hot-article-query-builder';
 import { ArticleMapper } from '../domain/article-mapper';
 
-const { comments, likes, universityDetails, profiles, users } = schema;
+const { comments, likes, universityDetails, profiles, users, hotArticles } = schema;
 
 @Injectable()
 export class ArticleRepository {
@@ -60,6 +61,10 @@ export class ArticleRepository {
   async getArticleTotalCount(
     categoryCode: ArticleRequestType,
   ) {
+    if (categoryCode === ArticleRequestType.HOT) {
+      return this.getHotArticlesTotalCount();
+    }
+
     const category = await this.db.query.articleCategory.findFirst({
       where: eq(schema.articleCategory.code, categoryCode),
     });
@@ -67,7 +72,6 @@ export class ArticleRepository {
     if (!category) {
       throw new NotFoundException('존재하지 않는 카테고리입니다.');
     }
-
 
     const results = await this.db.select({ count: count() })
       .from(articles)
@@ -114,6 +118,11 @@ export class ArticleRepository {
     return result.length > 0 ? result[0] : null;
   }
 
+  deleteHotArticle(id: string) {
+    return this.db.delete(hotArticles)
+      .where(eq(hotArticles.articleId, id));
+  }
+
   async getArticleAuthorId(id: string) {
     const result = await this.db.select({ authorId: articles.authorId })
       .from(articles)
@@ -129,6 +138,7 @@ export class ArticleRepository {
     const result = await this.db.update(articles)
       .set({
         content: data.content,
+        title: data.title,
         updatedAt: new Date(),
       })
       .where(and(
@@ -138,5 +148,41 @@ export class ArticleRepository {
       .returning();
 
     return result.length > 0 ? result[0] : null;
+  }
+
+  async getHotArticles(options: ArticleQueryOptions): Promise<ArticleDetails[]> {
+    this.logger.debug('인기 게시글 조회 시작');
+
+    const results = await new HotArticleQueryBuilder(this.db, options)
+      .create()
+      .execute() as ArticleQueryResult[];
+
+    const articleDetails = ArticleMapper.toArticleDetailsList(results);
+
+    this.logger.debug(`${articleDetails.length}개의 인기 게시글을 조회했습니다.`);
+    return articleDetails;
+  }
+
+  async getLatestSimpleHotArticles() {
+    await this.db.select({
+      id: articles.id,
+      title: articles.title,
+    })
+      .from(hotArticles)
+      .leftJoin(articles, eq(hotArticles.articleId, articles.id))
+      .where(isNull(hotArticles.deletedAt))
+      .orderBy(desc(hotArticles.createdAt))
+      .execute();
+  }
+
+  async getHotArticlesTotalCount() {
+    const result = await this.db
+      .select({ count: count() })
+      .from(hotArticles)
+      .where(isNull(hotArticles.deletedAt))
+      .limit(5)
+      .execute();
+
+    return result[0];
   }
 }
