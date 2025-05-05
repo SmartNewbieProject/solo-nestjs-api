@@ -49,7 +49,8 @@ export type ArticleDetails = {
 export enum ArticleRequestType {
   GENERAL = 'general',
   REVIEW = 'review',
-  LOVE_CONCERNS = 'love-concerns'
+  LOVE_CONCERNS = 'love-concerns',
+  HOT = 'hot',
 }
 
 export interface ArticleQueryOptions {

@@ -10,14 +10,21 @@ import { ReportService } from './services/report.service';
 import { ReportRepository } from './repository/report.repository';
 import { LikeRepository } from './repository/like.repository';
 import ProfileRepository from '@/user/repository/profile.repository';
+import { ArticleViewService } from './services/article-view.service';
+import { HotArticleService } from './services/hot-article.service';
+import { RedisService } from '@/config/redis/redis.service';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
-  imports: [],
+  imports: [ScheduleModule.forRoot()],
   controllers: [ArticleController, CommentController, ReportController],
   providers: [
-    ArticleService, 
-    ArticleRepository, 
-    CommentService, 
+    RedisService,
+    ArticleService,
+    ArticleViewService,
+    HotArticleService,
+    ArticleRepository,
+    CommentService,
     CommentRepository,
     ReportService,
     ReportRepository,
@@ -26,4 +33,4 @@ import ProfileRepository from '@/user/repository/profile.repository';
   ],
   exports: [ArticleService]
 })
-export class ArticleModule {}
+export class ArticleModule { }

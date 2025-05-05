@@ -20,7 +20,14 @@ export class ArticleService {
   ) { }
 
   async getArticleCategories() {
-    return await this.articleRepository.getArticleCategories();
+    const categories = await this.articleRepository.getArticleCategories();
+    categories.splice(1, 0, {
+      code: 'hot',
+      displayName: '인기',
+      emojiUrl: 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/resources/fire.png',
+    });
+
+    return categories;
   }
 
   async createArticle(userId: string, articleData: ArticleUpload) {
@@ -28,21 +35,37 @@ export class ArticleService {
   }
 
   async getArticles(categoryCode: ArticleRequestType, page: number = 1, limit: number = 10, userId: string): Promise<PaginatedResponse<ArticleDetails>> {
-    const articles = await this.articleRepository.executeArticleQuery({
-      categoryCode,
-      page,
-      limit,
-      comment: { limit: 3 },
-      authorId: userId,
-      userId,
-    });
+    let articles: ArticleDetails[] = [];
+    let totalCount: number = 0;
 
-    const { count: totalCategoryArticleCount } = await this.articleRepository.getArticleTotalCount(categoryCode);
-    this.logger.debug(`게시글 조회 완료: ${totalCategoryArticleCount}개의 게시글을 조회했습니다.`);
+    if (categoryCode === ArticleRequestType.HOT) {
+      articles = await this.articleRepository.getHotArticles({
+        page,
+        limit,
+        comment: { limit: 3 },
+        userId,
+      });
+      const { count } = await this.articleRepository.getHotArticlesTotalCount();
+      totalCount = Number(count);
+    }
+    else {
+      articles = await this.articleRepository.executeArticleQuery({
+        categoryCode,
+        page,
+        limit,
+        comment: { limit: 3 },
+        authorId: userId,
+        userId,
+      });
+      const { count } = await this.articleRepository.getArticleTotalCount(categoryCode);
+      totalCount = Number(count);
+    }
+
+    this.logger.debug(`게시글 조회 완료: ${totalCount}개의 게시글을 조회했습니다.`);
 
     return {
       items: articles,
-      meta: paginationUtils.createMetdata(page, limit, totalCategoryArticleCount),
+      meta: paginationUtils.createMetdata(page, limit, totalCount),
     };
   }
 
@@ -81,6 +104,7 @@ export class ArticleService {
     }
 
     const deletedArticle = await this.articleRepository.deleteArticle(id);
+    await this.articleRepository.deleteHotArticle(id);
     return deletedArticle;
   }
 
@@ -88,28 +112,8 @@ export class ArticleService {
     await this.likeRepository.like(userId, id);
   }
 
-  /**
-   * 대학 정보를 변환합니다.
-   * @param universityDetails 대학 정보 모델
-   * @returns 변환된 대학 정보
-   */
-
-  private university(universityDetails?: UniversityDetailModel): UniversityDetail {
-    if (!universityDetails) return {
-      name: '익명대학교',
-      authentication: false,
-      department: '익명',
-      grade: '1학년',
-      studentNumber: '10학번',
-    }
-
-    return {
-      name: universityDetails.universityName,
-      authentication: universityDetails.authentication,
-      department: universityDetails.department,
-      grade: universityDetails.grade,
-      studentNumber: universityDetails.studentNumber,
-    };
+  async getLatestHotArticles() {
+    return await this.articleRepository.getLatestSimpleHotArticles();
   }
 
 }
