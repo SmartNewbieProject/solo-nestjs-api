@@ -81,23 +81,23 @@ VALUES
 
 -- 관심사 옵션
 WITH interest AS (SELECT id FROM preference_types WHERE code = 'INTEREST')
-INSERT INTO preference_options (id, preference_type_id, value, display_name, created_at, updated_at)
+INSERT INTO preference_options (id, preference_type_id, value, display_name, created_at, updated_at, image_url)
 VALUES
-  (gen_random_uuid(), (SELECT id FROM interest), 'MOVIES', '영화', NOW(), NOW()),
-  (gen_random_uuid(), (SELECT id FROM interest), 'MUSIC', '음악', NOW(), NOW()),
-  (gen_random_uuid(), (SELECT id FROM interest), 'READING', '독서', NOW(), NOW()),
-  (gen_random_uuid(), (SELECT id FROM interest), 'GAMING', '게임', NOW(), NOW()),
-  (gen_random_uuid(), (SELECT id FROM interest), 'SPORTS', '운동', NOW(), NOW()),
-  (gen_random_uuid(), (SELECT id FROM interest), 'COOKING', '요리', NOW(), NOW()),
-  (gen_random_uuid(), (SELECT id FROM interest), 'TRAVEL', '여행', NOW(), NOW()),
-  (gen_random_uuid(), (SELECT id FROM interest), 'PHOTOGRAPHY', '사진', NOW(), NOW()),
-  (gen_random_uuid(), (SELECT id FROM interest), 'FASHION', '패션', NOW(), NOW()),
-  (gen_random_uuid(), (SELECT id FROM interest), 'CAFE', '카페', NOW(), NOW()),
-  (gen_random_uuid(), (SELECT id FROM interest), 'PERFORMANCE', '공연', NOW(), NOW()),
-  (gen_random_uuid(), (SELECT id FROM interest), 'EXHIBITION', '전시', NOW(), NOW()),
-  (gen_random_uuid(), (SELECT id FROM interest), 'PETS', '반려동물', NOW(), NOW()),
-  (gen_random_uuid(), (SELECT id FROM interest), 'HIKING', '등산', NOW(), NOW()),
-  (gen_random_uuid(), (SELECT id FROM interest), 'CYCLING', '자전거', NOW(), NOW());
+  (gen_random_uuid(), (SELECT id FROM interest), 'MOVIES', '영화', NOW(), NOW(), 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/icons/movie.png'),
+  (gen_random_uuid(), (SELECT id FROM interest), 'MUSIC', '음악', NOW(), NOW(), 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/icons/music.png'),
+  (gen_random_uuid(), (SELECT id FROM interest), 'READING', '독서', NOW(), NOW(), 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/icons/reading.png'),
+  (gen_random_uuid(), (SELECT id FROM interest), 'GAMING', '게임', NOW(), NOW(), 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/icons/gaming.png'),
+  (gen_random_uuid(), (SELECT id FROM interest), 'SPORTS', '운동', NOW(), NOW(), 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/icons/exercise.png'),
+  (gen_random_uuid(), (SELECT id FROM interest), 'COOKING', '요리', NOW(), NOW(), 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/icons/cooking.png'),
+  (gen_random_uuid(), (SELECT id FROM interest), 'TRAVEL', '여행', NOW(), NOW(), 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/icons/travel.png'),
+  (gen_random_uuid(), (SELECT id FROM interest), 'PHOTOGRAPHY', '사진', NOW(), NOW(), 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/icons/capture.png'),
+  (gen_random_uuid(), (SELECT id FROM interest), 'FASHION', '패션', NOW(), NOW(), 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/icons/fashion.png'),
+  (gen_random_uuid(), (SELECT id FROM interest), 'CAFE', '카페', NOW(), NOW(), 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/icons/cafe.png'),
+  (gen_random_uuid(), (SELECT id FROM interest), 'PERFORMANCE', '공연', NOW(), NOW(), 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/icons/festival.png'),
+  (gen_random_uuid(), (SELECT id FROM interest), 'EXHIBITION', '전시', NOW(), NOW(), 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/icons/pictures.png'),
+  (gen_random_uuid(), (SELECT id FROM interest), 'PETS', '반려동물', NOW(), NOW(), 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/icons/pet.png'),
+  (gen_random_uuid(), (SELECT id FROM interest), 'HIKING', '등산', NOW(), NOW(), 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/icons/hiking.png'),
+  (gen_random_uuid(), (SELECT id FROM interest), 'CYCLING', '자전거', NOW(), NOW(), 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/icons/sports.png');
 
 -- MBTI 유형 옵션
 WITH mbti AS (SELECT id FROM preference_types WHERE code = 'MBTI')
