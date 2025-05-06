@@ -21,7 +21,7 @@ async function bootstrap() {
   });
 
   app.useStaticAssets(join(__dirname, '..', 'public'));
-  const apiPrefix = ['development', 'production'].includes(process.env.NODE_ENV) ? 'api' : 'app/api';
+  const apiPrefix = ['development', 'production'].includes(process.env.NODE_ENV) ? 'api' : 'api';
   const excludePaths = process.env.NODE_ENV === 'development'
     ? ['docs', 'docs-json', 'swagger-ui-bundle.js', 'swagger-ui-standalone-preset.js', 'swagger-ui.css']
     : ['app/docs', 'app/docs-json', 'swagger-ui-bundle.js', 'swagger-ui-standalone-preset.js', 'swagger-ui.css'];
