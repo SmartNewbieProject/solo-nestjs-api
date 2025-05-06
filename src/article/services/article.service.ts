@@ -4,11 +4,9 @@ import { ArticleUpload } from '../dto';
 import { LikeRepository } from '../repository/like.repository';
 import { PaginatedResponse } from '@/types/common';
 import { ArticleDetails, ArticleRequestType } from '../types/article.types';
-import { UniversityDetail } from '@/types/user';
 import { paginationUtils } from '@/common/helper';
-import { Gender } from '@/types/enum';
-import { UniversityDetailModel } from '@/types/database';
-import { ArticleMapper } from '../domain/article-mapper';
+import { ArticleViewService } from './article-view.service';
+
 
 @Injectable()
 export class ArticleService {
@@ -16,7 +14,8 @@ export class ArticleService {
 
   constructor(
     private readonly articleRepository: ArticleRepository,
-    private readonly likeRepository: LikeRepository
+    private readonly likeRepository: LikeRepository,
+    private readonly articleViewService: ArticleViewService,
   ) { }
 
   async getArticleCategories() {
@@ -71,6 +70,7 @@ export class ArticleService {
 
   async getArticleById(id: string, userId: string): Promise<ArticleDetails> {
     const article = await this.articleRepository.getArticleById(id);
+    await this.articleViewService.incrementViewCount(id, userId);
     if (!article) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }

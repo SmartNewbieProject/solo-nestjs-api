@@ -22,5 +22,10 @@ export class PreferenceService {
 
     return { typeId, options };
   }
+
+  async checkFill(userId: string) {
+    const preferenceCount: number = await this.preferenceRepository.getUserPreferenceCount(userId);
+    return preferenceCount > 3; // MBTI, ...
+  }
 }
 
