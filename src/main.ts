@@ -21,7 +21,7 @@ async function bootstrap() {
   });
 
   app.useStaticAssets(join(__dirname, '..', 'public'));
-  const apiPrefix = process.env.NODE_ENV === 'development' ? 'api' : 'app/api';
+  const apiPrefix = ['development', 'production'].includes(process.env.NODE_ENV) ? 'api' : 'app/api';
   const excludePaths = process.env.NODE_ENV === 'development'
     ? ['docs', 'docs-json', 'swagger-ui-bundle.js', 'swagger-ui-standalone-preset.js', 'swagger-ui.css']
     : ['app/docs', 'app/docs-json', 'swagger-ui-bundle.js', 'swagger-ui-standalone-preset.js', 'swagger-ui.css'];
@@ -55,40 +55,42 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  const config = new DocumentBuilder()
-    .setTitle('썸타임 API')
-    .setDescription('썸타임 REST API 문서')
-    .setVersion('1.0')
-    .addTag('썸타임')
-    .setBasePath(apiPrefix)
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        name: 'JWT',
-        description: 'JWT 토큰을 입력하세요',
-        in: 'header',
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('썸타임 API')
+      .setDescription('썸타임 REST API 문서')
+      .setVersion('1.0')
+      .addTag('썸타임')
+      .setBasePath(apiPrefix)
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          name: 'JWT',
+          description: 'JWT 토큰을 입력하세요',
+          in: 'header',
+        },
+        'access-token',
+      )
+      .build();
+
+    const document = SwaggerModule.createDocument(app, config, {
+      extraModels: [],
+      ignoreGlobalPrefix: false,
+    });
+
+    const docsPath = process.env.NODE_ENV === 'development' ? 'docs' : 'app/docs';
+    const jsonDocumentUrl = process.env.NODE_ENV === 'development' ? '/docs-json' : '/app/docs-json';
+
+    SwaggerModule.setup(docsPath, app, document, {
+      jsonDocumentUrl: jsonDocumentUrl,
+      swaggerOptions: {
+        docExpansion: 'list',
+        persistAuthorization: true,
       },
-      'access-token',
-    )
-    .build();
-
-  const document = SwaggerModule.createDocument(app, config, {
-    extraModels: [],
-    ignoreGlobalPrefix: false,
-  });
-
-  const docsPath = process.env.NODE_ENV === 'development' ? 'docs' : 'app/docs';
-  const jsonDocumentUrl = process.env.NODE_ENV === 'development' ? '/docs-json' : '/app/docs-json';
-
-  SwaggerModule.setup(docsPath, app, document, {
-    jsonDocumentUrl: jsonDocumentUrl,
-    swaggerOptions: {
-      docExpansion: 'list',
-      persistAuthorization: true,
-    },
-  });
+    });
+  }
 
   await app.listen(process.env.PORT ?? 8044, '0.0.0.0');
 }
