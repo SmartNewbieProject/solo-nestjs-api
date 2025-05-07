@@ -8,7 +8,7 @@ export class ReportService {
   constructor(
     private readonly reportRepository: ReportRepository,
     private readonly articleRepository: ArticleRepository,
-  ) {}
+  ) { }
 
   async createReport(postId: string, reporterId: string, data: ReportUpload) {
     const article = await this.articleRepository.getArticleById(postId);
@@ -20,7 +20,7 @@ export class ReportService {
     if (!reportedId) {
       throw new NotFoundException('게시글 작성자를 찾을 수 없습니다.');
     }
-    
+
     return await this.reportRepository.createReport(postId, reporterId, reportedId, data);
   }
 }

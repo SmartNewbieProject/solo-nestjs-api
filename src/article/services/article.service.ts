@@ -69,7 +69,7 @@ export class ArticleService {
   }
 
   async getArticleById(id: string, userId: string): Promise<ArticleDetails> {
-    const article = await this.articleRepository.getArticleById(id);
+    const article = await this.articleRepository.getArticleById(id, userId);
     await this.articleViewService.incrementViewCount(id, userId);
     if (!article) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
@@ -78,7 +78,7 @@ export class ArticleService {
   }
 
   async updateArticle(id: string, userId: string, isAdmin: boolean, data: Partial<ArticleUpload>) {
-    const article = await this.articleRepository.getArticleById(id);
+    const article = await this.articleRepository.getArticleById(id, userId);
     if (!article) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
@@ -93,7 +93,7 @@ export class ArticleService {
   }
 
   async deleteArticle(id: string, userId: string, isAdmin: boolean) {
-    const article = await this.articleRepository.getArticleById(id);
+    const article = await this.articleRepository.getArticleById(id, userId);
     if (!article) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
