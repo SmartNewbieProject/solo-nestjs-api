@@ -11,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { ArticleService } from '../services/article.service';
 import { ArticleUpload, ContentUpdate } from '../dto';
-import { CurrentUser, Roles } from '@/auth/decorators';
+import { CurrentUser, Public, Roles } from '@/auth/decorators';
 import { Role } from '@/types/enum';
 import { AuthenticationUser } from '@/types/auth';
 import { ArticleRequestType } from '../types/article.types';
@@ -32,12 +32,14 @@ export class ArticleController {
     return await this.articleService.createArticle(user.id, articleData);
   }
 
+  @Public()
   @Get('category/list')
   @ArticleSwagger.getArticleCategories()
   async getArticleCategories() {
     return await this.articleService.getArticleCategories();
   }
 
+  @Public()
   @Get(':categoryCode')
   @ArticleSwagger.getArticles()
   async getArticles(
@@ -47,16 +49,17 @@ export class ArticleController {
     @Query('limit') limit: number = 10,
     @CurrentUser() user: AuthenticationUser,
   ) {
-    return await this.articleService.getArticles(categoryCode, page, limit, user.id);
+    return await this.articleService.getArticles(categoryCode, page, limit, user?.id);
   }
 
+  @Public()
   @Get('details/:id')
   @ArticleSwagger.getArticleById()
   async getArticleById(
     @Param('id') id: string,
     @CurrentUser() user: AuthenticationUser,
   ) {
-    return await this.articleService.getArticleById(id, user.id);
+    return await this.articleService.getArticleById(id, user?.id);
   }
 
   @Patch(':id')

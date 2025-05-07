@@ -6,6 +6,7 @@ import { PaginatedResponse } from '@/types/common';
 import { ArticleDetails, ArticleRequestType } from '../types/article.types';
 import { paginationUtils } from '@/common/helper';
 import { ArticleViewService } from './article-view.service';
+import { ViewCountAggregator } from './view-count-aggregator.service';
 
 
 @Injectable()
@@ -16,6 +17,7 @@ export class ArticleService {
     private readonly articleRepository: ArticleRepository,
     private readonly likeRepository: LikeRepository,
     private readonly articleViewService: ArticleViewService,
+    private readonly viewCountAggregator: ViewCountAggregator,
   ) { }
 
   async getArticleCategories() {
@@ -33,7 +35,7 @@ export class ArticleService {
     await this.articleRepository.createArticle(userId, articleData);
   }
 
-  async getArticles(categoryCode: ArticleRequestType, page: number = 1, limit: number = 10, userId: string): Promise<PaginatedResponse<ArticleDetails>> {
+  async getArticles(categoryCode: ArticleRequestType, page: number = 1, limit: number = 10, userId?: string): Promise<PaginatedResponse<ArticleDetails>> {
     let articles: ArticleDetails[] = [];
     let totalCount: number = 0;
 
@@ -62,19 +64,21 @@ export class ArticleService {
 
     this.logger.debug(`게시글 조회 완료: ${totalCount}개의 게시글을 조회했습니다.`);
 
+    const aggregatedArticles = await this.viewCountAggregator.aggregateList(articles);
+
     return {
-      items: articles,
+      items: aggregatedArticles,
       meta: paginationUtils.createMetdata(page, limit, totalCount),
     };
   }
 
-  async getArticleById(id: string, userId: string): Promise<ArticleDetails> {
+  async getArticleById(id: string, userId?: string): Promise<ArticleDetails> {
     const article = await this.articleRepository.getArticleById(id, userId);
     await this.articleViewService.incrementViewCount(id, userId);
     if (!article) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
-    return article;
+    return await this.viewCountAggregator.aggregate(article);
   }
 
   async updateArticle(id: string, userId: string, isAdmin: boolean, data: Partial<ArticleUpload>) {
