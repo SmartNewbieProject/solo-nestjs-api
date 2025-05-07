@@ -1,12 +1,14 @@
 import { UserRank } from "@/database/schema/profiles";
 
+const LOSER = [UserRank.C, UserRank.B];
+
 const RANK_MATCHING_RULES = {
   default: {
     [UserRank.S]: [UserRank.S, UserRank.A],
     [UserRank.A]: [UserRank.A, UserRank.B],
     [UserRank.B]: [UserRank.A, UserRank.B],
-    [UserRank.C]: false,
-    [UserRank.UNKNOWN]: false,
+    [UserRank.C]: LOSER,
+    [UserRank.UNKNOWN]: LOSER,
   },
   rematching: {
     [UserRank.S]: [UserRank.S, UserRank.A, UserRank.B],

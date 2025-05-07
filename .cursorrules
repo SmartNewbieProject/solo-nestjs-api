@@ -1,0 +1,84 @@
+{
+  "rules": {
+    "fileStructure": {
+      "src": {
+        "pattern": "src/**/*",
+        "description": "소스 코드는 src 디렉토리 내에 위치해야 합니다."
+      },
+      "test": {
+        "pattern": "test/**/*",
+        "description": "테스트 코드는 test 디렉토리 내에 위치해야 합니다."
+      },
+      "drizzle": {
+        "pattern": "drizzle/**/*",
+        "description": "Drizzle 관련 파일들은 drizzle 디렉토리 내에 위치해야 합니다."
+      }
+    },
+    "naming": {
+      "module": {
+        "pattern": "^[a-z][a-z-]*$",
+        "description": "모듈 디렉토리는 케밥 케이스로 작성합니다."
+      },
+      "controller": {
+        "pattern": "^[a-z][a-z-]*\\.controller\\.ts$",
+        "description": "컨트롤러 파일은 .controller.ts로 끝나야 합니다."
+      },
+      "service": {
+        "pattern": "^[a-z][a-z-]*\\.service\\.ts$",
+        "description": "서비스 파일은 .service.ts로 끝나야 합니다."
+      },
+      "entity": {
+        "pattern": "^[a-z][a-z-]*\\.entity\\.ts$",
+        "description": "엔티티 파일은 .entity.ts로 끝나야 합니다."
+      },
+      "dto": {
+        "pattern": "^[a-z][a-z-]*\\.dto\\.ts$",
+        "description": "DTO 파일은 .dto.ts로 끝나야 합니다."
+      }
+    },
+    "moduleStructure": {
+      "required": [
+        "module.ts",
+        "controller.ts",
+        "service.ts"
+      ],
+      "optional": [
+        "dto/",
+        "entities/",
+        "interfaces/",
+        "constants/"
+      ],
+      "description": "각 모듈은 기본적으로 module.ts, controller.ts, service.ts를 포함해야 합니다."
+    },
+    "common": {
+      "location": "src/common",
+      "description": "공통으로 사용되는 유틸리티, 인터페이스, 상수 등은 common 디렉토리에 위치해야 합니다."
+    },
+    "database": {
+      "migrations": {
+        "location": "drizzle/migrations",
+        "description": "데이터베이스 마이그레이션 파일은 drizzle/migrations 디렉토리에 위치해야 합니다."
+      },
+      "schema": {
+        "location": "src/database/schema",
+        "description": "데이터베이스 스키마 정의는 database/schema 디렉토리에 위치해야 합니다."
+      }
+    },
+    "testing": {
+      "unit": {
+        "pattern": "test/unit/**/*.spec.ts",
+        "description": "단위 테스트는 test/unit 디렉토리에 위치해야 합니다."
+      },
+      "e2e": {
+        "pattern": "test/e2e/**/*.e2e-spec.ts",
+        "description": "E2E 테스트는 test/e2e 디렉토리에 위치해야 합니다."
+      }
+    },
+    "documentation": {
+      "api": {
+        "pattern": "src/*/docs/**/*",
+        "description": "API 문서는 각 도메인 디렉토리의 docs 하위 디렉토리에 위치해야 합니다."
+      }
+    }
+  }
+} 
