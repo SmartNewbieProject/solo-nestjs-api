@@ -57,6 +57,13 @@
       "when": 1746114672019,
       "tag": "0007_normal_black_tarantula",
       "breakpoints": false
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1746601158915,
+      "tag": "0008_daily_black_tom",
+      "breakpoints": false
     }
   ]
 }
