@@ -47,10 +47,7 @@ export class ArticleViewService {
 
 
   async getViewCount(articleId: string): Promise<number> {
-    const key = this.keyManager.getViewCountKey(articleId);
-
-    const redisCount = await this.redisService.get(key);
-    const tempCount = redisCount ? parseInt(redisCount, 10) : 0;
+    const tempCount = await this.getViewWithoutDbCount(articleId);
     const result = await this.db
       .select({ readCount: articles.readCount })
       .from(articles)
@@ -62,6 +59,12 @@ export class ArticleViewService {
     return dbCount + tempCount;
   }
 
+  async getViewWithoutDbCount(articleId: string): Promise<number> {
+    const key = this.keyManager.getViewCountKey(articleId);
+    const redisCount = await this.redisService.get(key);
+    const tempCount = redisCount ? parseInt(redisCount, 10) : 0;
+    return tempCount;
+  }
 
   @Cron('0 */1 * * * *')
   async syncViewCountsToDB(): Promise<void> {

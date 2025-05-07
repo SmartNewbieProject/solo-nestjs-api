@@ -31,7 +31,7 @@ async function bootstrap() {
   });
 
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001', 'https://project-solo-azure.vercel.app', 'some-in-univ.com', 'https://some-in-univ.com', 'https://sometimes-eosin.vercel.app', '/sometimes-eosin.vercel.app'],
+    origin: ['http://localhost:3000', 'http://localhost:3001', 'https://project-solo-azure.vercel.app', 'some-in-univ.com', 'https://some-in-univ.com'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
   });

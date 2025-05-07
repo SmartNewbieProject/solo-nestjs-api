@@ -14,6 +14,7 @@ import { ArticleViewService } from './services/article-view.service';
 import { HotArticleService } from './services/hot-article.service';
 import { RedisService } from '@/config/redis/redis.service';
 import { ScheduleModule } from '@nestjs/schedule';
+import { ViewCountAggregator } from './services/view-count-aggregator.service';
 
 @Module({
   imports: [ScheduleModule.forRoot()],
@@ -30,6 +31,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     ReportRepository,
     LikeRepository,
     ProfileRepository,
+    ViewCountAggregator,
   ],
   exports: [ArticleService]
 })

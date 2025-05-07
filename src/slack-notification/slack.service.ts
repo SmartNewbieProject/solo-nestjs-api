@@ -34,7 +34,7 @@ export class SlackService {
     this.slack = new WebClient(this.token);
   }
 
-  async sendNotification(message: string, channel: string = '썸타임-운영알림') {
+  async sendNotification(message: string, channel: string = '매칭-테스트-로그') {
     await this.slack.chat.postMessage({
       channel,
       text: message,
@@ -231,7 +231,7 @@ export class SlackService {
     ];
 
     await this.slack.chat.postMessage({
-      channel: '썸타임-운영알림',
+      channel: '매칭-테스트-로그',
       blocks,
       text: "새로운 매칭이 생성되었습니다", // 알림이 꺼져있을 때 보이는 텍스트
       username: '썸타임 봇',
