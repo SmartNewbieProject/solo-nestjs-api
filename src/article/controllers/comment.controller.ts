@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
 import { CommentService } from '../services/comment.service';
-import { CommentUpload, ContentUpdate } from '../dto';
+import { CommentUpdate, CommentUpload } from '../dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { createCommentApiResponse, deleteCommentApiResponse, getCommentsByPostIdApiResponse, updateCommentApiResponse } from '../docs/comment.docs';
 import { CurrentUser } from '@/auth/decorators';
@@ -39,7 +39,7 @@ export class CommentController {
   @ApiResponse(updateCommentApiResponse)
   async updateComment(
     @Param('id') id: string,
-    @Body() data: ContentUpdate,
+    @Body() data: CommentUpdate,
     @CurrentUser() user: AuthenticationUser,
   ) {
     const isAdmin = user.role === Role.ADMIN;

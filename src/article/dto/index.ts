@@ -83,6 +83,15 @@ export class CommentUpload {
   anonymous: boolean;
 }
 
+export class CommentUpdate {
+  @ApiProperty({
+    description: '댓글 내용',
+    example: '댓글 내용'
+  })
+  @IsString()
+  @MaxLength(255, { message: '댓글 내용은 255자 이하입니다.' })
+  content: string;
+}
 
 export class ReportUpload {
   @ApiProperty({

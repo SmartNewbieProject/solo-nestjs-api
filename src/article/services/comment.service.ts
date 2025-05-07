@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CommentRepository } from '../repository/comment.repository';
-import { CommentUpload } from '../dto';
+import { CommentUpdate, CommentUpload } from '../dto';
 import { ArticleRepository } from '../repository/article.repository';
 import ProfileRepository from '@/user/repository/profile.repository';
 import { CommentDetails, CommentWithRelations } from '../types/comment.type';
@@ -37,7 +37,7 @@ export class CommentService {
   }
 
 
-  async updateComment(id: string, userId: string, isAdmin: boolean, data: Partial<CommentUpload>) {
+  async updateComment(id: string, userId: string, isAdmin: boolean, data: CommentUpdate) {
     const comment = await this.commentRepository.getCommentAuthorId(id);
     if (!comment) {
       throw new NotFoundException('댓글을 찾을 수 없습니다.');
