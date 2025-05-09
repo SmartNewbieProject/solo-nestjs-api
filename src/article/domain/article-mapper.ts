@@ -20,6 +20,7 @@ export class ArticleMapper {
       readCount: result.article.readCount,
       updatedAt: result.article.updatedAt || result.article.createdAt,
       isLiked: result.isLiked,
+      createdAt: result.article.createdAt,
     };
   }
 
@@ -65,6 +66,7 @@ export class ArticleMapper {
         },
       },
       updatedAt: comment.updatedAt || comment.createdAt,
+      createdAt: comment.createdAt
     };
   }
 

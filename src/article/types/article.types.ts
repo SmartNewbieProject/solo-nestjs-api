@@ -43,6 +43,7 @@ export type ArticleDetails = {
   comments: CommentDetails[];
   title: string;
   updatedAt: Date;
+  createdAt: Date;
   isLiked: boolean;
 };
 

@@ -82,7 +82,8 @@ export class CommentService {
           studentNumber: comment.author.profile.universityDetail?.studentNumber || '',
         }
       },
-      updatedAt: comment.updatedAt || comment.createdAt,
+      updatedAt: comment?.updatedAt || comment.createdAt,
+      createdAt: comment.createdAt,
     };
   }
 }
