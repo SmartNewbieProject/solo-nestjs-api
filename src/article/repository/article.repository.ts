@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { articles } from '@/database/schema';
-import { ArticleUpload } from '../dto';
+import type { ArticleUpload } from '../dto';
 import { sql, eq, and, isNull, desc, count, SQL } from 'drizzle-orm';
 import { generateUuidV7 } from '@/database/schema/helper';
 import * as schema from '@database/schema';
@@ -12,13 +12,10 @@ import {
 } from '../types/article.types';
 
 import { InjectDrizzle } from '@/common/decorators';
-import { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { generateAnonymousName } from '../domain';
-import { CommentWithRelations } from '../types/comment.type';
-import { PgSelect } from 'drizzle-orm/pg-core';
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import { generateAnonymousName, generateConsistentAnonymousName } from '../domain';
 import {
   ArticleQueryBuilder,
-  ArticleQueryResult,
 } from '../domain/article-query-builder';
 import { HotArticleQueryBuilder } from '../domain/hot-article-query-builder';
 import { ArticleMapper } from '../domain/article-mapper';
@@ -44,7 +41,7 @@ export class ArticleRepository {
     });
   }
 
-  async createArticle(authorId: string, articleData: ArticleUpload) {
+  async createArticle(authorId: string, articleData: ArticleUpload, anonymousName: string | null) {
     const category = await this.db.query.articleCategory.findFirst({
       where: eq(schema.articleCategory.code, articleData.type),
     });
@@ -61,7 +58,7 @@ export class ArticleRepository {
         authorId,
         categoryId: category.id,
         content: articleData.content,
-        anonymous: articleData.anonymous ? generateAnonymousName() : null,
+        anonymous: anonymousName,
         likeCount: 0,
         readCount: 0,
         blindedAt: null,
@@ -69,6 +66,20 @@ export class ArticleRepository {
       .returning();
 
     return result[0];
+  }
+
+  async getLatestAnonymousName(authorId: string): Promise<string | null> {
+    const result = await this.db
+      .select({ authorName: articles.anonymous })
+      .from(articles)
+      .where(and(eq(articles.authorId, authorId), isNull(articles.deletedAt)))
+      .orderBy(desc(articles.createdAt))
+      .limit(1)
+      .execute();
+
+    const { authorName } = result[0];
+
+    return authorName;
   }
 
   async getArticleTotalCount(categoryCode: ArticleRequestType) {

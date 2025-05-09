@@ -29,7 +29,7 @@ export class ArticleController {
     @CurrentUser() user: AuthenticationUser,
     @Body() articleData: ArticleUpload,
   ) {
-    return await this.articleService.createArticle(user.id, articleData);
+    return await this.articleService.createArticle(user, articleData);
   }
 
   @Public()
