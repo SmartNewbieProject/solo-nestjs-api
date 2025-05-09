@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { comments } from '@/database/schema';
 import { CommentUpload } from '../dto';
-import { eq, and, isNull, desc } from 'drizzle-orm';
+import { eq, and, isNull, desc, asc } from 'drizzle-orm';
 import { generateUuidV7 } from '@/database/schema/helper';
 import * as schema from '@database/schema';
 import { InjectDrizzle } from '@/common';
@@ -39,7 +39,7 @@ export class CommentRepository {
           eq(queryPostId, articleId),
           isNull(deletedAt)
         ),
-      orderBy: desc(comments.createdAt),
+      orderBy: asc(comments.createdAt),
       with: {
         author: {
           columns: {
