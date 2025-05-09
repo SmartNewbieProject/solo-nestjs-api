@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from './database/database.module';
 import { AuthModule } from './auth/auth.module';
@@ -15,6 +15,7 @@ import { HealthModule } from './health/health.module';
 import { SlackNotificationModule } from './slack-notification/slack-notification.module';
 import { APP_FILTER } from '@nestjs/core';
 import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
+import { TransformDateMiddleware } from '@common/middleware/transform-date.middleware';
 
 @Module({
   imports: [
@@ -42,4 +43,10 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter';
     }
   ],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(TransformDateMiddleware)
+      .forRoutes('*');
+  }
+}

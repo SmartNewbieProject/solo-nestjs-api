@@ -9,15 +9,16 @@ import { ReportController } from './controllers/report.controller';
 import { ReportService } from './services/report.service';
 import { ReportRepository } from './repository/report.repository';
 import { LikeRepository } from './repository/like.repository';
-import ProfileRepository from '@/user/repository/profile.repository';
 import { ArticleViewService } from './services/article-view.service';
 import { HotArticleService } from './services/hot-article.service';
 import { RedisService } from '@/config/redis/redis.service';
 import { ScheduleModule } from '@nestjs/schedule';
 import { ViewCountAggregator } from './services/view-count-aggregator.service';
+import { UserModule } from '@/user/user.module';
+import { DatabaseModule } from '@/database/database.module';
 
 @Module({
-  imports: [ScheduleModule.forRoot()],
+  imports: [ScheduleModule.forRoot(), UserModule, DatabaseModule],
   controllers: [ArticleController, CommentController, ReportController],
   providers: [
     RedisService,
@@ -30,7 +31,6 @@ import { ViewCountAggregator } from './services/view-count-aggregator.service';
     ReportService,
     ReportRepository,
     LikeRepository,
-    ProfileRepository,
     ViewCountAggregator,
   ],
   exports: [ArticleService]

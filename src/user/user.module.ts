@@ -31,6 +31,6 @@ import UserService from "./services/user.service";
     UserRepository,
     UserService,
   ],
-  exports: [ProfileService, PreferenceService],
+  exports: [ProfileService, PreferenceService, ProfileRepository, ProfileService],
 })
 export class UserModule { }

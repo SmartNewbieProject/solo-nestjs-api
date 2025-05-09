@@ -11,14 +11,6 @@ export class ArticleMapper {
   private static logger = new Logger(ArticleMapper.name);
 
   static toArticleDetails(result: ArticleQueryResult): ArticleDetails {
-    const createdAt = result.article.createdAt;
-    const updatedAt = result.article.updatedAt || result.article.createdAt;
-    this.logger.debug(`createdAt: ${createdAt.toISOString()}, updatedAt: ${updatedAt.toISOString()}`);
-    const createdAtFormatted = dayjs(createdAt).utc();
-    const updatedAtFormatted = dayjs(updatedAt).utc();
-
-    const createdAtString = createdAtFormatted.format('YYYY-MM-DDTHH:mm:ss.SSS');
-    const updatedAtString = updatedAtFormatted.format('YYYY-MM-DDTHH:mm:ss.SSS');
 
     return {
       id: result.article.id,
@@ -30,9 +22,9 @@ export class ArticleMapper {
       likeCount: Number(result.likeCount),
       commentCount: Number(result.commentCount),
       readCount: result.article.readCount,
-      updatedAt: updatedAtString,
+      updatedAt: result.article.updatedAt || result.article.createdAt,
       isLiked: result.isLiked,
-      createdAt: createdAtString,
+      createdAt: result.article.createdAt,
     };
   }
 
@@ -61,14 +53,6 @@ export class ArticleMapper {
   }
 
   static toCommentDetails(comment: CommentResult): CommentDetails {
-    const createdAtDayjs = weekDateService.createDayjs(comment.createdAt).utc();
-    const updatedAtDayjs = comment.updatedAt ?
-      weekDateService.createDayjs(comment.updatedAt).utc() :
-      createdAtDayjs;
-
-    const createdAtString = createdAtDayjs.format('YYYY-MM-DDTHH:mm:ss.SSS');
-    const updatedAtString = updatedAtDayjs.format('YYYY-MM-DDTHH:mm:ss.SSS');
-
     return {
       id: comment.id,
       content: comment.content,
@@ -85,8 +69,8 @@ export class ArticleMapper {
           studentNumber: comment.universityStudentNumber,
         },
       },
-      updatedAt: updatedAtString,
-      createdAt: createdAtString
+      updatedAt: comment.updatedAt || comment.createdAt,
+      createdAt: comment.createdAt,
     };
   }
 

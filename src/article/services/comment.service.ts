@@ -1,10 +1,9 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { CommentRepository } from '../repository/comment.repository';
-import { CommentUpdate, CommentUpload } from '../dto';
+import type { CommentUpdate, CommentUpload } from '../dto';
 import { ArticleRepository } from '../repository/article.repository';
 import ProfileRepository from '@/user/repository/profile.repository';
-import { CommentDetails, CommentWithRelations } from '../types/comment.type';
-import { dayUtils } from '@/common/helper/day';
+import type { CommentDetails, CommentWithRelations } from '../types/comment.type';
 
 @Injectable()
 export class CommentService {
@@ -67,13 +66,6 @@ export class CommentService {
   }
 
   private processComment(comment: CommentWithRelations): CommentDetails {
-    // 날짜를 문자열로 변환하여 'Z' 표기가 없는 형태로 반환
-    const createdAt = comment.createdAt;
-    const updatedAt = comment?.updatedAt || comment.createdAt;
-
-    const createdAtString = dayUtils.create(createdAt).format('YYYY-MM-DDTHH:mm:ss.SSS');
-    const updatedAtString = dayUtils.create(updatedAt).format('YYYY-MM-DDTHH:mm:ss.SSS');
-
     return {
       id: comment.id,
       content: comment.content,
@@ -90,8 +82,8 @@ export class CommentService {
           studentNumber: comment.author.profile.universityDetail?.studentNumber || '',
         }
       },
-      updatedAt: updatedAtString,
-      createdAt: createdAtString,
+      updatedAt: comment.updatedAt || comment.createdAt,
+      createdAt: comment.createdAt,
     };
   }
 }
