@@ -16,6 +16,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { ViewCountAggregator } from './services/view-count-aggregator.service';
 import { UserModule } from '@/user/user.module';
 import { DatabaseModule } from '@/database/database.module';
+import { AnonymousNameService } from './services/anonymous-name.service';
 
 @Module({
   imports: [ScheduleModule.forRoot(), UserModule, DatabaseModule],
@@ -32,7 +33,8 @@ import { DatabaseModule } from '@/database/database.module';
     ReportRepository,
     LikeRepository,
     ViewCountAggregator,
+    AnonymousNameService,
   ],
-  exports: [ArticleService]
+  exports: [ArticleService, AnonymousNameService]
 })
 export class ArticleModule { }
