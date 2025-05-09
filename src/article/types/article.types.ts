@@ -1,5 +1,3 @@
-import { articles, articleCategory, profiles, universityDetails } from '@/database/schema';
-import { InferSelectModel } from 'drizzle-orm';
 import { UniversityDetail } from '@/types/user';
 import { Gender } from '@/types/enum';
 import { ArticleModel, UniversityDetailModel, UserModel } from '@/types/database';

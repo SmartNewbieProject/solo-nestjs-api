@@ -23,12 +23,23 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       context.getClass(),
     ]);
 
-    if (isPublic) {
-      return true;
-    }
-
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
+
+    if (isPublic) {
+      if (token) {
+        try {
+          const payload = this.jwtService.verify(token, {
+            secret: this.configService.get<string>('JWT_SECRET'),
+            ignoreExpiration: false,
+          });
+          request.user = payload;
+        } catch (error) {
+          this.logger.debug('Token verification failed for public route:', error);
+        }
+      }
+      return true;
+    }
 
     if (!token) {
       throw new UnauthorizedException('인증 토큰이 없습니다.');
