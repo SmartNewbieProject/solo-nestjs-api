@@ -12,6 +12,9 @@ import { ImageController } from "./controller/image.controller";
 import UserController from "./controller/user.controller";
 import UserRepository from "./repository/user.repository";
 import UserService from "./services/user.service";
+import { StatsController } from "./controller/stats.controller";
+import { StatsService } from "./services/stats.service";
+import { StatsRepository } from "./repository/stats.repository";
 
 @Module({
   imports: [CommonModule],
@@ -19,7 +22,8 @@ import UserService from "./services/user.service";
     ProfileController,
     PreferenceController,
     ImageController,
-    UserController
+    UserController,
+    StatsController
   ],
   providers: [
     AuthRepository,
@@ -30,6 +34,8 @@ import UserService from "./services/user.service";
     ImageService,
     UserRepository,
     UserService,
+    StatsService,
+    StatsRepository
   ],
   exports: [ProfileService, PreferenceService, ProfileRepository, ProfileService],
 })
