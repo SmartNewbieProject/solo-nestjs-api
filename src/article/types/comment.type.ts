@@ -7,6 +7,9 @@ import { UniversityDetailModel, UserModel } from '@/types/database';
 export type InferComment = InferSelectModel<typeof comments>;
 
 export interface CommentWithRelations extends InferComment {
+  id: string;
+  content: string;
+  nickname: string;
   author: {
     id: string;
     name: string;
@@ -17,11 +20,14 @@ export interface CommentWithRelations extends InferComment {
       universityDetail: UniversityDetailModel;
     },
   };
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface CommentDetails {
   id: string;
   content: string;
   author: AuthorDetails;
-  updatedAt: Date;
-};
+  updatedAt: Date | string;
+  createdAt: Date | string;
+}

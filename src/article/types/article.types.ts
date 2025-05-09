@@ -42,7 +42,8 @@ export type ArticleDetails = {
   readCount: number;
   comments: CommentDetails[];
   title: string;
-  updatedAt: Date;
+  updatedAt: Date | string;
+  createdAt: Date | string;
   isLiked: boolean;
 };
 
