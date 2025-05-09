@@ -28,6 +28,6 @@ export interface CommentDetails {
   id: string;
   content: string;
   author: AuthorDetails;
-  updatedAt: Date;
-  createdAt: Date;
+  updatedAt: Date | string;
+  createdAt: Date | string;
 }
