@@ -24,7 +24,7 @@ export class CommentController {
     @Body() data: CommentUpload,
     @CurrentUser() user: AuthenticationUser,
   ) {
-    return await this.commentService.createComment(articleId, user.id, data);
+    return await this.commentService.createComment(articleId, user, data);
   }
 
   @Get()
