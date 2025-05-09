@@ -4,6 +4,8 @@ import type { CommentUpdate, CommentUpload } from '../dto';
 import { ArticleRepository } from '../repository/article.repository';
 import ProfileRepository from '@/user/repository/profile.repository';
 import type { CommentDetails, CommentWithRelations } from '../types/comment.type';
+import { AuthenticationUser } from '@/types';
+import { AnonymousNameService } from './anonymous-name.service';
 
 @Injectable()
 export class CommentService {
@@ -11,18 +13,19 @@ export class CommentService {
     private readonly commentRepository: CommentRepository,
     private readonly articleRepository: ArticleRepository,
     private readonly profileRepository: ProfileRepository,
+    private readonly anonymousNameService: AnonymousNameService,
   ) { }
 
 
-  async createComment(postId: string, userId: string, data: CommentUpload) {
+  async createComment(postId: string, user: AuthenticationUser, data: CommentUpload) {
     const article = await this.articleRepository.getArticleById(postId);
     if (!article) {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
 
-    const profile = await this.profileRepository.getProfileSummary(userId);
-
-    return await this.commentRepository.createComment(postId, userId, profile.name, data);
+    const profile = await this.profileRepository.getProfileSummary(user.id);
+    const anonymousName = data.anonymous ? await this.anonymousNameService.generateAnonymousName(user.name) : null;
+    return await this.commentRepository.createComment(postId, user.id, profile.name, data, anonymousName);
   }
 
 

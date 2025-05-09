@@ -7,6 +7,8 @@ import { ArticleDetails, ArticleRequestType } from '../types/article.types';
 import { paginationUtils } from '@/common/helper';
 import { ArticleViewService } from './article-view.service';
 import { ViewCountAggregator } from './view-count-aggregator.service';
+import { AuthenticationUser } from '@/types';
+import { AnonymousNameService } from './anonymous-name.service';
 
 
 @Injectable()
@@ -18,6 +20,7 @@ export class ArticleService {
     private readonly likeRepository: LikeRepository,
     private readonly articleViewService: ArticleViewService,
     private readonly viewCountAggregator: ViewCountAggregator,
+    private readonly anonymousNameService: AnonymousNameService,
   ) { }
 
   async getArticleCategories() {
@@ -31,8 +34,9 @@ export class ArticleService {
     return categories;
   }
 
-  async createArticle(userId: string, articleData: ArticleUpload) {
-    await this.articleRepository.createArticle(userId, articleData);
+  async createArticle(user: AuthenticationUser, articleData: ArticleUpload) {
+    const anonymousName = articleData.anonymous ? await this.anonymousNameService.generateAnonymousName(user.name) : null;
+    await this.articleRepository.createArticle(user.id, articleData, anonymousName);
   }
 
   async getArticles(categoryCode: ArticleRequestType, page: number = 1, limit: number = 10, userId?: string): Promise<PaginatedResponse<ArticleDetails>> {

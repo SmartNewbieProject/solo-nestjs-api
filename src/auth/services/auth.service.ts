@@ -42,7 +42,7 @@ export class AuthService {
       throw new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다.');
     }
 
-    const tokens = await this.generateTokens(user.id, user.email, user.role, genderResult.gender);
+    const tokens = await this.generateTokens(user.id, user.email, user.name, user.role, genderResult.gender);
     await this.authRepository.saveRefreshToken(user.id, tokens.refreshToken);
 
     return { ...tokens, role: user.role };
@@ -98,7 +98,7 @@ export class AuthService {
         throw new BadGatewayException("성별정보가 없습니다.");
       }
 
-      const tokens = await this.generateTokens(user.id, user.email, user.role, genderResult.gender);
+      const tokens = await this.generateTokens(user.id, user.email, user.name, user.role, genderResult.gender);
       await this.authRepository.updateRefreshToken(user.id, refreshToken, tokens.refreshToken);
 
       return tokens;
@@ -131,20 +131,17 @@ export class AuthService {
     return bcrypt.compare(plainPassword, hashedPassword);
   }
 
-  private async generateTokens(userId: string, email: string, role: Role, gender: Gender): Promise<TokenResponse> {
-    this.logger.log(`토큰 생성 시작 - userId: ${userId}, email: ${email}, role: ${role}, gender: ${gender}`);
+  private async generateTokens(userId: string, email: string, name: string, role: Role, gender: Gender): Promise<TokenResponse> {
+    this.logger.log(`토큰 생성 시작 - userId: ${userId}, email: ${email}, name: ${name}, role: ${role}, gender: ${gender}`);
 
-    // Access Token 생성 (1시간)
     const accessToken = await this.jwtService.signAsync(
-      { id: userId, email, role, gender },
+      { id: userId, email, name, role, gender },
       {
         secret: this.configService.get<string>('JWT_SECRET'),
         expiresIn: '1h',
       },
     );
-    this.logger.log(`액세스 토큰 생성 완료, 길이: ${accessToken.length}`);
 
-    // Refresh Token 생성 (7일)
     const refreshToken = await this.jwtService.signAsync(
       { id: userId, email, role, gender },
       {
@@ -152,18 +149,11 @@ export class AuthService {
         expiresIn: '7d',
       },
     );
-    this.logger.log(`리프레시 토큰 생성 완료, 길이: ${refreshToken.length}`);
 
-    // 리프레시 토큰 디코딩 테스트
     try {
       const decoded = this.jwtService.decode(refreshToken);
       this.logger.log(`생성된 리프레시 토큰 디코딩: ${JSON.stringify(decoded)}`);
 
-      // 만료시간 확인
-      if (decoded && decoded['exp']) {
-        const expiryDate = new Date(decoded['exp'] * 1000);
-        this.logger.log(`리프레시 토큰 만료시간: ${expiryDate.toISOString()}`);
-      }
     } catch (error) {
       this.logger.error(`생성된 토큰 디코딩 실패: ${error.message}`);
     }

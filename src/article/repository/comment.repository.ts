@@ -8,22 +8,24 @@ import { InjectDrizzle } from '@/common';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { generateConsistentAnonymousName } from '../domain';
 import { CommentWithRelations } from '../types/comment.type';
+import { ArticleRepository } from './article.repository';
 
 @Injectable()
 export class CommentRepository {
   constructor(
     @InjectDrizzle() private readonly db: NodePgDatabase<typeof schema>,
+    private readonly articleRepository: ArticleRepository,
   ) { }
 
-  async createComment(articleId: string, authorId: string, authorNickname: string, data: CommentUpload) {
+  async createComment(articleId: string, authorId: string, authorNickname: string, data: CommentUpload, anonymousName: string | null) {
     const id = generateUuidV7();
-    const { anonymous, content } = data;
+    const { content } = data;
 
     const result = await this.db.insert(comments).values({
       id,
       articleId,
       authorId,
-      nickname: anonymous ? generateConsistentAnonymousName(authorId) : authorNickname,
+      nickname: anonymousName ?? authorNickname,
       content,
     }).returning();
 
