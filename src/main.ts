@@ -10,6 +10,12 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import * as cookieParser from 'cookie-parser';
 
+const portOneOrigins = [
+  '52.78.100.19',
+  '52.78.48.223',
+  '52.78.5.241',
+];
+
 async function bootstrap() {
   const logLevels: LogLevel[] = process.env.NODE_ENV === 'development'
     ? ['error', 'warn', 'log', 'debug', 'verbose']
@@ -31,7 +37,15 @@ async function bootstrap() {
   });
 
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001', 'https://project-solo-azure.vercel.app', 'some-in-univ.com', 'https://some-in-univ.com'],
+    origin: [
+      'http://localhost:3000',
+      'http://192.168.50.115:3000',
+      'http://localhost:3001',
+      'https://project-solo-gray.vercel.app',
+      'some-in-univ.com',
+      'https://some-in-univ.com',
+      ...portOneOrigins,
+    ],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
