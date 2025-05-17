@@ -53,6 +53,7 @@ export default class UserService {
     return {
       id: userRaw.id,
       age: profile.age,
+      email: userRaw.email,
       gender: profile.gender,
       name: userRaw.name,
       phoneNumber: userRaw.phoneNumber,
