@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsNumber, IsString } from "class-validator";
+import { IsNumber, IsOptional, IsString } from "class-validator";
 
 export class AdminMatchRequest {
   @ApiProperty({ description: '사용자 ID' })
@@ -15,4 +15,19 @@ export class AdminMatchSingleRequest {
   @ApiProperty({ description: '사용자 ID' })
   @IsString()
   userId: string;
+}
+
+export class AdminMatchSimulationRequest {
+  @ApiProperty({ description: '사용자 ID' })
+  @IsString()
+  userId: string;
+
+  @ApiProperty({
+    description: '매칭 시뮬레이션 결과 수 (기본값: 5)',
+    required: false,
+    default: 5
+  })
+  @IsNumber()
+  @IsOptional()
+  limit?: number;
 }

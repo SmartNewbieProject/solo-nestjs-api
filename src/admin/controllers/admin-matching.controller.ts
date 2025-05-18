@@ -4,6 +4,7 @@ import { Role } from '@/auth/domain/user-role.enum';
 import {
   AdminMatchRequest,
   AdminMatchSingleRequest,
+  AdminMatchSimulationRequest,
 } from '@/matching/dto/matching';
 import {
   ApiProperty,
@@ -49,17 +50,45 @@ export class AdminMatchingController {
 
   @Post('/user/read')
   @ApiOperation({
-    summary: '어드민 - 사용자 매칭 결과만 보기',
+    summary: '어드민 - 사용자 매칭 시뮬레이션',
     description:
-      '특정 사용자의 매칭을 수행해서 결과만 조회합니다. (실제로 매칭이 수행되지않습니다.)',
+      '특정 사용자의 매칭을 시뮬레이션합니다. 실제 매칭과 동일한 로직을 사용하지만 데이터베이스에 저장하지 않고, 슬랙 알림도 보내지 않습니다.',
   })
   @ApiResponse({
     status: 200,
-    description:
-      '특정 사용자의 매칭을 수행해서 결과만 조회합니다. (실제로 매칭이 수행되지않습니다.)',
+    description: '매칭 시뮬레이션 결과',
+    schema: {
+      properties: {
+        success: { type: 'boolean', description: '시뮬레이션 성공 여부' },
+        message: { type: 'string', description: '시뮬레이션 결과 메시지' },
+        requester: {
+          type: 'object',
+          description: '매칭을 요청한 사용자 정보'
+        },
+        potentialPartners: {
+          type: 'array',
+          description: '매칭 가능한 파트너 목록',
+          items: {
+            type: 'object',
+            properties: {
+              profile: { type: 'object', description: '파트너 프로필 정보' },
+              similarity: { type: 'number', description: '유사도 점수' }
+            }
+          }
+        },
+        selectedPartner: {
+          type: 'object',
+          description: '선택된 파트너 (실제 매칭 시 선택될 파트너)',
+          properties: {
+            profile: { type: 'object', description: '파트너 프로필 정보' },
+            similarity: { type: 'number', description: '유사도 점수' }
+          }
+        }
+      }
+    }
   })
   async findMatches(@Body() matchingRequest: AdminMatchRequest) {
-    return this.adminMatchService.findMatches(matchingRequest);
+    return this.adminMatchService.simulateMatching(matchingRequest);
   }
 
   @Get('/unmatched-users')
