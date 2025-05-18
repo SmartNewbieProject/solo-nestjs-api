@@ -44,6 +44,7 @@ async function bootstrap() {
       'https://project-solo-gray.vercel.app',
       'some-in-univ.com',
       'https://some-in-univ.com',
+      '52.78.178.66',
       ...portOneOrigins,
     ],
     credentials: true,
