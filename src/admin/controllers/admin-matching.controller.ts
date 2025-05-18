@@ -94,18 +94,79 @@ export class AdminMatchingController {
 
   @Post('batch')
   @Roles(Role.ADMIN)
+  @ApiOperation({ summary: '어드민 매칭 처리 (배치)' })
+  @ApiResponse({
+    status: 200,
+    description: '배치 매칭 처리가 시작되었습니다.',
+    schema: {
+      properties: {
+        message: { type: 'string', description: '배치 매칭 처리 시작 메시지' }
+      }
+    }
+  })
   async processMatchingBatch() {
     await this.matchingCreationService.processMatchCentral();
+    return { message: '배치 매칭 처리가 시작되었습니다.' };
   }
 
   @ApiOperation({ summary: '어드민 매칭 처리 (단일)' })
+  @ApiResponse({
+    status: 200,
+    description: '매칭 처리 결과',
+    schema: {
+      properties: {
+        success: { type: 'boolean', description: '매칭 성공 여부' },
+        requester: {
+          type: 'object',
+          description: '매칭을 요청한 사용자 정보',
+          properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            gender: { type: 'string' },
+            age: { type: 'number' }
+          }
+        },
+        partner: {
+          type: 'object',
+          description: '매칭된 파트너 정보',
+          properties: {
+            id: { type: 'string' },
+            name: { type: 'string' },
+            gender: { type: 'string' },
+            age: { type: 'number' }
+          }
+        },
+        similarity: {
+          type: 'object',
+          description: '매칭 유사도 점수',
+          properties: {
+            score: { type: 'number' },
+            details: {
+              type: 'object',
+              properties: {
+                ageScore: { type: 'number' },
+                genderScore: { type: 'number' },
+                interestsScore: { type: 'number' },
+                personalitiesScore: { type: 'number' },
+                lifestylesScore: { type: 'number' },
+                mbtiScore: { type: 'number' },
+                embeddingScore: { type: 'number' }
+              }
+            }
+          }
+        }
+      }
+    }
+  })
   @Post('user')
   @Roles(Role.ADMIN)
   async processMatchingSingle(@Body() request: AdminMatchSingleRequest) {
-    await this.matchingCreationService.createPartner(
+    const result = await this.matchingCreationService.createPartner(
       request.userId,
       MatchType.ADMIN,
     );
+
+    return result;
   }
 
   @Get('match-stats')

@@ -36,7 +36,8 @@ export default class MatchingCreationService {
   async processMatchCentral() {
     const userIds = await this.findAllMatchingUsers();
     this.slackService.sendNotification(`${userIds.length} 명의 매칭처리를 시작합니다.`);
-    await this.batch(userIds);
+    const result = await this.batch(userIds);
+    return result;
   }
 
   async rematch(userId: string) {
@@ -48,8 +49,8 @@ export default class MatchingCreationService {
       }
 
       // 매칭 시도
-      const success = await this.createPartner(userId, MatchType.REMATCHING);
-      if (!success) {
+      const result = await this.createPartner(userId, MatchType.REMATCHING);
+      if (!result.success) {
         // 매칭 실패 로그 저장 (이미 createPartner 내부에서 저장되지만, 추가 정보를 위해 여기서도 저장)
         await this.matchingFailureLogService.logMatchingFailure(userId, '재매칭 요청 시 매칭상대를 찾을 수 없음');
 
@@ -67,6 +68,8 @@ export default class MatchingCreationService {
 
       // 매칭 성공 시 티켓 사용 처리
       await this.ticketService.useTicket(ticket.id);
+
+      return result;
     } catch (error) {
       // ForbiddenException(재매칭권 없음)과 NotFoundException(매칭상대 없음)은 그대로 전파
       if (error instanceof ForbiddenException || error instanceof NotFoundException) {
@@ -119,7 +122,7 @@ export default class MatchingCreationService {
           this.logger.error(`매칭 실패 슬랙 알림 전송 중 오류 발생: ${error.message}`, error.stack);
         }
 
-        return false;
+        return { success: false, partner: null, requester: null };
       }
 
       // 파트너 선택 및 매칭 생성
@@ -139,7 +142,12 @@ export default class MatchingCreationService {
         }
 
         await this.createMatch(userId, partner, type);
-        return true;
+        return {
+          success: true,
+          partner: matcher,
+          requester: requester,
+          similarity: partner.similarity
+        };
       } catch (error) {
         // 프로필 조회 또는 매칭 생성 중 오류 발생 시 로그 저장
         this.logger.error(`매칭 생성 중 오류 발생: ${error.message}`, error.stack);
@@ -162,7 +170,7 @@ export default class MatchingCreationService {
           this.logger.error(`슬랙 알림 전송 중 오류 발생: ${slackError.message}`, slackError.stack);
         }
 
-        return false;
+        return { success: false, partner: null, requester: null, error: error.message };
       }
     } catch (error) {
       // 예상치 못한 오류 발생 시 로그 저장
@@ -186,7 +194,7 @@ export default class MatchingCreationService {
         this.logger.error(`슬랙 알림 전송 중 오류 발생: ${slackError.message}`, slackError.stack);
       }
 
-      return false;
+      return { success: false, partner: null, requester: null, error: error.message };
     }
   }
 
@@ -230,9 +238,16 @@ export default class MatchingCreationService {
     for (let i = 0; i < totalUsers; i++) {
       const userId = userIds[i];
       try {
-        await this.createPartner(userId, MatchType.SCHEDULED, true);
-        results.push({ status: 'fulfilled' });
-        totalSuccess++;
+        const result = await this.createPartner(userId, MatchType.SCHEDULED, true);
+        if (result.success) {
+          results.push({ status: 'fulfilled' });
+          totalSuccess++;
+        } else {
+          results.push({ status: 'rejected', reason: result.error || '매칭 실패' });
+          totalFailure++;
+
+          // 매칭 실패 로그는 이미 createPartner 내부에서 저장됨
+        }
       } catch (error) {
         results.push({ status: 'rejected', reason: error });
 
@@ -273,6 +288,13 @@ export default class MatchingCreationService {
       성공한 개수: ${totalSuccess}
       실패한 개수: ${totalFailure}
     `);
+
+    return {
+      totalUsers,
+      totalSuccess,
+      totalFailure,
+      results
+    };
   }
 
   private async sleep(ms: number) {
