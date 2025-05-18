@@ -102,6 +102,7 @@ export interface UserDetails {
   name: string;
   age: number;
   gender: Gender;
+  email: string;
   profileImages: ProfileImage[];
   phoneNumber: string;
   instagramId: string | null;

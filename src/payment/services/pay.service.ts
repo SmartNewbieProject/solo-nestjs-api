@@ -1,11 +1,13 @@
-import { Injectable, HttpException, HttpStatus, BadGatewayException, Logger } from "@nestjs/common";
+import { Injectable, HttpException, HttpStatus, BadGatewayException, Logger, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PaymentConfirm } from "../dto";
 import { PayBeforeHistory, PaymentDetails, PortOneCustomData, Product } from "@/types/payment";
+import { PortoneWebhookDto, PortonePaymentStatus } from "../dto/webhook.dto";
 import PayRepository from "../repository/pay.repository";
 import { PortOneClient } from '@portone/server-sdk';
 import { TicketService } from "./ticket.service";
 import { axiosHandler } from "@/common/helper";
+import { createHmac } from 'crypto';
 import axios from "axios";
 
 const productMap: Record<Product, { price: number }> = {
@@ -39,37 +41,63 @@ export default class PayService {
     return await this.payRepository.createHistory(payBefore);
   }
 
-  async pay(userId: string, { impUid, merchantUid }: PaymentConfirm) {
+  async confirmClientPayment(userId: string, { impUid, merchantUid }: PaymentConfirm) {
     const history = await this.payRepository.findPayHistory(merchantUid);
-    const accessToken = await this.getServiceToken();
-    this.logger.log({ accessToken });
-
-    const { response: portOnePayment } = await this.getPayment(impUid, accessToken) as { response: PaymentDetails };
-    this.logger.debug({ portOnePayment });
-
-    if (portOnePayment.status === 'failed') {
-      throw new BadGatewayException(`결제가 실패했어요. 다시시도해주세요.`);
+    if (!history) {
+      throw new BadGatewayException('결제 내역을 찾을 수 없습니다.');
     }
-    if (portOnePayment.status !== 'paid') {
-      throw new BadGatewayException(`결제 상태가 아닙니다.`);
+    if (history.userId !== userId) {
+      throw new UnauthorizedException('본인의 결제만 확인할 수 있습니다.');
+    }
+    return history;
+  }
+
+  verifyPortoneSignature(signature: string, webhookData: PortoneWebhookDto): boolean {
+    if (!signature) return false;
+
+    const rawBody = JSON.stringify(webhookData);
+    const hmac = createHmac('sha256', this.secretKey);
+    const generatedSignature = hmac.update(rawBody).digest('hex');
+
+    return signature === generatedSignature;
+  }
+
+  async handlePaymentWebhook(webhookData: PortoneWebhookDto) {
+    this.logger.debug({ webhookData });
+    const { imp_uid, merchant_uid, status } = webhookData;
+    
+    const history = await this.payRepository.findPayHistory(merchant_uid);
+    if (!history) {
+      this.logger.error(`결제 내역을 찾을 수 없습니다: ${merchant_uid}`);
+      return;
     }
 
-    const customData = JSON.parse(portOnePayment.custom_data as string) as PortOneCustomData;
-    this.logger.debug({ history, customData });
-    if (
-      history?.orderName !== customData.orderName
-    ) {
-      this.logger.error(`결제 내용이 변조되었습니다.`);
-      throw new BadGatewayException('결제 내용이 변조되었습니다.');
-    }
-    await this.payRepository.updateHistory(merchantUid, {
-      receiptUrl: portOnePayment.receipt_url,
-      paidAt: new Date(portOnePayment.paid_at),
-      method: portOnePayment.emb_pg_provider,
-      txId: portOnePayment.pg_tid,
-    });
+    if (status === PortonePaymentStatus.PAID) {
+      const accessToken = await this.getServiceToken();
+      const { response: portOnePayment } = await this.getPayment(imp_uid, accessToken) as { response: PaymentDetails };
 
-    this.strategy(userId, customData.orderName as Product, customData);
+      let customData: PortOneCustomData;
+      try {
+        customData = JSON.parse(JSON.parse(portOnePayment.custom_data as string));
+      } catch (error) {
+        this.logger.error('결제 데이터 파싱 실패:', error);
+        throw new BadGatewayException('결제 데이터가 올바르지 않습니다.');
+      }
+
+      if (history.orderName !== customData.orderName) {
+        this.logger.error(`결제 내용이 변조되었습니다.`);
+        throw new BadGatewayException('결제 내용이 변조되었습니다.');
+      }
+
+      await this.payRepository.updateHistory(merchant_uid, {
+        receiptUrl: portOnePayment.receipt_url,
+        paidAt: new Date(portOnePayment.paid_at),
+        method: portOnePayment.emb_pg_provider,
+        txId: portOnePayment.pg_tid,
+      });
+
+      await this.strategy(history.userId, customData.orderName as Product, customData);
+    }
   }
 
   private strategy(userId: string, product: Product, customData: PortOneCustomData) {
@@ -108,9 +136,8 @@ export default class PayService {
       });
       return response.data;
     }, error => {
-      // this.logger.error(error);
+      this.logger.error(error);
       throw new BadGatewayException('결제 서버 오류입니다');
     }) as Promise<any>;
   }
-
 }
