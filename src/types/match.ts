@@ -1,5 +1,7 @@
+import type { Dayjs } from "dayjs";
 import { Gender } from "./enum";
 import { PreferenceTypeGroup, UserProfile } from "./user";
+import { ElasticDate } from "./common";
 
 export type UserPreferenceSummary = {
   id: string;
@@ -84,8 +86,9 @@ export type MatchViewType = 'open' | 'waiting' | 'not-found' | 'rematching';
 export type MatchDetails = {
   id: string | null;
   type: MatchViewType;
-  endOfView: Date | null;
+  endOfView: ElasticDate;
   partner: UserProfile | null;
+  untilNext: ElasticDate;
 };
 
 export type RawMatch = {
@@ -99,4 +102,5 @@ export type RawMatch = {
   score: string;
   direct: boolean | null;
   publishedAt: Date;
+  expiredAt: Date;
 };

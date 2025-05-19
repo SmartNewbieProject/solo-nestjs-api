@@ -1,9 +1,12 @@
 import { MatchDetails, MatchType, RawMatch } from '@/types/match';
-import weekDateService, { matchingDayUtils } from './date';
+import weekDateService from './date';
 import { UserProfile } from '@/types/user';
+import { Logger } from '@nestjs/common';
+import type { Dayjs } from 'dayjs';
+import { ElasticDate } from '@/types/common';
 
 type Rematching = {
-  endOfView: Date;
+  endOfView: ElasticDate;
   is: boolean;
 };
 
@@ -19,23 +22,32 @@ const watingResponse: MatchDetails = {
   endOfView: null,
   partner: null,
   type: 'waiting',
+  untilNext: null,
 };
 
 export default class MatchResultRouter {
+  private readonly logger = new Logger(MatchResultRouter.name);
+
   constructor() { }
 
   async resolveMatchingStatus({ latestMatch, onRematching, onOpen, onNotFound }: MatchingStatus): Promise<MatchDetails> {
     if (!latestMatch) {
       const earlyView = this.checkEarlyView();
       await onNotFound?.();
+      const nextMatchingDate = weekDateService.getNextMatchingDate();
       if (earlyView) {
-        return watingResponse;
+        return {
+          ...watingResponse,
+          untilNext: nextMatchingDate.toDate(),
+        };
       }
+
       return {
         id: null,
         endOfView: null,
         partner: null,
         type: 'not-found',
+        untilNext: nextMatchingDate.toDate(),
       };
     }
 
@@ -46,29 +58,37 @@ export default class MatchResultRouter {
         endOfView: rematching.endOfView,
         partner: await onRematching(),
         type: 'rematching',
+        untilNext: null,
       };
     }
-    const publishedDate = weekDateService.createDayjs(latestMatch.publishedAt!);
-    const endOfView = matchingDayUtils.getEndOfView(publishedDate.toDate()).toDate();
+    const endOfView = weekDateService.createDayjs(latestMatch.expiredAt);
 
     if (this.checkOver(endOfView)) {
-      return watingResponse;
+      this.logger.debug(`endOfView: ${endOfView.format('YYYY-MM-DD HH:mm:ss')} is over`);
+      const untilNext = weekDateService.getNextMatchingDate().format('YYYY-MM-DD HH:mm:ss');
+      this.logger.debug(`untilNext: ${untilNext}`);
+      return {
+        ...watingResponse,
+        untilNext,
+      };
     }
 
+    this.logger.log(`endOfView: ${endOfView.format('YYYY-MM-DD HH:mm:ss')}`);
     return {
       id: latestMatch.id,
-      endOfView,
+      endOfView: endOfView.format('YYYY-MM-DD HH:mm:ss'),
       partner: await onOpen(),
       type: 'open',
+      untilNext: null,
     }
   }
 
   checkRematchingEligibility(match: RawMatch): Rematching {
-    const endOfView = matchingDayUtils.getEndOfView(match.publishedAt);
+    const endOfView = weekDateService.createDayjs(match.expiredAt);
     const typeCorrected = [MatchType.REMATCHING, MatchType.ADMIN].includes(match.type as MatchType);
 
     return {
-      endOfView: endOfView.toDate(),
+      endOfView: endOfView.format('YYYY-MM-DD HH:mm:ss'),
       is: (!this.checkOver(endOfView.toDate()) && typeCorrected),
     };
   }
@@ -78,7 +98,7 @@ export default class MatchResultRouter {
     return weekDateService.createDayjs().isBefore(thursday);
   }
 
-  checkOver(day: Date): boolean {
+  checkOver(day: Date | Dayjs): boolean {
     return weekDateService.createDayjs().isAfter(day);
   }
 

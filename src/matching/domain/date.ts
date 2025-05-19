@@ -18,7 +18,6 @@ export type WeekDates = {
 }
 
 const createDayjs = (config?: dayjs.Dayjs | Date) => {
-  // 한국 시간대를 적용한 dayjs 객체 생성
   return dayjs(config).tz('Asia/Seoul');
 };
 
@@ -128,6 +127,9 @@ const setDeadline = (d: Date) => {
 const getNextMatchingDate = () => {
   const { thursday, sunday } = getWeekDates();
   const now = createDayjs();
+  // TODO: 테스트용
+  // return now.add(1, 'minute');
+  // return now.add(10, 'second');
 
   // 현재 시간이 목요일 전이면 목요일 21시로 설정
   if (now.isBefore(createDayjs(thursday))) {
@@ -162,19 +164,6 @@ const weekDateService = {
   test30seconds,
   test1Minutes,
 };
-
-
-export const matchingDayUtils = {
-  getEndOfView(d: Date) {
-    const day = createDayjs(d);
-    return day
-      .add(2, 'day')
-      .set('hour', 0)
-      .set('minute', 0)
-      .set('second', 0)
-      .set('millisecond', 0);
-  }
-}
 
 
 export default weekDateService;

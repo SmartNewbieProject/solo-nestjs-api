@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Logger } from "@nestjs/common";
 import { InjectDrizzle } from "@common/decorators";
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "@database/schema";
@@ -8,21 +8,37 @@ import { eq, isNull, isNotNull, and, sql, count } from "drizzle-orm";
 import { Gender } from "@/types/enum";
 import { PreferenceTypeGroup } from "@/types/user";
 import { RawMatch } from "@/types/match";
+import weekDateService from "../domain/date";
+
+const formatDate = (date: Date) => {
+  return weekDateService.createDayjs(date).format('YYYY-MM-DD HH:mm:ss.SSS');
+}
+
+
 
 @Injectable()
 export default class MatchRepository {
+  private readonly logger = new Logger(MatchRepository.name);
+
   constructor(
     @InjectDrizzle()
     private readonly db: NodePgDatabase<typeof schema>,
   ) { }
 
   async createMatch(myId: string, matcherId: string, score: number, publishedAt: Date, type: MatchType) {
+    this.logger.debug({
+      rawDate: publishedAt,
+      formattedDate: formatDate(publishedAt),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    });
+
     return await this.db.insert(schema.matches).values({
       id: generateUuidV7(),
       myId,
       matcherId,
       score: score.toString(),
       publishedAt,
+      expiredAt: new Date(publishedAt.getTime() + 48 * 60 * 60 * 1000),
       type,
     }).execute();
   }
