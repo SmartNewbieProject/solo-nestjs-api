@@ -10,6 +10,12 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import * as cookieParser from 'cookie-parser';
 
+const portOneOrigins = [
+  '52.78.100.19',
+  '52.78.48.223',
+  '52.78.5.241',
+];
+
 async function bootstrap() {
   const logLevels: LogLevel[] = process.env.NODE_ENV === 'development'
     ? ['error', 'warn', 'log', 'debug', 'verbose']
@@ -21,7 +27,7 @@ async function bootstrap() {
   });
 
   app.useStaticAssets(join(__dirname, '..', 'public'));
-  const apiPrefix = process.env.NODE_ENV === 'development' ? 'api' : 'app/api';
+  const apiPrefix = ['development', 'production'].includes(process.env.NODE_ENV) ? 'api' : 'api';
   const excludePaths = process.env.NODE_ENV === 'development'
     ? ['docs', 'docs-json', 'swagger-ui-bundle.js', 'swagger-ui-standalone-preset.js', 'swagger-ui.css']
     : ['app/docs', 'app/docs-json', 'swagger-ui-bundle.js', 'swagger-ui-standalone-preset.js', 'swagger-ui.css'];
@@ -31,7 +37,16 @@ async function bootstrap() {
   });
 
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:3001', 'https://project-solo-azure.vercel.app', 'some-in-univ.com', 'https://some-in-univ.com'],
+    origin: [
+      'http://localhost:3000',
+      'http://192.168.50.115:3000',
+      'http://localhost:3001',
+      'https://project-solo-gray.vercel.app',
+      'some-in-univ.com',
+      'https://some-in-univ.com',
+      '52.78.178.66',
+      ...portOneOrigins,
+    ],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
@@ -55,40 +70,42 @@ async function bootstrap() {
 
   app.use(cookieParser());
 
-  const config = new DocumentBuilder()
-    .setTitle('썸타임 API')
-    .setDescription('썸타임 REST API 문서')
-    .setVersion('1.0')
-    .addTag('썸타임')
-    .setBasePath(apiPrefix)
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        name: 'JWT',
-        description: 'JWT 토큰을 입력하세요',
-        in: 'header',
+  if (process.env.NODE_ENV !== 'production') {
+    const config = new DocumentBuilder()
+      .setTitle('썸타임 API')
+      .setDescription('썸타임 REST API 문서')
+      .setVersion('1.0')
+      .addTag('썸타임')
+      .setBasePath(apiPrefix)
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          name: 'JWT',
+          description: 'JWT 토큰을 입력하세요',
+          in: 'header',
+        },
+        'access-token',
+      )
+      .build();
+
+    const document = SwaggerModule.createDocument(app, config, {
+      extraModels: [],
+      ignoreGlobalPrefix: false,
+    });
+
+    const docsPath = process.env.NODE_ENV === 'development' ? 'docs' : 'app/docs';
+    const jsonDocumentUrl = process.env.NODE_ENV === 'development' ? '/docs-json' : '/app/docs-json';
+
+    SwaggerModule.setup(docsPath, app, document, {
+      jsonDocumentUrl: jsonDocumentUrl,
+      swaggerOptions: {
+        docExpansion: 'list',
+        persistAuthorization: true,
       },
-      'access-token',
-    )
-    .build();
-
-  const document = SwaggerModule.createDocument(app, config, {
-    extraModels: [],
-    ignoreGlobalPrefix: false,
-  });
-
-  const docsPath = process.env.NODE_ENV === 'development' ? 'docs' : 'app/docs';
-  const jsonDocumentUrl = process.env.NODE_ENV === 'development' ? '/docs-json' : '/app/docs-json';
-
-  SwaggerModule.setup(docsPath, app, document, {
-    jsonDocumentUrl: jsonDocumentUrl,
-    swaggerOptions: {
-      docExpansion: 'list',
-      persistAuthorization: true,
-    },
-  });
+    });
+  }
 
   await app.listen(process.env.PORT ?? 8044, '0.0.0.0');
 }

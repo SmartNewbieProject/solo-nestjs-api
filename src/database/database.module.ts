@@ -30,6 +30,7 @@ import { DatabaseService } from './database.service';
           casing: 'snake_case',
           logger: {
             logQuery: (query, params) => {
+              return;
               if (env !== 'development') return;
               logger.debug(`쿼리: ${query}`);
               if (params && params.length > 0) {

@@ -32,8 +32,6 @@ export class TransformDateMiddleware implements NestMiddleware {
                 return acc;
               }, {} as Record<string, unknown>);
               
-              transformed.hello = 'world';
-              
               return transformed;
             }
             return obj;
