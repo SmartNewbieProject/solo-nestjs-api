@@ -20,6 +20,10 @@ export class DrizzleService {
       port: this.configService.get('DATABASE_PORT'),
       database: this.configService.get('DATABASE_NAME'),
     });
+
+    this._pool.on('connect', (client) => {
+      client.query('SET timezone = \'Asia/Seoul\'');
+    });
   }
 
   get db(): NodePgDatabase<typeof schema> {
