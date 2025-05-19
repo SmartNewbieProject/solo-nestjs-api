@@ -196,22 +196,69 @@ export default class ProfileRepository {
 
       if (!preferenceType || preference.optionIds.length === 0) return;
 
-      const optionPromises = preference.optionIds.map(async (optionId) => {
-        const optionEntryId = generateUuidV7();
-        const now = new Date();
+      // 선호 나이대 처리 로직
+      if (preference.typeName === '선호 나이대') {
+        // 선택된 옵션 값 (OLDER, YOUNGER, SAME_AGE, NO_PREFERENCE 중 하나)
+        const selectedValue = preference.optionIds[0];
+        console.log('선택된 선호 나이대 값:', selectedValue);
 
-        await tx.insert(schema.userPreferenceOptions)
-          .values({
-            id: optionEntryId,
-            userPreferenceId,
-            preferenceOptionId: optionId,
-            createdAt: now,
-            updatedAt: now,
-            deletedAt: null
-          });
-      });
+        // 선호 나이대 타입 조회
+        const agePreferenceType = await tx.query.preferenceTypes.findFirst({
+          where: eq(schema.preferenceTypes.code, 'AGE_PREFERENCE')
+        });
 
-      await Promise.all(optionPromises);
+        if (!agePreferenceType) {
+          console.log('선호 나이대 타입을 찾을 수 없음');
+          return;
+        }
+
+        console.log('선호 나이대 타입:', agePreferenceType);
+
+        // 선택된 값에 해당하는 옵션 ID 조회
+        const ageOption = await tx.query.preferenceOptions.findFirst({
+          where: and(
+            eq(schema.preferenceOptions.preferenceTypeId, agePreferenceType.id),
+            eq(schema.preferenceOptions.value, selectedValue)
+          )
+        });
+
+        if (ageOption) {
+          console.log('찾은 선호 나이대 옵션:', ageOption);
+
+          const optionEntryId = generateUuidV7();
+          const now = new Date();
+
+          await tx.insert(schema.userPreferenceOptions)
+            .values({
+              id: optionEntryId,
+              userPreferenceId,
+              preferenceOptionId: ageOption.id, // 조회된 실제 옵션 ID 사용
+              createdAt: now,
+              updatedAt: now,
+              deletedAt: null
+            });
+        } else {
+          console.log('선호 나이대 옵션을 찾을 수 없음:', selectedValue);
+        }
+      } else {
+        // 다른 선호도 타입은 기존 로직 유지
+        const optionPromises = preference.optionIds.map(async (optionId) => {
+          const optionEntryId = generateUuidV7();
+          const now = new Date();
+
+          await tx.insert(schema.userPreferenceOptions)
+            .values({
+              id: optionEntryId,
+              userPreferenceId,
+              preferenceOptionId: optionId,
+              createdAt: now,
+              updatedAt: now,
+              deletedAt: null
+            });
+        });
+
+        await Promise.all(optionPromises);
+      }
     });
 
     await Promise.all(preferencePromises);
