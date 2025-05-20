@@ -69,7 +69,7 @@ export class MatchingService {
 
     try {
       const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3, type);
-      this.logger.log(similarProfiles);
+      // this.logger.log(similarProfiles);
       return similarProfiles;
     } catch (error) {
       if (error instanceof NotFoundException) {

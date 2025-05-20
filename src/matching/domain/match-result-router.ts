@@ -31,17 +31,20 @@ export default class MatchResultRouter {
   constructor() { }
 
   async resolveMatchingStatus({ latestMatch, onRematching, onOpen, onNotFound }: MatchingStatus): Promise<MatchDetails> {
+    const nextMatchingDate = weekDateService.getNextMatchingDate();
+
     if (!latestMatch) {
       const earlyView = this.checkEarlyView();
       await onNotFound?.();
-      const nextMatchingDate = weekDateService.getNextMatchingDate();
       if (earlyView) {
+      this.logger.debug(`아직 매칭 전임`);
         return {
           ...watingResponse,
           untilNext: nextMatchingDate.toDate(),
         };
       }
 
+      this.logger.debug(`매칭 대상 없음`);
       return {
         id: null,
         endOfView: null,
@@ -53,6 +56,7 @@ export default class MatchResultRouter {
 
     const rematching = this.checkRematchingEligibility(latestMatch);
     if (rematching.is) {
+      this.logger.debug(`리매칭 조회됨`);
       return {
         id: latestMatch.id,
         endOfView: rematching.endOfView,
@@ -64,6 +68,7 @@ export default class MatchResultRouter {
     const endOfView = weekDateService.createDayjs(latestMatch.expiredAt);
 
     if (this.checkOver(endOfView)) {
+      this.logger.debug(`매칭 대상 시간 만료`);
       this.logger.debug(`endOfView: ${endOfView.format('YYYY-MM-DD HH:mm:ss')} is over`);
       const untilNext = weekDateService.getNextMatchingDate().format('YYYY-MM-DD HH:mm:ss');
       this.logger.debug(`untilNext: ${untilNext}`);
@@ -73,7 +78,19 @@ export default class MatchResultRouter {
       };
     }
 
+    const publishedDate = weekDateService.createDayjs(latestMatch.publishedAt);
+    this.logger.debug(`매칭 대상 공개 기간: ${publishedDate.format('YYYY-MM-DD HH:mm:ss')}`);
+    const publishNotAllowed = publishedDate.isAfter(weekDateService.createDayjs());
+    if (publishNotAllowed) {
+      this.logger.debug(`매칭 대상 공개 전`);
+      return {
+        ...watingResponse,
+        untilNext: nextMatchingDate,
+      }
+    }
+
     this.logger.log(`endOfView: ${endOfView.format('YYYY-MM-DD HH:mm:ss')}`);
+    this.logger.debug(`매칭 대상 존재`);
     return {
       id: latestMatch.id,
       endOfView: endOfView.format('YYYY-MM-DD HH:mm:ss'),

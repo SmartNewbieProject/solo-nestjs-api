@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { ForbiddenException, Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import weekDateService from "../domain/date";
 import { MatchingService } from "./matching.service";
 import { MatchType, Similarity, TicketType } from "@/types/match";
@@ -8,18 +8,20 @@ import { Cron } from "@nestjs/schedule";
 import { SlackService } from "@/slack-notification/slack.service";
 import ProfileRepository from "@/user/repository/profile.repository";
 import { ProfileService } from "@/user/services/profile.service";
-import { Cache } from "@nestjs/cache-manager";
+import { Cache, CACHE_MANAGER } from "@nestjs/cache-manager";
 import { TicketService } from "@/payment/services/ticket.service";
 import { MatchingFailureLogService } from "./matching-failure-log.service";
 
 enum CronFrequency {
   // MATCHING_DAY = '0 0 * * 2,4',
-  MATCHING_DAY = '50 23 * * 2,4',
+  MATCHING_DAY = '0 0 * * 4,0',
+  // MATCHING_DAY = '*/1 * * * *'
 }
 
 @Injectable()
 export default class MatchingCreationService {
   private readonly logger = new Logger(MatchingCreationService.name);
+  private readonly LOCK_KEY = 'matching:creation:lock';
 
   constructor(
     private readonly matchingService: MatchingService,
@@ -27,13 +29,28 @@ export default class MatchingCreationService {
     private readonly profileService: ProfileService,
     private readonly slackService: SlackService,
     private readonly ticketService: TicketService,
-    private readonly cacheManager: Cache,
+    @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly matchingFailureLogService: MatchingFailureLogService,
   ) { }
 
 
   @Cron(CronFrequency.MATCHING_DAY)
   async processMatchCentral() {
+    const batchEnable = await this.cacheManager.get('batchStatus');
+    this.logger.debug(`batchEnable: ${batchEnable}, type: ${typeof batchEnable}`);
+    if (!batchEnable || batchEnable === 'false') {
+      this.logger.debug(`배치 매칭 비활성화`);
+      return;
+    }
+
+    const isLocked = await this.cacheManager.get(this.LOCK_KEY);
+    this.logger.debug(`isLocked: ${isLocked}`);
+    if (isLocked) {
+      this.logger.debug(`매칭 처리 진행중`);
+      return;
+    }
+
+    await this.cacheManager.set(this.LOCK_KEY, true, 1 * 60 * 1000);
     const userIds = await this.findAllMatchingUsers();
     this.slackService.sendNotification(`${userIds.length} 명의 매칭처리를 시작합니다.`);
     const result = await this.batch(userIds);
@@ -207,7 +224,6 @@ export default class MatchingCreationService {
     })();
 
     this.logger.log(`published date: ${weekDateService.createDayjs(publishedDate).format('YYYY-MM-DD HH:mm:ss')}`);
-    this.logger.log(`toDate() published date: ${new Date(publishedDate).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}`);
 
     await this.matchRepository.createMatch(
       userId,
