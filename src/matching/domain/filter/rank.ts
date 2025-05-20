@@ -8,7 +8,7 @@ const RANK_MATCHING_RULES = {
     [UserRank.A]: [UserRank.A, UserRank.B],
     [UserRank.B]: [UserRank.A, UserRank.B],
     [UserRank.C]: LOSER,
-    [UserRank.UNKNOWN]: LOSER,
+    [UserRank.UNKNOWN]: false,
   },
   rematching: {
     [UserRank.S]: [UserRank.S, UserRank.A, UserRank.B],

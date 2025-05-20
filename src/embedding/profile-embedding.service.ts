@@ -168,10 +168,6 @@ export class ProfileEmbeddingService {
 
     const mbti = profile.preferences.find(pref => pref.typeName === 'MBTI 유형')?.selectedOptions?.[0].displayName;
 
-    if (profile.rank === UserRank.UNKNOWN) {
-      return [];
-    }
-
     const { rankFilter, drinkFilter, smokingFilter, tattooFilter } = VectorFilter.getFilters(profile, type === MatchType.REMATCHING);
 
     if ([rankFilter].some(v => !v) && type !== MatchType.REMATCHING) {
