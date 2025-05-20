@@ -13,10 +13,6 @@ import AdminMatchRepository from './repositories/match.repository';
 import { MatchingModule } from '@/matching/matching.module';
 import { SlackNotificationModule } from '@/slack-notification/slack-notification.module';
 
-import { UserActivityInterceptor } from './interceptors/user-activity.interceptor';
-import { UserActivityListener } from './listeners/user-activity.listener';
-import { RedisModule } from '@/config/redis/redis.module';
-import { AdminMailController } from './controllers/admin-mail.controller';
 import { SignupService } from '@/auth/services/signup.service';
 import { SignupRepository } from '@/auth/repository/signup.repository';
 import UniversityRepository from '@/auth/repository/university.repository';
@@ -31,7 +27,6 @@ import SmsService from '@/sms/services/sms.service';
     SlackNotificationModule,
     EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
-    RedisModule,
 
   ],
   controllers: [
@@ -48,11 +43,6 @@ import SmsService from '@/sms/services/sms.service';
     ProfileRepository,
     AdminMatchService,
     AdminMatchRepository,
-    UserActivityListener,
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: UserActivityInterceptor,
-    }
   ],
   exports: [AdminMatchService]
 })

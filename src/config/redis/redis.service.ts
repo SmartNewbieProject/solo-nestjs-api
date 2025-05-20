@@ -1,6 +1,4 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
-import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
 import IORedis from 'ioredis';
 
 @Injectable()
@@ -8,7 +6,7 @@ export class RedisService {
   private readonly logger = new Logger(RedisService.name);
   private readonly redisClient: IORedis;
 
-  constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
+  constructor() {
     // Redis 클라이언트 직접 생성
     this.redisClient = new IORedis({
       host: process.env.REDIS_HOST || 'localhost',
