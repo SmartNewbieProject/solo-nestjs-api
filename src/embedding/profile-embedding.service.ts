@@ -11,6 +11,7 @@ import compabilities from '@/matching/domain/compability';
 import { ProfileService } from '@/user/services/profile.service';
 import { MatchType, UserVectorPayload } from '@/types/match';
 import { VectorFilter } from '../matching/domain/filter';
+import { UserRank } from '@/database/schema/profiles';
 
 @Injectable()
 export class ProfileEmbeddingService {
@@ -164,9 +165,13 @@ export class ProfileEmbeddingService {
     const { payload, vector } = await this.getUserPoint(userId);
     const gender = payload.profileSummary.gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
     const profile = await this.profileService.getUserProfiles(userId);
-    this.logger.log(profile);
 
     const mbti = profile.preferences.find(pref => pref.typeName === 'MBTI 유형')?.selectedOptions?.[0].displayName;
+
+    if (profile.rank === UserRank.UNKNOWN) {
+      return [];
+    }
+
     const { rankFilter, drinkFilter, smokingFilter, tattooFilter } = VectorFilter.getFilters(profile, type === MatchType.REMATCHING);
 
     if ([rankFilter].some(v => !v) && type !== MatchType.REMATCHING) {
@@ -218,7 +223,7 @@ export class ProfileEmbeddingService {
       filter
     );
 
-    this.logger.log(searchResults);
+    // this.logger.log(searchResults);
 
     // 결과 변환 (상성 점수 반영)
     const results = await Promise.all(searchResults.map(async (result) => {
