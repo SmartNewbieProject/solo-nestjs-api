@@ -132,7 +132,7 @@ const getNextMatchingDate = () => {
   // return now.add(10, 'second');
 
   // 현재 시간이 목요일 전이면 목요일 21시로 설정
-  if (now.isBefore(createDayjs(thursday))) {
+  if (now.isBefore(createDayjs(thursday).set('hour', 21))) {
     const result = createDayjs(setDeadline(thursday));
     console.log(`다음 매칭일: 목요일 ${result.format('YYYY-MM-DD HH:mm:ss')}`);
     return result;
