@@ -2,6 +2,7 @@ import { PreferenceTypeGroup } from "@/docs/matching.docs";
 import { createRankFilter } from "./rank";
 import compatibilities from "../compability";
 import { UserProfile } from "@/types/user";
+import { UserRank } from "@/database/schema/profiles";
 
 enum Key {
   DRINKING = '음주 선호도',
@@ -37,7 +38,7 @@ const createTattooFilter = (group: PreferenceTypeGroup[]) => {
 };
 
 const getFilters = (profile: UserProfile, isPremium: boolean) => {
-  const rankFilter = createRankFilter(profile.rank, isPremium);
+  const rankFilter = createRankFilter(profile.rank as UserRank, isPremium);
   const drinkFilter = createDrinkFilter(profile.preferences);
   const smokingFilter = createSmokingFilter(profile.preferences);
   const tattooFilter = createTattooFilter(profile.preferences);

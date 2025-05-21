@@ -24,7 +24,7 @@ export class ProfileService {
     private readonly profileRepository: ProfileRepository,
   ) { }
 
-  async getUserProfiles(userId: string): Promise<UserProfile> {
+  async getUserProfiles(userId: string, sensitive: boolean = true): Promise<UserProfile> {
     const profileDetails = await this.profileRepository.getProfileDetails(userId);
 
     if (!profileDetails) {
@@ -40,7 +40,7 @@ export class ProfileService {
       name: profileDetails.name,
       age: profileDetails.age,
       gender: profileDetails.gender,
-      rank: profileDetails.rank as UserRank,
+      rank: sensitive ? null : profileDetails.rank as UserRank,
       profileImages: profileDetails.profileImages,
       instagramId: profileDetails.instagramId,
       universityDetails: profileDetails.universityDetail,
