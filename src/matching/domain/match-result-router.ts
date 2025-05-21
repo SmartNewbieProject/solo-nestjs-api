@@ -112,7 +112,9 @@ export default class MatchResultRouter {
 
   checkEarlyView() {
     const { thursday } = weekDateService.getWeekDates();
-    return weekDateService.createDayjs().isBefore(thursday);
+    const matchingOpenTime = weekDateService.createDayjs(thursday)
+      .set('hour', 21);
+    return weekDateService.createDayjs().isBefore(matchingOpenTime);
   }
 
   checkOver(day: Date | Dayjs): boolean {
