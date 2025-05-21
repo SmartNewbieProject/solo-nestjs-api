@@ -85,7 +85,7 @@ export default class MatchResultRouter {
       this.logger.debug(`매칭 대상 공개 전`);
       return {
         ...watingResponse,
-        untilNext: nextMatchingDate,
+        untilNext: weekDateService.createDayjs(nextMatchingDate).format('YYYY-MM-DD HH:mm:ss'),
       }
     }
 
