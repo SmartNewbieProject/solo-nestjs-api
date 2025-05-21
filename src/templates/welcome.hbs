@@ -1,232 +1,286 @@
 <!DOCTYPE html>
 <html lang="ko">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>썸타임에 오신 것을 환영합니다!</title>
+    <title>썸타임 회원가입을 축하합니다!</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
     <style>
-        /* 전체 스타일 */
         body {
-            font-family: 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif;
-            line-height: 1.6;
-            color: #333333;
-            background-color: #f9f9f9;
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
             margin: 0;
             padding: 0;
+            background-color: #f9f9f9;
+            color: #333333;
+            line-height: 1.6;
         }
-
-        /* 컨테이너 스타일 */
         .container {
             max-width: 600px;
             margin: 0 auto;
             background-color: #ffffff;
             border-radius: 8px;
             overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
         }
-
-        /* 헤더 스타일 */
         .header {
-            background-color: #ffffff;
-            padding: 30px 0;
+            background-color: #7C3AED;
+            padding: 30px 20px;
             text-align: center;
-            border-bottom: 1px solid #f0f0f0;
         }
-
-        .logo {
-            width: 180px;
-            height: auto;
-        }
-
-        /* 콘텐츠 스타일 */
-        .content {
-            padding: 40px 30px;
-            background-color: #ffffff;
-        }
-
-        .greeting {
-            font-size: 24px;
-            font-weight: 700;
-            color: #333333;
-            margin-bottom: 20px;
-        }
-
-        .message {
-            font-size: 16px;
-            color: #555555;
-            margin-bottom: 30px;
-        }
-
-        /* 버튼 스타일 */
-        .button-container {
-            text-align: center;
-            margin: 30px 0;
-        }
-
-        .button {
-            display: inline-block;
-            background-color: #FF6B6B;
-            color: #ffffff !important;
-            text-decoration: none;
-            padding: 14px 30px;
-            border-radius: 50px;
-            font-size: 16px;
-            font-weight: 600;
-            transition: background-color 0.3s ease;
-        }
-
-        .button:hover {
-            background-color: #FF5252;
-        }
-
-        /* 정보 섹션 스타일 */
-        .info-section {
-            background-color: #f9f9f9;
-            border-radius: 6px;
-            padding: 20px;
-            margin-top: 30px;
-        }
-
-        .info-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333333;
+        .header img {
+            width: 120px;
             margin-bottom: 15px;
         }
-
-        .info-item {
-            display: flex;
+        .header h1 {
+            color: white;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px;
+        }
+        .welcome {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #7C3AED;
             margin-bottom: 10px;
         }
-
-        .info-label {
-            font-weight: 600;
-            width: 120px;
-            color: #666666;
+        .button {
+            display: block;
+            background-color: #7C3AED;
+            color: white;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 25px auto;
+            width: 200px;
+            transition: background-color 0.3s;
         }
-
-        .info-value {
-            color: #333333;
-            flex: 1;
+        .button:hover {
+            background-color: #6D28D9;
         }
-
-        /* 푸터 스타일 */
+        .features {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .feature {
+            flex-basis: 48%;
+            background-color: #F3F4F6;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        .feature-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #7C3AED;
+        }
         .footer {
-            background-color: #f9f9f9;
-            padding: 25px 30px;
+            background-color: #F3F4F6;
+            padding: 20px;
             text-align: center;
             font-size: 14px;
-            color: #999999;
-            border-top: 1px solid #f0f0f0;
+            color: #666;
         }
-
         .social-links {
             margin: 15px 0;
         }
-
-        .social-link {
+        .social-links a {
             display: inline-block;
-            margin: 0 10px;
-            color: #666666;
+            margin: 0 8px;
+            color: #7C3AED;
+        }
+        .unsubscribe {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #999;
+        }
+        .unsubscribe a {
+            color: #666;
             text-decoration: none;
         }
-
-        .social-link:hover {
-            color: #FF6B6B;
+        .steps {
+            margin: 20px 0;
         }
-
-        .footer-text {
-            margin: 10px 0;
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
         }
-
-        /* 반응형 스타일 */
-        @media only screen and (max-width: 600px) {
-            .container {
-                width: 100%;
-                border-radius: 0;
-            }
-
-            .content {
-                padding: 30px 20px;
-            }
-
-            .info-item {
-                flex-direction: column;
-            }
-
-            .info-label {
-                width: 100%;
-                margin-bottom: 5px;
+        .step-number {
+            background-color: #7C3AED;
+            color: white;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .step-content {
+            flex: 1;
+        }
+        .next-match {
+            background-color: #EDE9FE;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+            margin: 25px 0;
+        }
+        .next-match .highlight {
+            color: #7C3AED;
+            font-weight: 600;
+        }
+        .contact-info {
+            text-align: center;
+            margin-top: 25px;
+        }
+        .contact-info a {
+            color: #7C3AED;
+            text-decoration: none;
+        }
+        .divider {
+            border-top: 1px solid #eee;
+            margin: 25px 0;
+        }
+        @media only screen and (max-width: 480px) {
+            .feature {
+                flex-basis: 100%;
             }
         }
     </style>
 </head>
-
 <body>
     <div class="container">
         <div class="header">
-            <img src="https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/resources/sometime-logo.png"
-                alt="썸타임 로고" class="logo">
+            <div style="text-align: center; margin-bottom: 15px;">
+                <img src="https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/resources/sometime-logo.png" alt="썸타임 로고" style="max-width: 150px; height: auto;">
+            </div>
+            <h1>가입을 환영합니다! 🎉</h1>
         </div>
-
+        
         <div class="content">
-            <div class="greeting">안녕하세요, {{name}}님!</div>
-
-            <div class="message">
-                <p>썸타임에 가입해주셔서 진심으로 감사합니다. 대학생 매칭 서비스 썸타임과 함께 새로운 인연을 만나보세요.</p>
-                <p>지금 바로 프로필을 완성하고 매칭을 시작해보세요!</p>
+            <p class="welcome">
+                <strong>{{user_name}}</strong>님, 썸타임과 함께하게 되어 정말 기쁩니다!
+            </p>
+            
+            <div class="section">
+                <p>
+                    이제부터 <strong>썸타임</strong>과 함께 대학 캠퍼스에서 여러분의 소중한 인연을 찾아보세요. 
+                    저희는 여러분에게 가장 잘 맞는 상대를 연결해드리기 위해 AI 매칭 알고리즘을 활용하고 있습니다.
+                </p>
             </div>
-
-            <div class="button-container">
-                <a href="{{loginUrl}}" class="button">프로필 완성하기</a>
+            
+            <div class="next-match">
+                <div class="section-title">📅 다음 매칭 일정 안내</div>
+                <p>
+                    다음 매칭은 매주 목요일, 일요일 오후 9시에 진행됩니다.<br>
+                    그 전에 프로필을 완성하고 매칭에 참여해보세요!
+                </p>
             </div>
-
-            <div class="info-section">
-                <div class="info-title">가입 정보</div>
-
-                <div class="info-item">
-                    <div class="info-label">이름</div>
-                    <div class="info-value">{{name}}</div>
-                </div>
-
-                <div class="info-item">
-                    <div class="info-label">이메일</div>
-                    <div class="info-value">{{email}}</div>
-                </div>
-
-                <div class="info-item">
-                    <div class="info-label">대학교</div>
-                    <div class="info-value">{{university}}</div>
-                </div>
-
-                <div class="info-item">
-                    <div class="info-label">가입일</div>
-                    <div class="info-value">{{signupDate}}</div>
+            
+            <div class="section">
+                <div class="section-title">🔍 지금 바로 할 수 있는 것들</div>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <strong>프로필 완성하기</strong> - 매력적인 프로필일수록 매칭 확률이 높아집니다
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <strong>매칭 설정하기</strong> - 원하는 이상형 조건을 설정해보세요
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <strong>대전 11개 대학 커뮤니티</strong> - 학생들만의 안전한 커뮤니티를 이용해보세요
+                        </div>
+                    </div>
                 </div>
             </div>
+            
+            <a href="https://some-in-univ.com/auth/login" class="button">프로필 완성하기</a>
+            
+            <div class="section">
+                <div class="section-title">🔒 안전한 만남을 위한 약속</div>
+                <p>
+                    썸타임은 여러분의 안전한 만남을 최우선으로 생각합니다. 모든 프로필은 검증 과정을 거치며, 
+                    불건전한 목적의 사용자는 즉시 제재됩니다.
+                </p>
+            </div>
+            
+            <div class="section" style="text-align: center;">
+                <div style="margin: 0 auto; max-width: 320px;">
+                    <div style="background-color: #EDE9FE; border-radius: 8px; padding: 20px; margin-bottom: 15px; text-align: center;">
+                        <div style="font-size: 28px; margin-bottom: 10px; color: #7C3AED;">🎯</div>
+                        <strong style="display: block; margin-bottom: 8px; font-size: 16px;">AI 기반 매칭</strong>
+                        <p style="margin: 0; font-size: 14px;">내면의 성향까지 파악하는 정교한 매칭</p>
+                    </div>
+                    
+                    <div style="background-color: #EDE9FE; border-radius: 8px; padding: 20px; margin-bottom: 15px; text-align: center;">
+                        <div style="font-size: 28px; margin-bottom: 10px; color: #7C3AED;">🔐</div>
+                        <strong style="display: block; margin-bottom: 8px; font-size: 16px;">철저한 대학생 인증</strong>
+                        <p style="margin: 0; font-size: 14px;">학생증 및 이메일 인증으로 신뢰성 보장</p>
+                    </div>
+                    
+                    <div style="background-color: #EDE9FE; border-radius: 8px; padding: 20px; margin-bottom: 15px; text-align: center;">
+                        <div style="font-size: 28px; margin-bottom: 10px; color: #7C3AED;">🏫</div>
+                        <strong style="display: block; margin-bottom: 8px; font-size: 16px;">지역 11개 대학생 전용</strong>
+                        <p style="margin: 0; font-size: 14px;">검증된 대학생들과의 안전한 만남</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="contact-info">
+                <div class="section-title">📱 궁금한 점이 있으신가요?</div>
+                <p>
+                    질문이나 도움이 필요하시면 언제든지 저희에게 연락주세요!<br>
+                    📧 <a href="mailto:notify@smartnewb.com">notify@smartnewb.com</a> | 📞 010-8465-2476
+                </p>
+            </div>
+            
+            <div class="divider"></div>
         </div>
-
+        
         <div class="footer">
-            <div class="social-links">
-                <a href="https://instagram.com/sometime" class="social-link">Instagram</a>
-                <a href="https://facebook.com/sometime" class="social-link">Facebook</a>
-                <a href="https://twitter.com/sometime" class="social-link">Twitter</a>
+            <div class="social-links" style="margin: 15px 0;">
+                <a href="https://www.instagram.com/sometime.in.univ/" style="display: inline-block; margin: 0 10px; color: #7C3AED; text-decoration: none;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" alt="Instagram" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 5px;">
+                    Instagram
+                </a> |
+                <a href="https://some-in-univ.com/event/pre-signup" style="display: inline-block; margin: 0 10px; color: #7C3AED; text-decoration: none;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1006/1006771.png" alt="Website" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 5px;">
+                    웹사이트
+                </a>
             </div>
-
-            <div class="footer-text">
-                본 메일은 발신 전용으로 회신이 불가합니다.
-            </div>
-
-            <div class="footer-text">
-                &copy; 2025 썸타임. All rights reserved.
-            </div>
-
-            <div class="footer-text">
-                <a href="{{unsubscribeUrl}}" style="color: #999999; text-decoration: underline;">수신 거부</a>
+            
+            <p>© 2025 썸타임 | <a href="https://ruby-composer-6d2.notion.site/1cd1bbec5ba1805dbafbc9426a0aaa80?pvs=4">이용약관</a> | <a href="https://ruby-composer-6d2.notion.site/1cd1bbec5ba180a3a4bbdf9301683145?pvs=4">개인정보처리방침</a></p>
+            
+            <div class="unsubscribe">
+                본 이메일은 발신전용이며 회원가입 시 동의하신 마케팅 수신 동의에 따라 발송되었습니다.<br>
             </div>
         </div>
     </div>
 </body>
-
 </html>
