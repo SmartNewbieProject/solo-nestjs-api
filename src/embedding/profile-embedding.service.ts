@@ -191,7 +191,7 @@ export class ProfileEmbeddingService {
         {
           key: 'profileSummary.rank',
           match: {
-            any: rankFilter || [],
+            any: rankFilter,
           }
         },
         {
