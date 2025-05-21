@@ -43,10 +43,15 @@ export class PaymentController {
     @Headers('portone-signature') signature: string,
     @Body() webhookData: PortoneWebhookDto,
   ) {
-    // if (!this.payService.verifyPortoneSignature(signature, webhookData)) {
-    //   throw new UnauthorizedException('잘못된 웹훅 서명입니다.');
-    // }
+    try {
+      // 서명 검증 (필요시 활성화)
+      // if (!this.payService.verifyPortoneSignature(signature, webhookData)) {
+      //   throw new UnauthorizedException('잘못된 웹훅 서명입니다.');
+      // }
 
-    return this.payService.handlePaymentWebhook(webhookData);
+      return await this.payService.handlePaymentWebhook(webhookData);
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
   }
 }

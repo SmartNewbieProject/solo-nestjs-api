@@ -35,12 +35,25 @@ export class SlackService {
   }
 
   async sendNotification(message: string, channel: string = '매칭-테스트-로그') {
-    await this.slack.chat.postMessage({
-      channel,
-      text: message,
-      username: '썸타임 봇',
-      icon_url: 'https://i.pinimg.com/736x/03/78/fe/0378febd3b192bd1a8dd10335fd1f718.jpg',
-    });
+    try {
+      this.logger.debug(`슬랙 메시지 전송 시도 - 채널: ${channel}`);
+
+      // 채널 이름에서 # 기호 제거 (슬랙 API는 # 없이 채널 이름만 필요)
+      const cleanChannel = channel.startsWith('#') ? channel.substring(1) : channel;
+
+      const result = await this.slack.chat.postMessage({
+        channel: cleanChannel,
+        text: message,
+        username: '썸타임 봇',
+        icon_url: 'https://i.pinimg.com/736x/03/78/fe/0378febd3b192bd1a8dd10335fd1f718.jpg',
+      });
+
+      this.logger.debug(`슬랙 메시지 전송 성공 - 채널: ${cleanChannel}, ts: ${result.ts}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`슬랙 메시지 전송 실패 - 채널: ${channel}, 오류: ${error.message}`);
+      throw error;
+    }
   }
 
   async sendErrorNotification(
@@ -163,6 +176,22 @@ export class SlackService {
   async sendMatchingNotification(userId: string, partnerId: string, similarity: number) {
     const message = `✨ New Match Created!\nUser: ${userId}\nPartner: ${partnerId}\nSimilarity: ${similarity.toFixed(2)}`;
     await this.sendNotification(message, 'matching');
+  }
+
+  async sendPaymentNotification(
+    userId: string,
+    userName: string,
+    orderName: string,
+    amount: number,
+    method: string = '알 수 없음',
+    paidAt?: Date
+  ) {
+    const paymentDate = paidAt || new Date();
+    const formattedDate = `${paymentDate.getFullYear()}-${String(paymentDate.getMonth() + 1).padStart(2, '0')}-${String(paymentDate.getDate()).padStart(2, '0')} ${String(paymentDate.getHours()).padStart(2, '0')}:${String(paymentDate.getMinutes()).padStart(2, '0')}`;
+
+    const message = `💰 결제 완료: ${userName} 사용자가 ${formattedDate}에 ${orderName}을 ${amount.toLocaleString()}원 결제했습니다. (결제 수단: ${method})`;
+
+    return await this.sendNotification(message, '썸타임-결제알림');
   }
 
   async sendSingleMatch(

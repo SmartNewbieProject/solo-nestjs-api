@@ -9,6 +9,8 @@ import { TicketService } from "./ticket.service";
 import { axiosHandler } from "@/common/helper";
 import { createHmac } from 'crypto';
 import axios from "axios";
+import { SlackService } from "@/slack-notification/slack.service";
+import UserRepository from "@/user/repository/user.repository";
 
 const productMap: Record<Product, { price: number }> = {
   [Product.REMATCHING]: {
@@ -30,6 +32,8 @@ export default class PayService {
     private readonly configService: ConfigService,
     private readonly payRepository: PayRepository,
     private readonly ticketService: TicketService,
+    private readonly slackService: SlackService,
+    private readonly userRepository: UserRepository,
   ) {
     this.client = PortOneClient({ secret: configService.get('PORTONE_SECRET_KEY') as string });
     this.impId = configService.get('PORTONE_IMP_ID') as string;
@@ -49,6 +53,31 @@ export default class PayService {
     if (history.userId !== userId) {
       throw new UnauthorizedException('본인의 결제만 확인할 수 있습니다.');
     }
+
+    try {
+      const accessToken = await this.getServiceToken();
+      const { response: portOnePayment } = await this.getPayment(impUid, accessToken) as { response: PaymentDetails };
+
+      if (portOnePayment.status === 'paid') {
+        await this.payRepository.updateHistory(merchantUid, {
+          receiptUrl: portOnePayment.receipt_url,
+          paidAt: new Date(portOnePayment.paid_at),
+          method: portOnePayment.emb_pg_provider,
+          txId: portOnePayment.pg_tid,
+        });
+
+        await this.sendPaymentSlackNotification(
+          userId,
+          history.orderName,
+          history.amount,
+          portOnePayment.emb_pg_provider || '알 수 없음',
+          new Date(portOnePayment.paid_at)
+        );
+      }
+    } catch (error) {
+      this.logger.error(`결제 확인 중 오류 발생: ${error.message}`);
+    }
+
     return history;
   }
 
@@ -62,17 +91,46 @@ export default class PayService {
     return signature === generatedSignature;
   }
 
+  private async sendPaymentSlackNotification(
+    userId: string,
+    orderName: string,
+    amount: number,
+    method: string,
+    paidAt: Date
+  ) {
+    try {
+      const user = await this.userRepository.getUser(userId);
+      const userName = user?.name || '알 수 없음';
+
+      await this.slackService.sendPaymentNotification(
+        userId,
+        userName,
+        orderName,
+        amount,
+        method,
+        paidAt
+      );
+      return true;
+    } catch (error) {
+      this.logger.error(`슬랙 알림 전송 중 오류 발생: ${error.message}`);
+      return false;
+    }
+  }
+
   async handlePaymentWebhook(webhookData: PortoneWebhookDto) {
-    this.logger.debug({ webhookData });
     const { imp_uid, merchant_uid, status } = webhookData;
-    
-    const history = await this.payRepository.findPayHistory(merchant_uid);
-    if (!history) {
-      this.logger.error(`결제 내역을 찾을 수 없습니다: ${merchant_uid}`);
-      return;
+
+    if (status !== PortonePaymentStatus.PAID) {
+      return { success: false, message: '결제 완료 상태가 아님' };
     }
 
-    if (status === PortonePaymentStatus.PAID) {
+    try {
+      const history = await this.payRepository.findPayHistory(merchant_uid);
+      if (!history) {
+        this.logger.error(`결제 내역을 찾을 수 없습니다: ${merchant_uid}`);
+        return { success: false, message: '결제 내역을 찾을 수 없음' };
+      }
+
       const accessToken = await this.getServiceToken();
       const { response: portOnePayment } = await this.getPayment(imp_uid, accessToken) as { response: PaymentDetails };
 
@@ -80,7 +138,7 @@ export default class PayService {
       try {
         customData = JSON.parse(JSON.parse(portOnePayment.custom_data as string));
       } catch (error) {
-        this.logger.error('결제 데이터 파싱 실패:', error);
+        this.logger.error('결제 데이터 파싱 실패');
         throw new BadGatewayException('결제 데이터가 올바르지 않습니다.');
       }
 
@@ -97,16 +155,28 @@ export default class PayService {
       });
 
       await this.strategy(history.userId, customData.orderName as Product, customData);
+
+      const notificationSent = await this.sendPaymentSlackNotification(
+        history.userId,
+        history.orderName,
+        history.amount,
+        portOnePayment.emb_pg_provider || '알 수 없음',
+        new Date(portOnePayment.paid_at)
+      );
+
+      return {
+        success: true,
+        notificationSent
+      };
+    } catch (error) {
+      this.logger.error(`결제 웹훅 처리 중 오류 발생: ${error.message}`);
+      throw error;
     }
   }
 
   private strategy(userId: string, product: Product, customData: PortOneCustomData) {
-    const price = productMap[product].price;
-    const productCount = customData.productCount;
-    this.logger.debug({ price, productCount });
-
     if (product === Product.REMATCHING) {
-      return this.ticketService.createRematchingTickets(userId, productCount);
+      return this.ticketService.createRematchingTickets(userId, customData.productCount);
     }
   }
 
