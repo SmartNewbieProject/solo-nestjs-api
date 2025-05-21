@@ -17,7 +17,7 @@ export class HotArticleService {
     @InjectDrizzle() private readonly db: NodePgDatabase<typeof schema>,
   ) { }
 
-  @Cron('*/1 * * * *')
+  @Cron('0 */1 * * *')
   async checkHotArticles() {
     try {
       // 트랜잭션 내에서 어드바이저리 락 획득 및 처리
@@ -25,12 +25,12 @@ export class HotArticleService {
         // 어드바이저리 락 획득 (락 ID는 임의의 고유 값)
         const lockId = 12345678; // 고유한 숫자 ID 사용
 
-        this.logger.log(`인기 게시글 처리 시작 - 어드바이저리 락 획득 시도 (ID: ${lockId})`);
+        // this.logger.log(`인기 게시글 처리 시작 - 어드바이저리 락 획득 시도 (ID: ${lockId})`);
 
         // 트랜잭션 수준 락 획득 (트랜잭션이 끝나면 자동으로 해제됨)
         await tx.execute(sql`SELECT pg_advisory_xact_lock(${lockId})`);
 
-        this.logger.log('어드바이저리 락 획득 성공');
+        // this.logger.log('어드바이저리 락 획득 성공');
 
         // 기존 로직 실행
         const recentArticleIds = await tx
@@ -46,7 +46,7 @@ export class HotArticleService {
             )
           ).execute();
 
-        this.logger.log(`최근 24시간 내 게시글 ${recentArticleIds.length}개 조회 완료`);
+        // this.logger.log(`최근 24시간 내 게시글 ${recentArticleIds.length}개 조회 완료`);
 
         if (recentArticleIds.length === 0) {
           return { success: 0 };
@@ -84,7 +84,7 @@ export class HotArticleService {
           })
         );
 
-        this.logger.log(`${recentArticles.length}개 게시글의 좋아요 및 댓글 수 집계 완료`);
+        // this.logger.log(`${recentArticles.length}개 게시글의 좋아요 및 댓글 수 집계 완료`);
 
         const processPromises = recentArticles.map(async (article) => {
           try {
@@ -106,12 +106,12 @@ export class HotArticleService {
                 articleId: article.id,
               });
 
-              this.logger.log(`새로운 인기 게시글 등록: ${article.id} (Score: ${score.toFixed(2)})`);
+              // this.logger.log(`새로운 인기 게시글 등록: ${article.id} (Score: ${score.toFixed(2)})`);
               return { status: 'success', articleId: article.id, score };
             }
             return { status: 'skipped', articleId: article.id, score };
           } catch (error) {
-            this.logger.error(`인기 게시글 처리 중 오류 발생 (게시글 ID: ${article.id}):`, error);
+            // this.logger.error(`인기 게시글 처리 중 오류 발생 (게시글 ID: ${article.id}):`, error);
             return { status: 'error', articleId: article.id, error };
           }
         });
@@ -131,7 +131,7 @@ export class HotArticleService {
         return stats;
       });
     } catch (error) {
-      this.logger.error('인기 게시글 체크 중 오류 발생:', error);
+      // this.logger.error('인기 게시글 체크 중 오류 발생:', error);
       return { error: true };
     }
   }
