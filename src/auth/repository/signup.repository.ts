@@ -73,6 +73,14 @@ export class SignupRepository {
         })
         .returning();
 
+      if (createUserDto.mbti) {
+        await tx.update(profiles)
+        .set({
+          mbti: createUserDto.mbti,
+        })
+        .where(eq(profiles.id, profileId));
+      }
+
       await tx.insert(schema.userPreferences)
         .values({
           userId: user.id,

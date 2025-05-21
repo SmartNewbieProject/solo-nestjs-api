@@ -52,6 +52,10 @@ export class ProfileEmbeddingService {
       parts.push(`성별: ${profile.gender}`);
     }
 
+    if (profile.mbti) {
+      parts.push(`MBTI: ${profile.mbti}`);
+    }
+
     if (profile.universityDetails) {
       parts.push(`대학: ${profile.universityDetails.name}`);
       if (profile.universityDetails.department) {
@@ -90,6 +94,7 @@ export class ProfileEmbeddingService {
         age: profile.age,
         gender: profile.gender,
         rank: profile.rank,
+        mbti: profile.mbti,
         university: profile.universityDetails?.name,
         preferences: (() => {
           return profile.preferences.map(pref => ({
@@ -98,6 +103,8 @@ export class ProfileEmbeddingService {
           }));
         })(),
       };
+
+      this.logger.debug(profileSummary);
 
       await this.qdrantService.upsertPoints(this.COLLECTION_NAME, [
         {
