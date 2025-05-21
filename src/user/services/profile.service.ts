@@ -146,4 +146,12 @@ export class ProfileService {
     return nickname;
   }
 
+  async getMbti(userId: string) {
+    return await this.profileRepository.getMbti(userId);
+  }
+
+  async updateMbti(userId: string, mbti: string) {
+    return await this.profileRepository.updateMbti(userId, mbti);
+  }
+
 }

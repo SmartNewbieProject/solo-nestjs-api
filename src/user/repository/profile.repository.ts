@@ -76,10 +76,7 @@ export default class ProfileRepository {
 
     return {
       ...union.profiles,
-      mbti: (() => {
-        if (mbtiResults.length === 0) return null;
-        return mbtiResults[0].mbti;
-      })(),
+      mbti: union.profiles.mbti,
       rank: union.profiles.rank as UserRank,
       universityDetail: union.university_details ? {
         name: union.university_details.universityName,
@@ -262,6 +259,21 @@ export default class ProfileRepository {
     });
 
     await Promise.all(preferencePromises);
+  }
+
+  async getMbti(userId: string) {
+    const results = await this.db.select({
+      mbti: schema.profiles.mbti,
+    })
+      .from(schema.profiles)
+      .where(eq(schema.profiles.userId, userId));
+    return results[0]?.mbti;
+  }
+
+  async updateMbti(userId: string, mbti: string) {
+    return await this.db.update(schema.profiles)
+      .set({ mbti })
+      .where(eq(schema.profiles.userId, userId));
   }
 
 }

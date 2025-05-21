@@ -69,3 +69,14 @@ export class InstagramId {
   @IsNotEmpty()
   instagramId: string;
 }
+
+
+export class MbtiUpdate {
+  @ApiProperty({
+    example: 'INFP',
+    description: 'MBTI'
+  })
+  @IsString()
+  @IsNotEmpty()
+  mbti: string;
+}
