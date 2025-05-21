@@ -174,6 +174,10 @@ export class ProfileEmbeddingService {
       return [];
     }
 
+    if ([rankFilter].some(v => !v) && type !== MatchType.ADMIN) {
+      return [];
+    }
+
     const filter = {
       must: [
         {
@@ -191,7 +195,7 @@ export class ProfileEmbeddingService {
         {
           key: 'profileSummary.rank',
           match: {
-            any: rankFilter,
+            any: rankFilter || [],
           }
         },
         {
