@@ -6,6 +6,7 @@ import ProfileRepository from '@/user/repository/profile.repository';
 import type { CommentDetails, CommentWithRelations } from '../types/comment.type';
 import { AuthenticationUser } from '@/types';
 import { AnonymousNameService } from './anonymous-name.service';
+import weekDateService from '@/matching/domain/date';
 
 @Injectable()
 export class CommentService {
@@ -85,8 +86,8 @@ export class CommentService {
           studentNumber: comment.author.profile.universityDetail?.studentNumber || '',
         }
       },
-      updatedAt: comment.updatedAt || comment.createdAt,
-      createdAt: comment.createdAt,
+      updatedAt: weekDateService.createDayjs(comment.updatedAt || comment.createdAt).format('YYYY-MM-DD HH:mm:ss'),
+      createdAt: weekDateService.createDayjs(comment.createdAt).format('YYYY-MM-DD HH:mm:ss'),
     };
   }
 }
