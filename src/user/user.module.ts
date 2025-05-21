@@ -15,6 +15,8 @@ import UserService from "./services/user.service";
 import { StatsController } from "./controller/stats.controller";
 import { StatsService } from "./services/stats.service";
 import { StatsRepository } from "./repository/stats.repository";
+import { NotificationRepository } from "./repository/notification.repository";
+import { NotificationService } from "./services/notification.service";
 
 @Module({
   imports: [CommonModule],
@@ -35,7 +37,9 @@ import { StatsRepository } from "./repository/stats.repository";
     UserRepository,
     UserService,
     StatsService,
-    StatsRepository
+    StatsRepository,
+    NotificationRepository,
+    NotificationService,
   ],
   exports: [ProfileService, PreferenceService, ProfileRepository, ProfileService],
 })
