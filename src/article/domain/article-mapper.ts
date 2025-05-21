@@ -11,6 +11,7 @@ export class ArticleMapper {
   private static logger = new Logger(ArticleMapper.name);
 
   static toArticleDetails(result: ArticleQueryResult): ArticleDetails {
+    const updatedAt = result.article.updatedAt || result.article.createdAt;
 
     return {
       id: result.article.id,
@@ -22,14 +23,25 @@ export class ArticleMapper {
       likeCount: Number(result.likeCount),
       commentCount: Number(result.commentCount),
       readCount: result.article.readCount,
-      updatedAt: result.article.updatedAt || result.article.createdAt,
+      updatedAt: weekDateService.createDayjs(updatedAt).format('YYYY-MM-DD HH:mm:ss'),
       isLiked: result.isLiked,
-      createdAt: result.article.createdAt,
+      createdAt: weekDateService.createDayjs(result.article.createdAt).format('YYYY-MM-DD HH:mm:ss'),
     };
   }
 
   static toArticleDetailsList(results: ArticleQueryResult[]): ArticleDetails[] {
-    return results.map(result => this.toArticleDetails(result));
+    return results
+      .map(result => this.toArticleDetails(result))
+      .map(result => ({
+        ...result,
+        createdAt: dayjs(result.createdAt).format('YYYY-MM-DD HH:mm:ss'),
+        updatedAt: dayjs(result.updatedAt).format('YYYY-MM-DD HH:mm:ss'),
+        comments: result.comments.map(comment => ({
+          ...comment,
+          createdAt: dayjs(comment.createdAt).format('YYYY-MM-DD HH:mm:ss'),
+          updatedAt: dayjs(comment.updatedAt).format('YYYY-MM-DD HH:mm:ss'),
+        })),
+      }));
   }
 
   private static toAuthorDetails(result: ArticleQueryResult): AuthorDetails {

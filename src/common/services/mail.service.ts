@@ -17,25 +17,17 @@ export class MailService {
    * @param name 수신자 이름
    * @param data 추가 데이터
    */
-  async sendWelcomeEmail(to: string, name: string, data: any = {}) {
-    const baseUrl = this.configService.get('BASE_URL', 'https://some-in-univ.com');
-
+  async sendWelcomeEmail(to: string, name: string) {
     try {
       const result = await this.mailerService.sendMail({
         to,
-        subject: `${name}님, 썸타임에 오신 것을 환영합니다!`,
-        template: 'pre-signup',
+        subject: `${name}님, 썸타임 회원가입을 축하합니다!`,
+        template: 'welcome',
         context: {
-          name,
+          user_name: name,
           email: to,
-          university: data.universityName || '대학교',
-          signupDate: new Date().toLocaleDateString('ko-KR'),
-          loginUrl: `${baseUrl}/auth/login`,
-          unsubscribeUrl: `${baseUrl}/unsubscribe?email=${encodeURIComponent(to)}`,
-          ...data,
         },
       });
-
       this.logger.log(`Welcome email sent to ${to}`);
       return result;
     } catch (error) {

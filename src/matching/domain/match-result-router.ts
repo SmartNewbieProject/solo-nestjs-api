@@ -40,7 +40,7 @@ export default class MatchResultRouter {
       this.logger.debug(`아직 매칭 전임`);
         return {
           ...watingResponse,
-          untilNext: nextMatchingDate.toDate(),
+          untilNext: weekDateService.createDayjs(nextMatchingDate).format('YYYY-MM-DD HH:mm:ss'),
         };
       }
 
@@ -50,7 +50,7 @@ export default class MatchResultRouter {
         endOfView: null,
         partner: null,
         type: 'not-found',
-        untilNext: nextMatchingDate.toDate(),
+        untilNext: weekDateService.createDayjs(nextMatchingDate).format('YYYY-MM-DD HH:mm:ss'),
       };
     }
 
@@ -85,7 +85,7 @@ export default class MatchResultRouter {
       this.logger.debug(`매칭 대상 공개 전`);
       return {
         ...watingResponse,
-        untilNext: nextMatchingDate,
+        untilNext: weekDateService.createDayjs(nextMatchingDate).format('YYYY-MM-DD HH:mm:ss'),
       }
     }
 
@@ -112,7 +112,9 @@ export default class MatchResultRouter {
 
   checkEarlyView() {
     const { thursday } = weekDateService.getWeekDates();
-    return weekDateService.createDayjs().isBefore(thursday);
+    const matchingOpenTime = weekDateService.createDayjs(thursday)
+      .set('hour', 21);
+    return weekDateService.createDayjs().isBefore(matchingOpenTime);
   }
 
   checkOver(day: Date | Dayjs): boolean {

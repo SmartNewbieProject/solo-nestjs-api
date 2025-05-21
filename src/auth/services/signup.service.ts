@@ -40,7 +40,7 @@ export class SignupService {
       throw new ConflictException('이미 등록된 이메일입니다.');
     }
     const user = await this.createUser(signupRequest);
-    this.sendPreWelcomeEmail(email, name, signupRequest);
+    await this.mailService.sendWelcomeEmail(email, name);
     await this.slackService.sendSignupNotification(signupRequest);
 
     return {

@@ -10,7 +10,8 @@ export class HotArticleCalculator {
 
   // 인기 게시글 기준점수 (1.0 이상이면 인기)
   // private static readonly THRESHOLD = 300;
-  private static readonly THRESHOLD = 1;
+  // 좋아요 5개, 조회수 30회, 댓글 2개 이상 기준으로..
+  private static readonly THRESHOLD = 110;
 
   static calculateScore(views: number, likes: number, comments: number): number {
     const totalScore =

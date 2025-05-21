@@ -88,7 +88,7 @@ export interface UserProfile {
   mbti: string | null;
   age: number;
   gender: Gender;
-  rank: UserRank;
+  rank: UserRank | null;
   profileImages: ProfileImage[];
   instagramId: string | null;
   universityDetails: UniversityDetail | null;

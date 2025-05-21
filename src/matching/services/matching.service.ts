@@ -98,9 +98,7 @@ export class MatchingService {
   }
 
   getNextMatchingDate() {
-    // const nextMatchingDate = weekDateService.getNextMatchingDate();
-    // const nextMatchingDate = weekDateService.test30seconds();
-    const nextMatchingDate = weekDateService.test1Minutes();
+    const nextMatchingDate = weekDateService.getNextMatchingDate();
     return nextMatchingDate.format('YYYY-MM-DD HH:mm:ss');
   }
 

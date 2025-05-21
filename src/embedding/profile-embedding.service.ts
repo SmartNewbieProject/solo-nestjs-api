@@ -171,7 +171,7 @@ export class ProfileEmbeddingService {
   async findSimilarProfiles(userId: string, limit: number = 10, type: MatchType): Promise<Array<{ userId: string; similarity: number }>> {
     const { payload, vector } = await this.getUserPoint(userId);
     const gender = payload.profileSummary.gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
-    const profile = await this.profileService.getUserProfiles(userId);
+    const profile = await this.profileService.getUserProfiles(userId, false);
 
     const mbti = profile.preferences.find(pref => pref.typeName === 'MBTI 유형')?.selectedOptions?.[0].displayName;
 
