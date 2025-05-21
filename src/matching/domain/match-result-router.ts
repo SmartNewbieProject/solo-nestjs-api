@@ -40,7 +40,7 @@ export default class MatchResultRouter {
       this.logger.debug(`아직 매칭 전임`);
         return {
           ...watingResponse,
-          untilNext: nextMatchingDate.toDate(),
+          untilNext: weekDateService.createDayjs(nextMatchingDate).format('YYYY-MM-DD HH:mm:ss'),
         };
       }
 
@@ -50,7 +50,7 @@ export default class MatchResultRouter {
         endOfView: null,
         partner: null,
         type: 'not-found',
-        untilNext: nextMatchingDate.toDate(),
+        untilNext: weekDateService.createDayjs(nextMatchingDate).format('YYYY-MM-DD HH:mm:ss'),
       };
     }
 
