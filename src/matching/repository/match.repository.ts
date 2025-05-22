@@ -4,7 +4,7 @@ import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "@database/schema";
 import { generateUuidV7 } from "@database/schema/helper";
 import { MatchType } from "@database/schema/matches";
-import { eq, isNull, isNotNull, and, sql, count } from "drizzle-orm";
+import { eq, isNull, isNotNull, and, sql, count, ne } from "drizzle-orm";
 import { Gender } from "@/types/enum";
 import { PreferenceTypeGroup } from "@/types/user";
 import { RawMatch } from "@/types/match";
@@ -165,7 +165,8 @@ export default class MatchRepository {
       .where(
         and(
           isNull(schema.users.deletedAt),
-          isNull(schema.matches.id)
+          isNull(schema.matches.id),
+          ne(schema.profiles.rank, 'UNKNOWN')
         )
       )
       .groupBy(schema.users.id, schema.users.email, schema.users.name)
