@@ -102,10 +102,8 @@ export default class MatchResultRouter {
 
   checkRematchingEligibility(match: RawMatch): Rematching {
     const endOfView = weekDateService.createDayjs(match.expiredAt);
-    // 임시 조치: ADMIN 타입도 publish_at 시간을 확인하도록 변경
-    // TODO: 이 임시 조치는 추후 되돌릴 예정입니다. 원래 ADMIN 타입은 즉시 공개되어야 합니다.
-    // 원래 코드: const typeCorrected = [MatchType.REMATCHING, MatchType.ADMIN].includes(match.type as MatchType);
-    const typeCorrected = match.type === MatchType.REMATCHING;
+    // REMATCHING과 ADMIN 타입은 즉시 공개
+    const typeCorrected = [MatchType.REMATCHING, MatchType.ADMIN].includes(match.type as MatchType);
 
     return {
       endOfView: endOfView.format('YYYY-MM-DD HH:mm:ss'),
