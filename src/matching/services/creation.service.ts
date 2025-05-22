@@ -146,8 +146,8 @@ export default class MatchingCreationService {
         const partner = this.getOnePartner(partners);
 
         try {
-          const requester = await this.profileService.getUserProfiles(userId);
-          const matcher = await this.profileService.getUserProfiles(partner.userId);
+          const requester = await this.profileService.getUserProfiles(userId, false);
+          const matcher = await this.profileService.getUserProfiles(partner.userId, false);
 
           if (!isBatch) {
             await this.slackService.sendSingleMatch(
