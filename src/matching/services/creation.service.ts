@@ -216,10 +216,14 @@ export default class MatchingCreationService {
     }
 
   private async createMatch(userId: string, partner: Similarity, type: MatchType) {
+    // 임시 조치: 어드민 매칭 결과도 자동 매칭(schedule 타입)과 동일하게 나중에 공개되도록 설정
+    // TODO: 이 임시 조치는 추후 되돌릴 예정입니다. 원래 ADMIN 타입은 즉시 공개되어야 합니다.
     const publishedDate = (() => {
-      if ([MatchType.REMATCHING, MatchType.ADMIN].includes(type)) {
+      // 원래 코드: if ([MatchType.REMATCHING, MatchType.ADMIN].includes(type)) {
+      if (type === MatchType.REMATCHING) {
         return weekDateService.createDayjs().toDate();
       }
+      // ADMIN 타입과 SCHEDULED 타입 모두 동일하게 나중에 공개되도록 설정
       return weekDateService.createPublishDate(weekDateService.createDayjs());
     })();
 
