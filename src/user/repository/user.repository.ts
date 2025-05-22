@@ -44,4 +44,13 @@ export default class UserRepository {
     });
   }
 
+  async findAllActiveUsers() {
+    return await this.db.select({
+      email: schema.users.email,
+      name: schema.users.name,
+    })
+    .from(schema.users)
+    .where(isNull(schema.users.deletedAt));
+  }
+
 }

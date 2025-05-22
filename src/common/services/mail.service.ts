@@ -73,4 +73,23 @@ export class MailService {
       throw error;
     }
   }
+
+  async sendMatchingAlertEmail(to: string, name: string) {
+    try {
+      const result = await this.mailerService.sendMail({
+        to,
+        subject: `${name}님, 오늘 밤 9시 새로운 인연을 만나보세요!`,
+        template: 'matching-alert',
+        context: {
+          user_name: name,
+          email: to,
+        },
+      });
+      this.logger.log(`Matching alert email sent to ${to}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Failed to send matching alert email to ${to}`, error);
+      throw error;
+    }
+  }
 }

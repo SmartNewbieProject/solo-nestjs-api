@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>오늘 밤 21시, 새로운 인연을 만나보세요!</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        .header {
+            background-color: #7C3AED;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header img {
+            width: 120px;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            color: white;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px;
+        }
+        .welcome {
+            font-size: 18px;
+            font-weight: 500;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+        .section {
+            margin-bottom: 25px;
+        }
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #7C3AED;
+            margin-bottom: 10px;
+        }
+        .button {
+            display: block;
+            background-color: #7C3AED;
+            color: white;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            margin: 25px auto;
+            width: 200px;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #6D28D9;
+        }
+        .matching-time {
+            background: linear-gradient(135deg, #7C3AED 0%, #A855F7 100%);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            margin: 25px 0;
+            color: white;
+        }
+        .matching-time .time {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .matching-time .date {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .warning-box {
+            background-color: #FEF3C7;
+            border-left: 4px solid #F59E0B;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 25px 0;
+        }
+        .warning-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #92400E;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+        }
+        .warning-title::before {
+            content: "⚠️";
+            margin-right: 8px;
+            font-size: 20px;
+        }
+        .warning-list {
+            margin: 0;
+            padding-left: 20px;
+            color: #92400E;
+        }
+        .warning-list li {
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .check-profile {
+            background-color: #EDE9FE;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 25px 0;
+        }
+        .check-profile .highlight {
+            color: #7C3AED;
+            font-weight: 600;
+            font-size: 18px;
+        }
+        .footer {
+            background-color: #F3F4F6;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+        .social-links {
+            margin: 15px 0;
+        }
+        .social-links a {
+            display: inline-block;
+            margin: 0 8px;
+            color: #7C3AED;
+        }
+        .unsubscribe {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #999;
+        }
+        .unsubscribe a {
+            color: #666;
+            text-decoration: none;
+        }
+        .contact-info {
+            text-align: center;
+            margin-top: 25px;
+        }
+        .contact-info a {
+            color: #7C3AED;
+            text-decoration: none;
+        }
+        .divider {
+            border-top: 1px solid #eee;
+            margin: 25px 0;
+        }
+        .excitement-text {
+            background-color: #F0F9FF;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+            border: 2px solid #0EA5E9;
+        }
+        .excitement-text .emoji {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="text-align: center; margin-bottom: 15px;">
+                <img src="https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/resources/sometime-logo.png" alt="썸타임 로고" style="max-width: 150px; height: auto;">
+            </div>
+            <h1>오늘 밤, 새로운 인연이 기다려요! 💕</h1>
+        </div>
+        
+        <div class="content">
+            <p class="welcome">
+                <strong>{{user_name}}</strong>님, 설레는 매칭 시간이 다가왔습니다!
+            </p>
+            
+            <div class="matching-time">
+                <div class="time">오늘 밤 21:00</div>
+                <div class="date">매칭 결과가 공개됩니다</div>
+            </div>
+            
+            <div class="excitement-text">
+                <div class="emoji">✨</div>
+                <p style="margin: 0; font-size: 16px; font-weight: 500; color: #0369A1;">
+                    AI가 분석한 당신과 가장 잘 맞는<br>
+                    특별한 사람을 소개해드릴 예정입니다!
+                </p>
+            </div>
+            
+            <div class="warning-box">
+                <div class="warning-title">매칭 제외 안내</div>
+                <p style="color: #92400E; margin-bottom: 10px;">다음의 경우 매칭에서 제외될 수 있습니다:</p>
+                <ul class="warning-list">
+                    <li>회원 프로필 등록정보가 규정을 위반하는 경우</li>
+                    <li>이상형 정보가 등록되어 있지 않은 경우</li>
+                </ul>
+            </div>
+            
+            <div class="check-profile">
+                <p class="highlight">📋 매칭 전 마지막 점검!</p>
+                <p style="margin: 10px 0; color: #4B5563;">
+                    프로필과 이상형 정보를 다시 한 번 확인해보세요.<br>
+                    완성된 프로필일수록 더 정확한 매칭이 가능합니다.
+                </p>
+            </div>
+            
+            <a href="https://some-in-univ.com/auth/login" class="button">프로필 확인하기</a>
+            
+            <div class="section">
+                <div class="section-title">🎯 매칭 결과 확인 방법</div>
+                <p>
+                    매칭 결과는 썸타임 앱에서 확인하실 수 있습니다.<br>
+                    21시 정각에 앱을 열어 여러분의 새로운 인연을 만나보세요!
+                </p>
+            </div>
+            
+            <div class="contact-info">
+                <div class="section-title">📱 문의사항이 있으신가요?</div>
+                <p>
+                    매칭 관련 문의나 도움이 필요하시면 언제든지 연락주세요!<br>
+                    📧 <a href="mailto:notify@smartnewb.com">notify@smartnewb.com</a> | 📞 010-8465-2476
+                </p>
+            </div>
+            
+            <div class="divider"></div>
+        </div>
+        
+        <div class="footer">
+            <div class="social-links" style="margin: 15px 0;">
+                <a href="https://www.instagram.com/sometime.in.univ/" style="display: inline-block; margin: 0 10px; color: #7C3AED; text-decoration: none;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/174/174855.png" alt="Instagram" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 5px;">
+                    Instagram
+                </a> |
+                <a href="https://some-in-univ.com/event/pre-signup" style="display: inline-block; margin: 0 10px; color: #7C3AED; text-decoration: none;">
+                    <img src="https://cdn-icons-png.flaticon.com/512/1006/1006771.png" alt="Website" style="width: 24px; height: 24px; vertical-align: middle; margin-right: 5px;">
+                    웹사이트
+                </a>
+            </div>
+            
+            <p>© 2025 썸타임 | <a href="https://ruby-composer-6d2.notion.site/1cd1bbec5ba1805dbafbc9426a0aaa80?pvs=4">이용약관</a> | <a href="https://ruby-composer-6d2.notion.site/1cd1bbec5ba180a3a4bbdf9301683145?pvs=4">개인정보처리방침</a></p>
+            
+            <div class="unsubscribe">
+                본 이메일은 발신전용이며 회원가입 시 동의하신 마케팅 수신 동의에 따라 발송되었습니다.<br>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

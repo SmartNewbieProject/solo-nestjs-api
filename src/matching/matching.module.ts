@@ -19,6 +19,11 @@ import { MatchHistoryRepository } from './repository/history.repository';
 import { HistoryController } from './controllers/history.controller';
 import { MatchingFailureLogService } from './services/matching-failure-log.service';
 import MatchingFailureLogRepository from './repository/matching-failure-log.repository';
+import { MatchingAlertCronService } from './services/matching-alert-cron.service';
+import { MailService } from '@/common/services/mail.service';
+import UserRepository from '@/user/repository/user.repository';
+import { MatchingMailTestController } from './controllers/matching-mail-test.controller';
+import { MatchingEmailService } from './services/mail.service';
 
 @Module({
   imports: [
@@ -39,13 +44,19 @@ import MatchingFailureLogRepository from './repository/matching-failure-log.repo
     MatchRepository,
     AdminMatchRepository,
     AdminMatchService,
+    MailService,
+    MatchingAlertCronService,
+    UserRepository,
+    MatchingEmailService,
     MatchingFailureLogService,
     MatchingFailureLogRepository,
+    MatchingAlertCronService,
   ],
   controllers: [
     AdminMatchingController,
     UserMatchingController,
-    HistoryController
+    HistoryController,
+    MatchingMailTestController,
   ],
   exports: [MatchingService, MatchingCreationService],
 })
