@@ -166,6 +166,7 @@ export default class MatchRepository {
         and(
           isNull(schema.users.deletedAt),
           isNull(schema.matches.id),
+          eq(schema.matches.type, 'scheduled'),
           ne(schema.profiles.rank, 'UNKNOWN')
         )
       )
