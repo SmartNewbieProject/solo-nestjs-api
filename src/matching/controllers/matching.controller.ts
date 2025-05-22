@@ -118,10 +118,14 @@ export default class UserMatchingController {
     return { nextMatchingDate };
   }
 
-  @Get('/:id')
-  async getPartnerById(@Param('id') id: string) {
-
+  @ApiOperation({
+    summary: '미매칭 인원 주간 매칭 진행',
+    description: '미매칭 인원에 대한 주간 매칭을 진행합니다.'
+  })
+  @Roles(Role.ADMIN)
+  @Post('rest-members')
+  async matchRestMembers() {
+    return await this.matchingCreationService.matchRestMembers();
   }
-
 
 }

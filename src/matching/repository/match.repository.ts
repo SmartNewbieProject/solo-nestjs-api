@@ -142,4 +142,37 @@ export default class MatchRepository {
     }).from(schema.matches);
     return Number(results[0].count);
   }
+
+  async findRestMembers() {
+    const date = weekDateService.createDayjs().format('YYYY-MM-DD');
+    const startOfDay = `${date} 00:00:00`;
+    const endOfDay = `${date} 23:59:59`;
+
+    const results = await this.db.select({
+      id: schema.users.id,
+      email: schema.users.email,
+      name: schema.users.name,
+    })
+      .from(schema.users)
+      .leftJoin(schema.profiles, eq(schema.users.id, schema.profiles.userId))
+      .leftJoin(schema.userPreferences, eq(schema.users.id, schema.userPreferences.userId))
+      .leftJoin(schema.userPreferenceOptions, eq(schema.userPreferences.id, schema.userPreferenceOptions.userPreferenceId))
+      .leftJoin(schema.matches, and(
+        eq(schema.users.id, schema.matches.myId),
+        eq(schema.matches.type, 'scheduled'),
+        sql`${schema.matches.createdAt} >= ${startOfDay} AND ${schema.matches.createdAt} <= ${endOfDay}`
+      ))
+      .where(
+        and(
+          isNull(schema.users.deletedAt),
+          isNull(schema.matches.id)
+        )
+      )
+      .groupBy(schema.users.id, schema.users.email, schema.users.name)
+      .having(sql`count(distinct ${schema.userPreferenceOptions.id}) > 5`)
+      .execute();
+
+    return results;
+  }
+
 }

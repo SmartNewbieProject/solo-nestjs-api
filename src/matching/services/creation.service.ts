@@ -1,4 +1,4 @@
-import { ForbiddenException, Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
+import { BadRequestException, ForbiddenException, Inject, Injectable, Logger, NotFoundException } from "@nestjs/common";
 import weekDateService from "../domain/date";
 import { MatchingService } from "./matching.service";
 import { MatchType, Similarity, TicketType } from "@/types/match";
@@ -322,4 +322,30 @@ export default class MatchingCreationService {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
+  async matchRestMembers() {
+    const { thursday, sunday } = weekDateService.getWeekDates();
+    const now = weekDateService.createDayjs();
+    const isThursdayBefore = now.isBefore(thursday);
+    if (isThursdayBefore) {
+      throw new BadRequestException('목요일 이전에는 매칭을 진행할 수 없습니다.');
+    }
+
+    if (now.isAfter(thursday, 'day') && now.isBefore(sunday, 'day')) {
+      throw new BadRequestException('일요일 이전에는 매칭을 진행할 수 없습니다.');
+    }
+
+    const users = await this.matchRepository.findRestMembers();
+
+    // TODO: 배압 처리필요.
+    const tasks = users.map(user =>
+      this.createPartner(user.id, MatchType.SCHEDULED, true)
+    );
+
+    const results = await Promise.allSettled(tasks);
+
+    return {
+      totalProcessed: users.length,
+      results,
+    };
+  }
 }
