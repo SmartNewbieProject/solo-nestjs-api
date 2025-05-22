@@ -11,6 +11,7 @@ import { createHmac } from 'crypto';
 import axios from "axios";
 import { SlackService } from "@/slack-notification/slack.service";
 import UserRepository from "@/user/repository/user.repository";
+import weekDateService from "@/matching/domain/date";
 
 const productMap: Record<Product, { price: number }> = {
   [Product.REMATCHING]: {
@@ -61,7 +62,7 @@ export default class PayService {
       if (portOnePayment.status === 'paid') {
         await this.payRepository.updateHistory(merchantUid, {
           receiptUrl: portOnePayment.receipt_url,
-          paidAt: new Date(portOnePayment.paid_at),
+          paidAt: weekDateService.createDayjs().toDate(),
           method: portOnePayment.emb_pg_provider,
           txId: portOnePayment.pg_tid,
         });
