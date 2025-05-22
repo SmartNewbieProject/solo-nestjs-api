@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { MailService } from '@/common/services/mail.service';
 import UserRepository from '@/user/repository/user.repository';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
 
 @Injectable()
 export class MatchingAlertCronService {
@@ -10,6 +11,7 @@ export class MatchingAlertCronService {
   constructor(
     private readonly mailService: MailService,
     private readonly userRepository: UserRepository,
+    private readonly cacheManager: Cache,
   ) {}
 
   // 매주 목요일, 일요일 12:00
@@ -18,6 +20,10 @@ export class MatchingAlertCronService {
     const users = await this.userRepository.findAllActiveUsers();
     const pLimit = (await import('p-limit')).default;
     const limit = pLimit(15);
+    const batchEnable = await this.cacheManager.get('mailBatchStatus');
+    if (!batchEnable || batchEnable === 'false') {
+      return;
+    }
 
     const tasks = users.map(user =>
       limit(() =>
@@ -26,7 +32,9 @@ export class MatchingAlertCronService {
       )
     );
 
+    await this.cacheManager.set('mailBatchStatus', 'false', 1000 * 60 * 60 * 3);
+
     await Promise.all(tasks);
     this.logger.log(`매칭 알림 이메일 발송 완료: ${users.length}명`);
-  }
+  } 2
 } 
