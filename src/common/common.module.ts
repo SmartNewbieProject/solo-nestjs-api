@@ -6,6 +6,9 @@ import { MailService } from './services/mail.service';
 import { MulterModule } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { WebClient } from '@slack/web-api';
+import { CacheModule } from '@nestjs/cache-manager';
+import { createKeyv, Keyv } from '@keyv/redis';
+import { CacheableMemory } from 'cacheable';
 import { CustomCacheInterceptor } from './interceptors/app-cache.interceptors';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
@@ -31,6 +34,22 @@ import { join } from 'path';
         callback(null, true);
       },
     }),
+    CacheModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        store: [
+          new Keyv({
+            store: new CacheableMemory({ ttl: 60000 }),
+          }),
+          createKeyv({
+            url: configService.get('REDIS_URL'),
+            password: configService.get('REDIS_PASSWORD'),
+          }),
+        ],
+      }),
+      inject: [ConfigService],
+      isGlobal: true,
+    }),
     MailerModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
@@ -41,11 +60,6 @@ import { join } from 'path';
           auth: {
             user: configService.get('SMTP_USER'),
             pass: configService.get('SMTP_PASSWORD'),
-          },
-          tls: {
-            // SSL 인증서 검증 비활성화 (개발 환경에서만 사용)
-            // rejectUnauthorized: configService.get('NODE_ENV') === 'development',
-            rejectUnauthorized: true,
           },
           debug: configService.get('NODE_ENV') === 'development',
         },
