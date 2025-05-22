@@ -13,15 +13,9 @@ export class MatchingAlertCronService {
   ) {}
 
   // 매주 목요일, 일요일 12:00
-  @Cron('0 12 * * 4,0')
+  @Cron('0 14 * * 4,0')
   async sendMatchingAlertToAllUsers() {
-    // const users = await this.userRepository.findAllActiveUsers();
-    const users = [
-      {
-        email: 'deveungi@gmail.com',
-        name: '최은기',
-      },
-    ];
+    const users = await this.userRepository.findAllActiveUsers();
     const pLimit = (await import('p-limit')).default;
     const limit = pLimit(15);
 
