@@ -1,5 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { PasswordUpdated } from "../dto/user";
+import { PasswordUpdated, WithdrawRequest } from "../dto/user";
 import UserRepository from "../repository/user.repository";
 import * as bcrypt from 'bcryptjs';
 import { UniversityDetail, UserDetails } from "@/types/user";
@@ -61,6 +61,10 @@ export default class UserService {
       instagramId,
       universityDetails: university,
     };
+  }
+
+  async withdraw(userId: string, withdrawRequest: WithdrawRequest) {
+    await this.userRepository.withdraw(userId, withdrawRequest);
   }
 
 }

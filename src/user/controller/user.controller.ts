@@ -1,10 +1,10 @@
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { Body, Controller, Get, Patch } from "@nestjs/common";
+import { Body, Controller, Get, Patch, Delete } from "@nestjs/common";
 import { CurrentUser } from "@/auth/decorators";
 import { AuthenticationUser } from "@/types";
 import { Roles } from "@/auth/decorators";
 import { Role } from "@/auth/domain/user-role.enum";
-import { PasswordUpdated } from "../dto/user";
+import { PasswordUpdated, WithdrawRequest } from "../dto/user";
 import UserService from "../services/user.service";
 import { UserDocs } from "../docs/user.docs";
 
@@ -37,5 +37,10 @@ export default class UserController {
   @UserDocs.updatePassword()
   async updatePassword(@CurrentUser() user: AuthenticationUser, @Body() passwordUpdated: PasswordUpdated) {
     await this.userService.updatePassword(user.id, passwordUpdated);
+  }
+
+  @Delete('withdrawl')
+  async deleteProfile(@CurrentUser() user: AuthenticationUser, @Body() withdrawRequest: WithdrawRequest) {
+    await this.userService.withdraw(user.id, withdrawRequest);
   }
 }
