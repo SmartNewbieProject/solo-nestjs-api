@@ -3,11 +3,12 @@ import { PasswordUpdated, WithdrawRequest } from "../dto/user";
 import UserRepository from "../repository/user.repository";
 import * as bcrypt from 'bcryptjs';
 import { UniversityDetail, UserDetails } from "@/types/user";
-
+import { QdrantService } from "@/config/qdrant/qdrant.service";
 @Injectable()
 export default class UserService {
   constructor(
     private readonly userRepository: UserRepository,
+    private readonly qdrantService: QdrantService,
   ) { }
 
   async updatePassword(userId: string, data: PasswordUpdated) {
@@ -65,6 +66,7 @@ export default class UserService {
 
   async withdraw(userId: string, withdrawRequest: WithdrawRequest) {
     await this.userRepository.withdraw(userId, withdrawRequest);
+    await this.qdrantService.deletePoints('profiles', [userId]);
   }
 
 }
