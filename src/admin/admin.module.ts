@@ -18,6 +18,12 @@ import { SignupRepository } from '@/auth/repository/signup.repository';
 import UniversityRepository from '@/auth/repository/university.repository';
 import { ImageService } from '@/user/services/image.service';
 import SmsService from '@/sms/services/sms.service';
+import { BatchController } from './controllers/batch.controller';
+import { AdminBatchVectorService } from './services/vector.service';
+import MatchRepository from '@/matching/repository/match.repository';
+import { ProfileEmbeddingService } from '@/embedding/profile-embedding.service';
+import { QdrantService } from '@/config/qdrant/qdrant.service';
+import { EmbeddingService } from '@/embedding/embedding.service';
 
 @Module({
   imports: [
@@ -27,10 +33,10 @@ import SmsService from '@/sms/services/sms.service';
     SlackNotificationModule,
     EventEmitterModule.forRoot(),
     ScheduleModule.forRoot(),
-
   ],
   controllers: [
     AdminMatchingController,
+    BatchController,
   ],
   providers: [
     SignupService,
@@ -43,6 +49,11 @@ import SmsService from '@/sms/services/sms.service';
     ProfileRepository,
     AdminMatchService,
     AdminMatchRepository,
+    AdminBatchVectorService,
+    MatchRepository,
+    ProfileEmbeddingService,
+    EmbeddingService,
+    QdrantService,
   ],
   exports: [AdminMatchService]
 })
