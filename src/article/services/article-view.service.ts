@@ -66,7 +66,7 @@ export class ArticleViewService {
     return tempCount;
   }
 
-  @Cron('0 */1 * * * *')
+  @Cron('0 */10 * * * *')
   async syncViewCountsToDB(): Promise<void> {
     try {
       const keys = await this.syncProcessor.getViewCountKeys();
