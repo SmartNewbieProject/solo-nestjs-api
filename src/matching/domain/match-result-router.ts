@@ -37,7 +37,7 @@ export default class MatchResultRouter {
       const earlyView = this.checkEarlyView();
       await onNotFound?.();
       if (earlyView) {
-      this.logger.debug(`아직 매칭 전임`);
+        this.logger.debug(`아직 매칭 전임: ${weekDateService.createDayjs(nextMatchingDate).format('YYYY-MM-DD HH:mm:ss')}`);
         return {
           ...watingResponse,
           untilNext: weekDateService.createDayjs(nextMatchingDate).format('YYYY-MM-DD HH:mm:ss'),
