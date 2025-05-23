@@ -88,7 +88,7 @@ export default class ProfileController {
   @ApiResponse({ status: 200, description: 'MBTI 수정 성공', schema: { example: { mbti: 'ENFP' } } })
   async updateMbti(@CurrentUser() user: AuthenticationUser, @Body() data: MbtiUpdate) {
     await this.profileService.updateMbti(user.id, data.mbti);
-    const updatedProfile = await this.profileService.getUserProfiles(user.id);
+    const updatedProfile = await this.profileService.getUserProfiles(user.id, false);
     this.eventEmitter.emit(
       'profile.updated',
       new ProfileUpdatedEvent(user.id, updatedProfile)

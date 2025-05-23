@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from "@nestjs/common";
+import { BadRequestException, Injectable, Logger } from "@nestjs/common";
 import ProfileRepository from "../repository/profile.repository";
 import { PreferenceSave } from "../dto/profile.dto";
 import { NotFoundException } from "@nestjs/common";
@@ -20,6 +20,8 @@ export type PreferenceSet = {
 
 @Injectable()
 export class ProfileService {
+  private readonly logger = new Logger(ProfileService.name);
+
   constructor(
     private readonly profileRepository: ProfileRepository,
   ) { }
@@ -92,10 +94,12 @@ export class ProfileService {
       if (type?.maximumChoiceCount && type.maximumChoiceCount < options.length) {
         throw new BadRequestException(`[${type.name},최대 개수:${type.maximumChoiceCount}] 선택 가능한 최대 수를 초과했습니다.`);
       }
-    })
+    });
+
+    this.logger.debug({ types });
 
     await this.profileRepository.updatePreferences(userId, data);
-    return this.getUserProfiles(userId);
+    return this.getUserProfiles(userId, false);
   }
 
   async updateInstagramId(userId: string, instagramId: string) {
