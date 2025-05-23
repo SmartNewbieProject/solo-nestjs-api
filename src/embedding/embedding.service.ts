@@ -64,32 +64,4 @@ export class EmbeddingService {
     }
   }
 
-  /**
-   * 두 임베딩 벡터 간의 코사인 유사도를 계산합니다.
-   * @param embedding1 첫 번째 임베딩 벡터
-   * @param embedding2 두 번째 임베딩 벡터
-   * @returns 코사인 유사도 (1에 가까울수록 유사함)
-   */
-  calculateCosineSimilarity(embedding1: number[], embedding2: number[]): number {
-    if (embedding1.length !== embedding2.length) {
-      throw new Error('임베딩 벡터의 차원이 일치하지 않습니다.');
-    }
-
-    let dotProduct = 0;
-    let norm1 = 0;
-    let norm2 = 0;
-
-    for (let i = 0; i < embedding1.length; i++) {
-      dotProduct += embedding1[i] * embedding2[i];
-      norm1 += embedding1[i] * embedding1[i];
-      norm2 += embedding2[i] * embedding2[i];
-    }
-
-    // 0으로 나누기 방지
-    if (norm1 === 0 || norm2 === 0) {
-      return 0;
-    }
-
-    return dotProduct / (Math.sqrt(norm1) * Math.sqrt(norm2));
-  }
 }
