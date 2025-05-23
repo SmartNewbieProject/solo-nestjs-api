@@ -7,7 +7,9 @@ import 'dayjs/locale/ko';
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-dayjs.locale('ko');
+dayjs.locale('ko', {
+  weekStart: 1,
+});
 dayjs.tz.setDefault('Asia/Seoul');
 
 export type WeekDates = {
@@ -35,14 +37,15 @@ const getWeekDates = (): WeekDates => {
   const end = date.endOf('week');
 
   // 목요일 (0시 0분 0초)
-  const thursday = start.add(4, 'day')
+  const thursday = start.add(3, 'day')
     .set('hour', 0)
     .set('minute', 0)
     .set('second', 0)
     .set('millisecond', 0);
 
   // 일요일 (0시 0분 0초)
-  const sunday = start.add(6, 'day')
+  
+  const sunday = end.clone()
     .set('hour', 0)
     .set('minute', 0)
     .set('second', 0)
@@ -164,7 +167,5 @@ const weekDateService = {
   test30seconds,
   test1Minutes,
 };
-
-
 
 export default weekDateService;
