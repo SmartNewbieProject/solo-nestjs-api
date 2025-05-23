@@ -1,4 +1,4 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ProfileEmbeddingService } from '@/embedding/profile-embedding.service';
 import matchingPreferenceWeighter from '../domain/matching-preference-weighter';
 import { ProfileService } from '@/user/services/profile.service';
@@ -6,6 +6,8 @@ import { UserPreferenceSummary, Similarity, PartnerDetails, MatchType, MatchDeta
 import MatchRepository from '../repository/match.repository';
 import weekDateService from '../domain/date';
 import MatchResultRouter from '../domain/match-result-router';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+import { RedisService } from '@/config/redis/redis.service';
 
 export interface MatchingWeights {
   age: number;
@@ -44,7 +46,8 @@ export class MatchingService {
     private readonly profileEmbeddingService: ProfileEmbeddingService,
     private readonly profileService: ProfileService,
     private readonly matchRepository: MatchRepository,
-  ) { }
+    private readonly redisService: RedisService,
+  ) { } 
 
   /**
    * 사용자에게 맞는 매칭 결과를 반환합니다.
@@ -67,8 +70,17 @@ export class MatchingService {
       finalWeights[key as keyof MatchingWeights] /= weightSum;
     });
 
+    const exceptIds = await (async () => {
+      const key = `${userId}:match_users:*`;
+      const exceptIds = await this.redisService.keys(key) as unknown as string[];
+      return exceptIds.map(id => id.split(':')[2]);
+    })()
+
+    this.logger.debug(`[exceptIds]: ${exceptIds}`);
+
+
     try {
-      const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3, type);
+      const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3, type, exceptIds);
       // this.logger.log(similarProfiles);
       return similarProfiles;
     } catch (error) {
