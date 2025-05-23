@@ -212,9 +212,6 @@ export class AuthRepository {
         id: generateUuidV7(),
         userId,
         reason,
-        detail,
-        withdrawnAt: now,
-        serviceDurationDays,
       });
 
       // 사용자 탈퇴 처리

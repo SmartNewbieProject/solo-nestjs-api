@@ -22,3 +22,8 @@ export class PasswordUpdated {
   })
   newPassword: string;
 }
+
+export class WithdrawRequest {
+  @IsString()
+  reason: string;
+}

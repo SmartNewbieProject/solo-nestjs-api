@@ -3,6 +3,8 @@ import { Injectable } from "@nestjs/common";
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "@database/schema";
 import { eq, isNull, and } from "drizzle-orm";
+import { WithdrawRequest } from "../dto/user";
+import { generateUuidV7 } from "@/database/schema/helper";
 
 @Injectable()
 export default class UserRepository {
@@ -51,6 +53,21 @@ export default class UserRepository {
     })
     .from(schema.users)
     .where(isNull(schema.users.deletedAt));
+  }
+
+  async withdraw(userId: string, withdrawRequest: WithdrawRequest) {
+    await this.db.transaction(async (tx) => {
+      await tx.update(schema.users).set({
+        deletedAt: new Date(),
+      }).where(eq(schema.users.id, userId));
+
+      await tx.insert(schema.withdrawalReasons).values({
+        id: generateUuidV7(),
+        userId,
+        reason: withdrawRequest.reason,
+      });
+    });
+
   }
 
 }

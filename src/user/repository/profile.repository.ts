@@ -32,7 +32,6 @@ export default class ProfileRepository {
       throw new NotFoundException('프로필 정보를 찾을 수 없습니다.');
     }
 
-
     return {
       id: result[0].id,
       name: result[0].name,
