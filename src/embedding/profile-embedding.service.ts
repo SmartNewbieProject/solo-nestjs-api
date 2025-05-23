@@ -134,21 +134,18 @@ export class ProfileEmbeddingService {
    */
   async findSimilarProfiles(userId: string, limit: number = 10, type: MatchType, exceptIds?: string[]): Promise<Array<{ userId: string; similarity: number }>> {
     const { payload, vector } = await this.getUserPoint(userId);
-    const gender = payload.profileSummary.gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
+    this.logger.debug({ payload, vector });
+    const targetGender = payload.profileSummary.gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
     const profile = await this.profileService.getUserProfiles(userId, false);
     const mustNotIds = [userId, ...(exceptIds || [])];
     this.logger.debug(`[mustNotIds]: ${mustNotIds}`);
 
     const mbti = profile.preferences.find(pref => pref.typeName === 'MBTI 유형')?.selectedOptions?.[0].displayName;
 
-    const { rankFilter, drinkFilter, smokingFilter, tattooFilter } = VectorFilter.getFilters(profile, type === MatchType.REMATCHING);
-    this.logger.debug({ type }, rankFilter, drinkFilter, smokingFilter, tattooFilter);
+    const { rankFilter, drinkFilter, smokingFilter, tattooFilter, ageFilter } = VectorFilter.getFilters(profile, type, targetGender);
+    this.logger.debug({ type }, { rankFilter }, smokingFilter, tattooFilter, { drinkFilter }, { ageFilter });
 
-    if ([rankFilter].some(v => !v) && type !== MatchType.REMATCHING) {
-      return [];
-    }
-
-    if ([rankFilter].some(v => !v) && type !== MatchType.ADMIN) {
+    if (!rankFilter) {
       return [];
     }
 
@@ -163,21 +160,21 @@ export class ProfileEmbeddingService {
         {
           key: 'profileSummary.gender',
           match: {
-            value: gender,
+            value: targetGender,
           },
         },
         {
           key: 'profileSummary.rank',
           match: {
-            any: rankFilter || [],
+            any: rankFilter,
           }
         },
-        {
-          key: 'profileSummary.preferences[].options',
-          match: {
-            any: [...drinkFilter, ...smokingFilter, ...tattooFilter],
-          }
-        }
+        // {
+        //   key: 'profileSummary.preferences[].options',
+        //   match: {
+        //     any: [...drinkFilter, ...smokingFilter, ...tattooFilter],
+        //   }
+        // }
       ],
       must_not: [
         {
@@ -188,6 +185,27 @@ export class ProfileEmbeddingService {
         },
       ],
     };
+
+    if (ageFilter) {
+      filter.must.push(ageFilter);
+    }
+
+    const strictFilter = [
+      drinkFilter,
+      smokingFilter,
+      tattooFilter,
+    ]
+      .filter(r => r !== null)
+      .flat();
+
+    if (strictFilter.length > 0) {
+      filter.must_not.push({
+        key: 'profileSummary.preferences[].options',
+        match: {
+          any: strictFilter,
+        },
+      });
+    }
 
     // 유사한 프로필 검색
     const searchResults = await this.qdrantService.searchPoints(
@@ -217,7 +235,6 @@ export class ProfileEmbeddingService {
       };
     }));
 
-    // 점수 순으로 정렬
     return results.sort((a, b) => b.similarity - a.similarity);
   }
 
