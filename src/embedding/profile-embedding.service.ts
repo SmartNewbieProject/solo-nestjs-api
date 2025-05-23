@@ -168,14 +168,17 @@ export class ProfileEmbeddingService {
    * @param limit 결과 제한 수
    * @param gender 성별 필터 (선택적)
    */
-  async findSimilarProfiles(userId: string, limit: number = 10, type: MatchType): Promise<Array<{ userId: string; similarity: number }>> {
+  async findSimilarProfiles(userId: string, limit: number = 10, type: MatchType, exceptIds?: string[]): Promise<Array<{ userId: string; similarity: number }>> {
     const { payload, vector } = await this.getUserPoint(userId);
     const gender = payload.profileSummary.gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
     const profile = await this.profileService.getUserProfiles(userId, false);
+    const mustNotIds = [userId, ...(exceptIds || [])];
+    this.logger.debug(`[mustNotIds]: ${mustNotIds}`);
 
     const mbti = profile.preferences.find(pref => pref.typeName === 'MBTI 유형')?.selectedOptions?.[0].displayName;
 
     const { rankFilter, drinkFilter, smokingFilter, tattooFilter } = VectorFilter.getFilters(profile, type === MatchType.REMATCHING);
+    this.logger.debug({ type }, rankFilter, drinkFilter, smokingFilter, tattooFilter);
 
     if ([rankFilter].some(v => !v) && type !== MatchType.REMATCHING) {
       return [];
@@ -216,7 +219,7 @@ export class ProfileEmbeddingService {
         {
           key: 'userId',
           match: {
-            value: userId,
+            any: mustNotIds,
           },
         },
       ],

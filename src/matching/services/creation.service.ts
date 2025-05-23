@@ -18,6 +18,8 @@ enum CronFrequency {
   // MATCHING_DAY = '*/1 * * * *'
 }
 
+const DAYS_3 = 259200;
+
 @Injectable()
 export default class MatchingCreationService {
   private readonly logger = new Logger(MatchingCreationService.name);
@@ -34,7 +36,10 @@ export default class MatchingCreationService {
   ) { }
 
 
-  @Cron(CronFrequency.MATCHING_DAY)
+  @Cron(CronFrequency.MATCHING_DAY, {
+    name: 'processMatchCentral',
+    timeZone: 'Asia/Seoul',
+  })
   async processMatchCentral() {
     const batchEnable = await this.cacheManager.get('batchStatus');
     this.logger.debug(`batchEnable: ${batchEnable}, type: ${typeof batchEnable}`);
@@ -148,6 +153,7 @@ export default class MatchingCreationService {
         try {
           const requester = await this.profileService.getUserProfiles(userId, false);
           const matcher = await this.profileService.getUserProfiles(partner.userId, false);
+          await this.cacheManager.set(`${requester.id}:match_users:${matcher.id}`, matcher.name, DAYS_3);
 
           if (!isBatch) {
             await this.slackService.sendSingleMatch(
