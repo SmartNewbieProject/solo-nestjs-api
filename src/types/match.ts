@@ -35,6 +35,12 @@ export type Similarity = {
   similarity: number;
 };
 
+export type WeightedPartner = Similarity & {
+  matchCount: number;
+  diversityScore: number;
+  finalWeight: number;
+};
+
 export type UnmatchedUser = {
   id: string;
   name: string;

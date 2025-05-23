@@ -11,6 +11,8 @@ import { ProfileService } from "@/user/services/profile.service";
 import { Cache, CACHE_MANAGER } from "@nestjs/cache-manager";
 import { TicketService } from "@/payment/services/ticket.service";
 import { MatchingFailureLogService } from "./matching-failure-log.service";
+import { weightedRandomChoice } from "../domain/partner-selector";
+import { MatchingStatsService } from "./stats.service";
 
 enum CronFrequency {
   // MATCHING_DAY = '0 0 * * 2,4',
@@ -33,8 +35,8 @@ export default class MatchingCreationService {
     private readonly ticketService: TicketService,
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly matchingFailureLogService: MatchingFailureLogService,
+    private readonly statsService: MatchingStatsService,
   ) { }
-
 
   @Cron(CronFrequency.MATCHING_DAY, {
     name: 'processMatchCentral',
@@ -54,8 +56,8 @@ export default class MatchingCreationService {
       this.logger.debug(`매칭 처리 진행중`);
       return;
     }
-
-    await this.cacheManager.set(this.LOCK_KEY, true, 1 * 60 * 1000);
+    const threeHoursInMs = 3 * 60 * 60 * 1000;
+    await this.cacheManager.set(this.LOCK_KEY, true, threeHoursInMs);
     const userIds = await this.findAllMatchingUsers();
     this.slackService.sendNotification(`${userIds.length} 명의 매칭처리를 시작합니다.`);
     const result = await this.batch(userIds);
@@ -132,9 +134,9 @@ export default class MatchingCreationService {
         if (partners.length === 0) {
           this.logger.debug(`대상 ID: ${userId}, 파트너 ID: 없음, 유사도: 0`);
 
-          // 매칭 실패 로그 저장
           await this.matchingFailureLogService.logMatchingFailure(userId, '적합한 매칭 파트너를 찾을 수 없음');
 
+          // TODO: 리팩터링 필요.. 핵심 기능에 보조적인 코드가 너무 김. 하나의 액션으로 대체 가능해보임
           // 매칭 실패 시 슬랙 알림 전송
           try {
             const userProfile = await this.profileService.getUserProfiles(userId);
@@ -148,7 +150,11 @@ export default class MatchingCreationService {
         }
 
         // 파트너 선택 및 매칭 생성
-        const partner = this.getOnePartner(partners);
+        const partner = weightedRandomChoice(partners);
+        if (!partner) {
+          throw new NotFoundException('적합한 매칭 파트너를 찾을 수 없음');
+        }
+        await this.statsService.incrementMatchCount(partner.userId);
 
         try {
           const requester = await this.profileService.getUserProfiles(userId, false);
@@ -242,12 +248,12 @@ export default class MatchingCreationService {
     );
   }
 
-  private getOnePartner(partners: Similarity[]) {
-    return choiceRandom(partners);
-  }
-
   findAllMatchingUsers() {
     return this.matchRepository.findAllMatchingUsers();
+  }
+
+  findScheduledFemaleCandidates() {
+    return this.matchRepository.findScheduledFemaleCandidates();
   }
 
   async batch(userIds: string[]) {
@@ -313,6 +319,8 @@ export default class MatchingCreationService {
       성공한 개수: ${totalSuccess}
       실패한 개수: ${totalFailure}
     `);
+
+    this.cacheManager.del(this.LOCK_KEY);
 
     return {
       totalUsers,

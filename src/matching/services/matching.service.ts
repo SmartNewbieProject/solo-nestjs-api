@@ -1,13 +1,11 @@
-import { Inject, Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { ProfileEmbeddingService } from '@/embedding/profile-embedding.service';
-import matchingPreferenceWeighter from '../domain/matching-preference-weighter';
 import { ProfileService } from '@/user/services/profile.service';
-import { UserPreferenceSummary, Similarity, PartnerDetails, MatchType, MatchDetails } from '@/types/match';
+import { UserPreferenceSummary, MatchType, MatchDetails, WeightedPartner } from '@/types/match';
 import MatchRepository from '../repository/match.repository';
 import weekDateService from '../domain/date';
 import MatchResultRouter from '../domain/match-result-router';
-import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
-import { RedisService } from '@/config/redis/redis.service';
+import { MatchingStatsService } from './stats.service';
 
 export interface MatchingWeights {
   age: number;
@@ -46,43 +44,24 @@ export class MatchingService {
     private readonly profileEmbeddingService: ProfileEmbeddingService,
     private readonly profileService: ProfileService,
     private readonly matchRepository: MatchRepository,
-    private readonly redisService: RedisService,
-  ) { } 
+    private readonly statsService: MatchingStatsService,
+  ) { }
 
   /**
    * 사용자에게 맞는 매칭 결과를 반환합니다.
    * @param userId 사용자 ID
    * @param limit 결과 제한 수
-   * @param weights 가중치 설정 (선택적)
    */
   async findMatches(
     userId: string,
     limit: number = 10,
     type: MatchType,
-    weights?: Partial<MatchingWeights>
-  ): Promise<Similarity[]> {
-    const { getWeights } = matchingPreferenceWeighter;
-    const finalWeights: MatchingWeights = getWeights(weights);
-    this.logger.log(finalWeights);
-
-    const weightSum = Object.values(finalWeights).reduce((sum, weight) => sum + weight, 0);
-    Object.keys(finalWeights).forEach(key => {
-      finalWeights[key as keyof MatchingWeights] /= weightSum;
-    });
-
-    const exceptIds = await (async () => {
-      const key = `${userId}:match_users:*`;
-      const exceptIds = await this.redisService.keys(key) as unknown as string[];
-      return exceptIds.map(id => id.split(':')[2]);
-    })()
-
-    this.logger.debug(`[exceptIds]: ${exceptIds}`);
-
-
+  ): Promise<WeightedPartner[]> {
     try {
-      const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3, type, exceptIds);
-      // this.logger.log(similarProfiles);
-      return similarProfiles;
+      const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3, type);
+      const weightedPartners = await this.statsService.createWeightedPartners(similarProfiles);
+
+      return weightedPartners;
     } catch (error) {
       if (error instanceof NotFoundException) {
         this.logger.warn(`사용자 ${userId}의 프로필 임베딩을 찾을 수 없습니다: ${error.message}`);

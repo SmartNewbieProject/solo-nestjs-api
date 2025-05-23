@@ -15,10 +15,10 @@ export class MatchingAlertCronService {
   ) {}
 
   // 매주 목요일, 일요일 12:00
-  @Cron('0 15 * * 4,0')
+  @Cron('0 12 * * 4,0')
   async sendMatchingAlertToAllUsers() {
     const users = await this.userRepository.findAllActiveUsers();
-    const pLimit = (await import('p-limit')).default;
+    const { default: pLimit } = await import('p-limit');
     const limit = pLimit(15);
     const batchEnable = await this.cacheManager.get('mailBatchStatus');
     if (!!batchEnable) {
@@ -36,5 +36,5 @@ export class MatchingAlertCronService {
 
     await Promise.all(tasks);
     this.logger.log(`매칭 알림 이메일 발송 완료: ${users.length}명`);
-  } 2
+  }
 } 
