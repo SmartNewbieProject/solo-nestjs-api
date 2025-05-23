@@ -16,8 +16,5 @@ export const withdrawalReasons = pgTable('withdrawal_reasons', {
   id: uuid(),
   userId: varchar('user_id', { length: 128 }).notNull(),
   reason: varchar('reason').notNull(),
-  detail: text('detail'),
-  withdrawnAt: timestamp('withdrawn_at').notNull(),
-  serviceDurationDays: integer('service_duration_days').notNull(),
   ...timestamps,
 });
