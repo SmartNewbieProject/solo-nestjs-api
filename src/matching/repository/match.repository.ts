@@ -43,6 +43,29 @@ export default class MatchRepository {
     }).execute();
   }
 
+  async findScheduledFemaleCandidates() {
+    const results = await this.db.select({
+      id: schema.users.id,
+    })
+      .from(schema.users)
+      .leftJoin(schema.profiles, eq(schema.users.id, schema.profiles.userId))
+      .leftJoin(schema.userPreferences, eq(schema.userPreferences.userId, schema.users.id))
+      .leftJoin(schema.userPreferenceOptions, eq(schema.userPreferenceOptions.userPreferenceId, schema.userPreferences.id))
+      .where(
+        and(
+          isNull(schema.users.deletedAt),
+          isNotNull(schema.profiles.age),
+          isNotNull(schema.profiles.gender),
+          eq(schema.profiles.gender, Gender.FEMALE),
+        )
+      )
+      .groupBy(schema.users.id, schema.profiles.id)
+      .having(sql`count(distinct ${schema.userPreferenceOptions.id}) >= 5`);
+
+    return results.map((result) => result.id);
+  }
+
+
   async findAllMatchingUsers() {
     const results = await this.db.select({
       id: schema.users.id,
