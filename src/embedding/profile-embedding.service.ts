@@ -1,17 +1,18 @@
-
 import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import { EmbeddingService } from './embedding.service';
 import { QdrantService } from '@/config/qdrant/qdrant.service';
 import { DrizzleService } from '@/database/drizzle.service';
 import { ProfileUpdatedEvent } from '@/events/profile-updated.event';
-import { UserProfile } from '@/types/user';
+import {  UserProfile } from '@/types/user';
 import { Gender } from '@/types/enum';
 import compabilities from '@/matching/domain/compability';
 import { ProfileService } from '@/user/services/profile.service';
 import { MatchType, UserVectorPayload } from '@/types/match';
 import { VectorFilter } from '../matching/domain/filter';
 import { UserRank } from '@/database/schema/profiles';
+import { PreferencePrioritizer } from './domain/preference-prioritizer';
+import { EmbeddingWeightConfig } from './domain/embedding-weight-config';
 
 @Injectable()
 export class ProfileEmbeddingService {
@@ -22,7 +23,6 @@ export class ProfileEmbeddingService {
   constructor(
     private readonly embeddingService: EmbeddingService,
     private readonly qdrantService: QdrantService,
-    private readonly drizzleService: DrizzleService,
     private readonly profileService: ProfileService,
   ) { }
 
@@ -41,41 +41,6 @@ export class ProfileEmbeddingService {
     }
   }
 
-  formatProfileText(profile: UserProfile): string {
-    const parts: string[] = [];
-
-    if (profile.age) {
-      parts.push(`나이: ${profile.age}세`);
-    }
-
-    if (profile.gender) {
-      parts.push(`성별: ${profile.gender}`);
-    }
-
-    if (profile.mbti) {
-      parts.push(`MBTI: ${profile.mbti}`);
-    }
-
-    if (profile.universityDetails) {
-      parts.push(`대학: ${profile.universityDetails.name}`);
-      if (profile.universityDetails.department) {
-        parts.push(`학과: ${profile.universityDetails.department}`);
-      }
-    }
-
-    // 선호도 정보 추가 (각 유형별로 선택된 옵션들을 그룹화)
-    if (profile.preferences && Array.isArray(profile.preferences)) {
-      profile.preferences.forEach(pref => {
-        if (pref.selectedOptions && pref.selectedOptions.length > 0) {
-          const optionNames = pref.selectedOptions.map(opt => opt.displayName).join(', ');
-          parts.push(`${pref.typeName}: ${optionNames}`);
-        }
-      });
-    }
-
-    return parts.join('\n');
-  }
-
   /**
    * 프로필 임베딩을 생성하고 저장합니다.
    * @param userId 사용자 ID
@@ -83,10 +48,12 @@ export class ProfileEmbeddingService {
    */
   async generateProfileEmbedding(userId: string, profile: UserProfile): Promise<void> {
     try {
-      // 컬렉션 초기화
       await this.initializeCollection();
+      const profilePrioritizer = new PreferencePrioritizer(EmbeddingWeightConfig.getDefaultWeights());
+      const profileText = profilePrioritizer.extract(profile);
+      this.logger.debug('profileText');
+      this.logger.debug(profileText);
 
-      const profileText = this.formatProfileText(profile);
       const embedding = await this.embeddingService.createEmbedding(profileText);
 
       const profileSummary = {
@@ -95,13 +62,10 @@ export class ProfileEmbeddingService {
         gender: profile.gender,
         rank: profile.rank,
         mbti: profile.mbti,
-        university: profile.universityDetails?.name,
-        preferences: (() => {
-          return profile.preferences.map(pref => ({
-            type: pref.typeName,
-            options: pref.selectedOptions.map(opt => opt.displayName),
-          }));
-        })(),
+        preferences: profile.preferences.map(pref => ({
+          type: pref.typeName,
+          options: pref.selectedOptions.map(opt => opt.displayName),
+        })),
       };
 
       this.logger.debug(profileSummary);
