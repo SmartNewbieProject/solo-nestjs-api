@@ -16,7 +16,7 @@ export class AdminBatchVectorService {
     const userIds = await this.matchRepository.findAllMatchingUsers();
     const limit = pLimit(10);
     const promises = userIds.map(userId => limit(async () => {
-      const profile = await this.profileService.getUserProfiles(userId, true);
+      const profile = await this.profileService.getUserProfiles(userId, false);
       await this.profileEmbeddingService.generateProfileEmbedding(userId, profile);
     }));
     const results = await Promise.allSettled(promises);
