@@ -1,8 +1,11 @@
 import { Controller, Patch, Param } from "@nestjs/common";
 import { AdminProfileService } from "../services/profile.service";
 import { ApiOperation } from "@nestjs/swagger";
+import { Role } from "@/types/enum";
+import { Roles } from "@/auth/decorators";
 
-@Controller('admin/profile')
+@Controller('admin/profiles')
+@Roles(Role.ADMIN)
 export class AdminProfileController {
   constructor(private readonly adminProfileService: AdminProfileService) {}
 
