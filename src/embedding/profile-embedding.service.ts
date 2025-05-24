@@ -132,15 +132,13 @@ export class ProfileEmbeddingService {
    * @param limit 결과 제한 수
    * @param gender 성별 필터 (선택적)
    */
-  async findSimilarProfiles(userId: string, limit: number = 10, type: MatchType, exceptIds?: string[]): Promise<Array<{ userId: string; similarity: number }>> {
+  async findSimilarProfiles(userId: string, limit: number = 10, type: MatchType, exceptIds: string[]): Promise<Array<{ userId: string; similarity: number }>> {
     const { payload, vector } = await this.getUserPoint(userId);
     this.logger.debug({ payload, vector });
     const targetGender = payload.profileSummary.gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
     const profile = await this.profileService.getUserProfiles(userId, false);
-    const mustNotIds = [userId, ...(exceptIds || [])];
+    const mustNotIds = [userId, ...exceptIds];
     this.logger.debug(`[mustNotIds]: ${mustNotIds}`);
-
-    const mbti = profile.preferences.find(pref => pref.typeName === 'MBTI 유형')?.selectedOptions?.[0].displayName;
 
     const { rankFilter, drinkFilter, smokingFilter, tattooFilter, ageFilter } = VectorFilter.getFilters(profile, type, targetGender);
     this.logger.debug({ type }, { rankFilter }, smokingFilter, tattooFilter, { drinkFilter }, { ageFilter });
@@ -207,7 +205,6 @@ export class ProfileEmbeddingService {
       });
     }
 
-    // 유사한 프로필 검색
     const searchResults = await this.qdrantService.searchPoints(
       this.COLLECTION_NAME,
       vector as number[],
@@ -215,15 +212,12 @@ export class ProfileEmbeddingService {
       filter
     );
 
-    // this.logger.log(searchResults);
-
-    // 결과 변환 (상성 점수 반영)
     const results = await Promise.all(searchResults.map(async (result) => {
       let similarity = result.score;
       const targetUserId = result.payload?.userId as string;
-      const targetMbti = this.getUserMbti(result.payload?.profileSummary as UserVectorPayload['profileSummary']);
+      const mbti = profile.mbti;
+      const targetMbti = (result.payload?.profileSummary as UserVectorPayload['profileSummary'])?.mbti;
 
-      // MBTI 상성 반영
       if (mbti && targetMbti) {
         const compatibilityBonus = this.calculateMbtiCompatibility(mbti, targetMbti);
         similarity = similarity * compatibilityBonus;
@@ -236,34 +230,6 @@ export class ProfileEmbeddingService {
     }));
 
     return results.sort((a, b) => b.similarity - a.similarity);
-  }
-
-  /**
-   * 프로필 정보에서 MBTI 유형을 추출합니다.
-   * @param profileSummary 프로필 정보
-   * @returns MBTI 유형 또는 null
-   */
-  private getUserMbti(profileSummary: UserVectorPayload['profileSummary']): string | null {
-    if (!profileSummary || !profileSummary.preferences) {
-      return null;
-    }
-
-    // 선호도 정보에서 MBTI 유형 찾기
-    for (const pref of profileSummary.preferences) {
-      if (pref.typeName === 'MBTI 유형') {
-        // 코드에서는 전체 옵션이 문자열로 저장되어 있으므로 처리
-        const mbtiOptions = pref.options;
-        if (mbtiOptions) {
-          // MBTI 패턴에 맞는 값 추출
-          const mbtiMatch = mbtiOptions.find(option => option.match(/ENFP|ENFJ|INFP|INFJ|ENTP|ENTJ|INTP|INTJ|ESFP|ESFJ|ISFP|ISFJ|ESTP|ESTJ|ISTP|ISTJ/));
-          if (mbtiMatch) {
-            return mbtiMatch;
-          }
-        }
-      }
-    }
-
-    return null;
   }
 
   private calculateMbtiCompatibility(userMbti: string, targetMbti: string): number {
