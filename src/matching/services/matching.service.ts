@@ -6,7 +6,7 @@ import MatchRepository from '../repository/match.repository';
 import weekDateService from '../domain/date';
 import MatchResultRouter from '../domain/match-result-router';
 import { MatchingStatsService } from './stats.service';
-import { RedisService } from '@/config/redis/redis.service';
+import { MatchUserHistoryManager } from '../domain/match-user-history';
 
 export interface MatchingWeights {
   age: number;
@@ -46,7 +46,7 @@ export class MatchingService {
     private readonly profileService: ProfileService,
     private readonly matchRepository: MatchRepository,
     private readonly statsService: MatchingStatsService,
-    private readonly redisService: RedisService,
+    private readonly matchUserHistoryManager: MatchUserHistoryManager,
   ) { }
 
   /**
@@ -60,12 +60,7 @@ export class MatchingService {
     type: MatchType,
   ): Promise<WeightedPartner[]> {
     try {
-      const exceptIds = await (async () => {
-        const key = `${userId}:match_users:*`;
-        const exceptIds = await this.redisService.keys(key) as unknown as string[];
-        return exceptIds.map(id => id.split(':')[2]);
-      })();
-  
+      const exceptIds = await this.matchUserHistoryManager.getMatchedUserIds(userId);
       const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3, type, exceptIds);
       const weightedPartners = await this.statsService.createWeightedPartners(similarProfiles);
 

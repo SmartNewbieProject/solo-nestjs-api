@@ -22,6 +22,8 @@ export type UserVectorPayload = {
     name: string;
     age: number;
     gender: Gender;
+    rank: string | null;
+    mbti: string | null;
     preferences: {
       typeName: string;
       options: string[]; // Example) "거의 안 마셨으면 좋겠음, 자주 마셔도 괜찮음"

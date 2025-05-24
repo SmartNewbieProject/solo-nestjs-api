@@ -26,6 +26,7 @@ import { MatchingMailTestController } from './controllers/matching-mail-test.con
 import { MatchingEmailService } from './services/mail.service';
 import { RedisService } from '@/config/redis/redis.service';
 import { MatchingStatsService } from './services/stats.service';
+import { MatchUserHistoryManager } from './domain/match-user-history';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { MatchingStatsService } from './services/stats.service';
     MatchingFailureLogRepository,
     MatchingAlertCronService,
     RedisService,
+    MatchUserHistoryManager,
     MatchingStatsService,
   ],
   controllers: [

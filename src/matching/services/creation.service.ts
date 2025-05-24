@@ -13,6 +13,7 @@ import { TicketService } from "@/payment/services/ticket.service";
 import { MatchingFailureLogService } from "./matching-failure-log.service";
 import { weightedRandomChoice } from "../domain/partner-selector";
 import { MatchingStatsService } from "./stats.service";
+import { MatchUserHistoryManager } from "../domain/match-user-history";
 
 enum CronFrequency {
   // MATCHING_DAY = '0 0 * * 2,4',
@@ -20,7 +21,7 @@ enum CronFrequency {
   // MATCHING_DAY = '*/1 * * * *'
 }
 
-const DAYS_3 = 259200;
+const DAYS_3 = 3 * 24 * 60 * 60 * 1000;
 
 @Injectable()
 export default class MatchingCreationService {
@@ -36,6 +37,7 @@ export default class MatchingCreationService {
     @Inject(CACHE_MANAGER) private readonly cacheManager: Cache,
     private readonly matchingFailureLogService: MatchingFailureLogService,
     private readonly statsService: MatchingStatsService,
+    private readonly matchUserHistoryManager: MatchUserHistoryManager,
   ) { }
 
   @Cron(CronFrequency.MATCHING_DAY, {
@@ -155,11 +157,10 @@ export default class MatchingCreationService {
           throw new NotFoundException('적합한 매칭 파트너를 찾을 수 없음');
         }
         await this.statsService.incrementMatchCount(partner.userId);
-
         try {
           const requester = await this.profileService.getUserProfiles(userId, false);
           const matcher = await this.profileService.getUserProfiles(partner.userId, false);
-          await this.cacheManager.set(`${requester.id}:match_users:${matcher.id}`, matcher.name, DAYS_3);
+          await this.matchUserHistoryManager.addMatchedUser(requester.id, matcher.id, matcher.name);
 
           if (!isBatch) {
             await this.slackService.sendSingleMatch(
