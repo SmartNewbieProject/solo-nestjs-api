@@ -24,6 +24,8 @@ import MatchRepository from '@/matching/repository/match.repository';
 import { ProfileEmbeddingService } from '@/embedding/profile-embedding.service';
 import { QdrantService } from '@/config/qdrant/qdrant.service';
 import { EmbeddingService } from '@/embedding/embedding.service';
+import { AdminProfileService } from './services/profile.service';
+import { AdminProfileController } from './controllers/admin-profile.controller';
 
 @Module({
   imports: [
@@ -36,6 +38,7 @@ import { EmbeddingService } from '@/embedding/embedding.service';
   ],
   controllers: [
     AdminMatchingController,
+    AdminProfileController,
     BatchController,
   ],
   providers: [
@@ -54,6 +57,7 @@ import { EmbeddingService } from '@/embedding/embedding.service';
     ProfileEmbeddingService,
     EmbeddingService,
     QdrantService,
+    AdminProfileService,
   ],
   exports: [AdminMatchService]
 })

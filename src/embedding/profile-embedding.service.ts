@@ -48,6 +48,9 @@ export class ProfileEmbeddingService {
    */
   async generateProfileEmbedding(userId: string, profile: UserProfile): Promise<void> {
     try {
+      this.logger.log(`사용자 ${userId}의 프로필 임베딩 생성을 시작합니다.`);
+      this.logger.log(`프로필 정보 - 이름: ${profile.name}, 나이: ${profile.age}, 성별: ${profile.gender}, 랭크: ${profile.rank}, MBTI: ${profile.mbti}`);
+
       await this.initializeCollection();
       const profilePrioritizer = new PreferencePrioritizer(EmbeddingWeightConfig.getDefaultWeights());
       const profileText = profilePrioritizer.extract(profile);
@@ -68,6 +71,7 @@ export class ProfileEmbeddingService {
         })),
       };
 
+      this.logger.log(`프로필 요약 정보 - 랭크: ${profileSummary.rank}`);
       this.logger.debug(profileSummary);
 
       await this.qdrantService.upsertPoints(this.COLLECTION_NAME, [
