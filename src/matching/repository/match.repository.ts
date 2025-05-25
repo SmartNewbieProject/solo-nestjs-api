@@ -150,9 +150,18 @@ export default class MatchRepository {
   }
 
   async findLatestMatch(userId: string): Promise<RawMatch | null> {
+    const now = weekDateService.createDayjs()
+      .subtract(48, 'hours')
+      .format('YYYY-MM-DD HH:mm:ss');
+
     const results = await this.db.select()
       .from(schema.matches)
-      .where(eq(schema.matches.myId, userId))
+      .where(
+        and(
+          eq(schema.matches.myId, userId),
+          sql`${schema.matches.createdAt} >= ${now}`
+        )
+      )
       .orderBy(sql`${schema.matches.createdAt} DESC`)
       .execute();
 
