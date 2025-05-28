@@ -17,6 +17,7 @@ import { StatsService } from "./services/stats.service";
 import { StatsRepository } from "./repository/stats.repository";
 import { NotificationRepository } from "./repository/notification.repository";
 import { NotificationService } from "./services/notification.service";
+import { AdminQdrantSyncController } from "./controller/user.controller";
 
 @Module({
   imports: [CommonModule],
@@ -25,7 +26,8 @@ import { NotificationService } from "./services/notification.service";
     PreferenceController,
     ImageController,
     UserController,
-    StatsController
+    StatsController,
+    AdminQdrantSyncController
   ],
   providers: [
     AuthRepository,

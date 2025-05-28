@@ -39,7 +39,7 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:3000',
-      'http://192.168.50.115:3000',
+      'http://172.20.196.148:3000',
       'http://localhost:3001',
       'https://project-solo-gray.vercel.app',
       'some-in-univ.com',

@@ -1,5 +1,5 @@
 import { ApiBearerAuth, ApiOperation, ApiTags } from "@nestjs/swagger";
-import { Body, Controller, Get, Patch, Delete } from "@nestjs/common";
+import { Body, Controller, Get, Patch, Delete, Param } from "@nestjs/common";
 import { CurrentUser } from "@/auth/decorators";
 import { AuthenticationUser } from "@/types";
 import { Roles } from "@/auth/decorators";
@@ -42,5 +42,18 @@ export default class UserController {
   @Delete('withdrawl')
   async deleteProfile(@CurrentUser() user: AuthenticationUser, @Body() withdrawRequest: WithdrawRequest) {
     await this.userService.withdraw(user.id, withdrawRequest);
+  }
+}
+
+@ApiBearerAuth('access-token')
+@Roles(Role.ADMIN)
+@Controller('/admin/users')
+export class AdminQdrantSyncController {
+  constructor(private readonly userService: UserService) {}
+
+  @Delete(':id')
+  async deleteQdrantUser(@Param('id') userId: string) {
+    await this.userService.deleteQdrantUser(userId);
+    return { message: 'Qdrant 포인트가 삭제되었습니다.' };
   }
 }

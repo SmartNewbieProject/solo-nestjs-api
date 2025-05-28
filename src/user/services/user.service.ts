@@ -69,4 +69,8 @@ export default class UserService {
     await this.qdrantService.deletePoints('profiles', [userId]);
   }
 
+  async deleteQdrantUser(userId: string) {
+    await this.qdrantService.deletePoints('profiles', [userId]);
+  }
+
 }
