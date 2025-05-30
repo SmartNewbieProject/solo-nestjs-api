@@ -1,4 +1,4 @@
-import { Injectable, HttpException, HttpStatus, BadGatewayException, Logger, UnauthorizedException } from "@nestjs/common";
+import { Injectable, HttpException, HttpStatus, BadGatewayException, Logger, UnauthorizedException, BadRequestException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PaymentConfirm } from "../dto";
 import { PayBeforeHistory, PaymentDetails, PortOneCustomData, Product } from "@/types/payment";
@@ -28,6 +28,7 @@ export default class PayService {
   private readonly impId: string;
   private readonly restKey: string;
   private readonly secretKey: string;
+  private readonly v2SecretKey: string;
 
   constructor(
     private readonly configService: ConfigService,
@@ -40,6 +41,7 @@ export default class PayService {
     this.impId = configService.get('PORTONE_IMP_ID') as string;
     this.restKey = configService.get('PORTONE_REST_API_KEY') as string;
     this.secretKey = configService.get('PORTONE_SECRET_KEY') as string;
+    this.v2SecretKey = configService.get('PORTONE_V2_SECRET_KEY') as string;
   }
 
   async createHistory(payBefore: PayBeforeHistory) {
@@ -49,7 +51,7 @@ export default class PayService {
   async confirmClientPayment(userId: string, { impUid, merchantUid }: PaymentConfirm) {
     const history = await this.payRepository.findPayHistory(merchantUid);
     if (!history) {
-      throw new BadGatewayException('결제 내역을 찾을 수 없습니다.');
+      throw new BadRequestException('결제 내역을 찾을 수 없습니다.');
     }
     if (history.userId !== userId) {
       throw new UnauthorizedException('본인의 결제만 확인할 수 있습니다.');
@@ -57,9 +59,10 @@ export default class PayService {
 
     try {
       const accessToken = await this.getServiceToken();
-      const { response: portOnePayment } = await this.getPayment(impUid, accessToken) as { response: PaymentDetails };
+      const { response: portOnePayment } = await this.getPayment(impUid, merchantUid, accessToken) as { response: PaymentDetails };
+      this.logger.debug(portOnePayment);
 
-      if (portOnePayment.status === 'paid') {
+      if (['paid', 'PAID'].includes(portOnePayment.status)) {
         await this.payRepository.updateHistory(merchantUid, {
           receiptUrl: portOnePayment.receipt_url,
           paidAt: weekDateService.createDayjs().toDate(),
@@ -120,6 +123,7 @@ export default class PayService {
 
   async handlePaymentWebhook(webhookData: PortoneWebhookDto) {
     const { imp_uid, merchant_uid, status } = webhookData;
+    this.logger.debug(webhookData);
 
     if (status !== PortonePaymentStatus.PAID) {
       return { success: false, message: '결제 완료 상태가 아님' };
@@ -133,7 +137,7 @@ export default class PayService {
       }
 
       const accessToken = await this.getServiceToken();
-      const { response: portOnePayment } = await this.getPayment(imp_uid, accessToken) as { response: PaymentDetails };
+      const { response: portOnePayment } = await this.getPayment(imp_uid, null, accessToken) as { response: PaymentDetails };
 
       let customData: PortOneCustomData;
       try {
@@ -198,7 +202,20 @@ export default class PayService {
     }) as Promise<string>;
   }
 
-  private async getPayment(impUid: string, token: string) {
+
+  private async getPayment(impUid: string | null, paymentId: string | null, token: string) {
+    if (impUid) {
+      return this.getPaymentByImpUid(impUid, token);
+    }
+
+    if (paymentId) {
+      return this.getPaymentByPaymentId(paymentId);
+    }
+
+    throw new BadRequestException('결제 고유 아이디 또는 트랜잭션 아이디가 필요합니다.');
+  }
+
+  private async getPaymentByImpUid(impUid: string, token: string) {
     return await axiosHandler(async () => {
       const response = await axios.get(`https://api.iamport.kr/payments/${impUid}`, {
         headers: {
@@ -206,6 +223,23 @@ export default class PayService {
         },
       });
       return response.data;
+    }, error => {
+      this.logger.error(error.response);
+      throw new BadGatewayException('결제 서버 오류입니다');
+    }) as Promise<any>;
+  }
+
+  private async getPaymentByPaymentId(paymentId: string) {
+    this.logger.debug(`[getPaymentByPaymentId] paymentId: ${paymentId}`);
+    return await axiosHandler(async () => {
+      const response = await axios.get(`https://api.portone.io/payments/${paymentId}`, {
+        headers: {
+          Authorization: `PortOne ${this.v2SecretKey}`,
+        },
+      });
+      return {
+        response: response.data,
+      }
     }, error => {
       this.logger.error(error);
       throw new BadGatewayException('결제 서버 오류입니다');

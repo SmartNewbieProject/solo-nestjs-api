@@ -1,11 +1,15 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNumber } from 'class-validator';
+import { IsString, IsNumber, IsOptional } from 'class-validator';
 import { TicketStatus, TicketType } from '@/types/match';
 
 export class PaymentConfirm {
-  @ApiProperty({ description: '결제 고유 아이디' })
-  @IsString()
-  impUid: string;
+  @ApiProperty({ description: '결제 고유 아이디', nullable: true })
+  @IsOptional()
+  impUid: string | null;
+
+  @ApiProperty({ description: '결제 트랜잭션 아이디', nullable: true })
+  @IsOptional()
+  txId: string | null;
 
   @ApiProperty({ description: '고객사 주문 고유 번호' })
   @IsString()
