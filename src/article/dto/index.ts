@@ -99,8 +99,9 @@ export class ReportUpload {
     enum: ReportReason,
     example: ReportReason.PORNOGRAPHY
   })
-  @IsEnum(ReportReason, { message: '신고 사유는 올바르게 선택해주세요.' })
-  reason: ReportReason;
+  @IsString()
+  @MaxLength(255, { message: '신고 사유는 255자 이하입니다.' })
+  reason: string;
 }
 
 export class LikeArticle {
