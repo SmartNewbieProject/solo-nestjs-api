@@ -1,4 +1,4 @@
-import { Body, Controller, HttpCode, Post, Headers, UnauthorizedException } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post, Headers, UnauthorizedException, Req } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
 import { PaymentBeforeHistory, PaymentConfirm } from '../dto';
 import { PortoneWebhookDto } from '../dto/webhook.dto';
@@ -8,11 +8,21 @@ import { CurrentUser } from '@/auth/decorators';
 import { AuthenticationUser } from '@/types';
 import { Public } from '@/auth/decorators/public.decorator';
 import PayService from '../services/pay.service';
+import { Webhook } from '@portone/server-sdk';
+import { ConfigService } from '@nestjs/config';
+import { Request } from 'express';
 
 @Controller('payments')
 @ApiTags('결제')
 export class PaymentController {
-  constructor(private readonly payService: PayService) {}
+  private readonly secretKey: string;
+
+  constructor(
+    private readonly payService: PayService,
+    private readonly configService: ConfigService,
+  ) {
+    this.secretKey = configService.get('PORTONE_WEBHOOK_SECRET') as string;
+  }
 
   @ApiOperation({ summary: '결제 전 증빙 기록' })
   @Post('history')
@@ -40,18 +50,38 @@ export class PaymentController {
   @Public()
   @HttpCode(200)
   async handleWebhook(
-    @Headers('portone-signature') signature: string,
+    @Headers('webhook-id') webhookId: string,
+    @Headers('webhook-signature') webhookSignature: string,
+    @Headers('webhook-timestamp') webhookTimestamp: string,
     @Body() webhookData: PortoneWebhookDto,
+    @Req() req: Request,
   ) {
+    await this.verifyPortoneWebhook(req, webhookId, webhookSignature, webhookTimestamp);
     try {
-      // 서명 검증 (필요시 활성화)
-      // if (!this.payService.verifyPortoneSignature(signature, webhookData)) {
-      //   throw new UnauthorizedException('잘못된 웹훅 서명입니다.');
-      // }
-
       return await this.payService.handlePaymentWebhook(webhookData);
     } catch (error) {
       return { success: false, error: error.message };
+    }
+  }
+
+  private async verifyPortoneWebhook(
+    req: Request,
+    webhookId: string,
+    webhookSignature: string,
+    webhookTimestamp: string,
+  ) {
+    if (!this.secretKey) {
+      throw new UnauthorizedException('Webhook 시크릿이 설정되지 않았습니다.');
+    }
+    const headers = {
+      'webhook-id': webhookId,
+      'webhook-signature': webhookSignature,
+      'webhook-timestamp': webhookTimestamp,
+    };
+    const payload = JSON.stringify(req.body);
+    const verified = await Webhook.verify(this.secretKey, payload, headers);
+    if (!verified) {
+      throw new UnauthorizedException('유효하지 않은 포트원 Webhook 요청입니다.');
     }
   }
 }

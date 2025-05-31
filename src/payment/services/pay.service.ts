@@ -1,10 +1,10 @@
 import { Injectable, HttpException, HttpStatus, BadGatewayException, Logger, UnauthorizedException, BadRequestException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { PaymentConfirm } from "../dto";
-import { PayBeforeHistory, PaymentDetails, PortOneCustomData, Product } from "@/types/payment";
+import { PayBeforeHistory, PaymentDetails, PortOneCustomData, PortOnePaymentV2, Product } from "@/types/payment";
 import { PortoneWebhookDto, PortonePaymentStatus } from "../dto/webhook.dto";
 import PayRepository from "../repository/pay.repository";
-import { PortOneClient } from '@portone/server-sdk';
+import { Payment, PortOneClient } from '@portone/server-sdk';
 import { TicketService } from "./ticket.service";
 import { axiosHandler } from "@/common/helper";
 import { createHmac } from 'crypto';
@@ -13,22 +13,14 @@ import { SlackService } from "@/slack-notification/slack.service";
 import UserRepository from "@/user/repository/user.repository";
 import weekDateService from "@/matching/domain/date";
 
-const productMap: Record<Product, { price: number }> = {
-  [Product.REMATCHING]: {
-    price: 4000,
-  },
-}
-
 const TOKEN_GETTER_URL = 'https://api.iamport.kr/users/getToken';
 
 @Injectable()
 export default class PayService {
   private readonly logger = new Logger(PayService.name);
   private readonly client: PortOneClient;
-  private readonly impId: string;
-  private readonly restKey: string;
+  private readonly storeId: string;
   private readonly secretKey: string;
-  private readonly v2SecretKey: string;
 
   constructor(
     private readonly configService: ConfigService,
@@ -37,18 +29,17 @@ export default class PayService {
     private readonly slackService: SlackService,
     private readonly userRepository: UserRepository,
   ) {
-    this.client = PortOneClient({ secret: configService.get('PORTONE_SECRET_KEY') as string });
-    this.impId = configService.get('PORTONE_IMP_ID') as string;
-    this.restKey = configService.get('PORTONE_REST_API_KEY') as string;
-    this.secretKey = configService.get('PORTONE_SECRET_KEY') as string;
-    this.v2SecretKey = configService.get('PORTONE_V2_SECRET_KEY') as string;
+    const secretKey = configService.get('PORTONE_V2_SECRET_KEY') as string;
+    this.client = PortOneClient({ secret: secretKey });
+    this.secretKey = secretKey;
+    this.storeId = configService.get('PORTONE_STORE_ID') as string;
   }
 
   async createHistory(payBefore: PayBeforeHistory) {
     return await this.payRepository.createHistory(payBefore);
   }
 
-  async confirmClientPayment(userId: string, { impUid, merchantUid }: PaymentConfirm) {
+  async confirmClientPayment(userId: string, { merchantUid }: PaymentConfirm) {
     const history = await this.payRepository.findPayHistory(merchantUid);
     if (!history) {
       throw new BadRequestException('결제 내역을 찾을 수 없습니다.');
@@ -58,8 +49,7 @@ export default class PayService {
     }
 
     try {
-      const accessToken = await this.getServiceToken();
-      const { response: portOnePayment } = await this.getPayment(impUid, merchantUid, accessToken) as { response: PaymentDetails };
+      const { response: portOnePayment } = await this.getPayment(merchantUid) as { response: PaymentDetails };
       this.logger.debug(portOnePayment);
 
       if (['paid', 'PAID'].includes(portOnePayment.status)) {
@@ -79,20 +69,11 @@ export default class PayService {
         );
       }
     } catch (error) {
-      this.logger.error(`결제 확인 중 오류 발생: ${error.message}`);
+      this.logger.error(`결제 확인 중 오류 발생`);
+      this.logger.error(error);
     }
 
     return history;
-  }
-
-  verifyPortoneSignature(signature: string, webhookData: PortoneWebhookDto): boolean {
-    if (!signature) return false;
-
-    const rawBody = JSON.stringify(webhookData);
-    const hmac = createHmac('sha256', this.secretKey);
-    const generatedSignature = hmac.update(rawBody).digest('hex');
-
-    return signature === generatedSignature;
   }
 
   private async sendPaymentSlackNotification(
@@ -122,7 +103,7 @@ export default class PayService {
   }
 
   async handlePaymentWebhook(webhookData: PortoneWebhookDto) {
-    const { payment_id, tx_id, status } = webhookData;
+    const { payment_id, status } = webhookData;
     this.logger.debug(webhookData);
 
     if (status !== PortonePaymentStatus.PAID) {
@@ -136,37 +117,32 @@ export default class PayService {
         return { success: false, message: '결제 내역을 찾을 수 없음' };
       }
 
-      const accessToken = await this.getServiceToken();
-      const { response: portOnePayment } = await this.getPayment(payment_id, null, accessToken) as { response: PaymentDetails };
+      const payment = await this.getPayment(payment_id) as PortOnePaymentV2;
 
-      let customData: PortOneCustomData;
-      try {
-        customData = JSON.parse(JSON.parse(portOnePayment.custom_data as string));
-      } catch (error) {
-        this.logger.error('결제 데이터 파싱 실패');
-        throw new BadGatewayException('결제 데이터가 올바르지 않습니다.');
-      }
+      this.logger.debug('결제 내역 조회');
+      this.logger.debug(payment);
+      const customData = JSON.parse(payment.customData);
 
-      if (history.orderName !== customData.orderName) {
+      if (history.orderName !== payment.orderName) {
         this.logger.error(`결제 내용이 변조되었습니다.`);
         throw new BadGatewayException('결제 내용이 변조되었습니다.');
       }
 
       await this.payRepository.updateHistory(payment_id, {
-        receiptUrl: portOnePayment.receipt_url,
-        paidAt: new Date(portOnePayment.paid_at),
-        method: portOnePayment.emb_pg_provider,
-        txId: portOnePayment.pg_tid,
+        receiptUrl: payment.receiptUrl,
+        paidAt: weekDateService.createDayjs().toDate(),
+        method: payment.method.provider,
+        txId: payment.pgTxId,
       });
 
-      await this.strategy(history.userId, customData.orderName as Product, customData);
+      await this.strategy(history.userId, payment.orderName as Product, customData);
 
       const notificationSent = await this.sendPaymentSlackNotification(
         history.userId,
         history.orderName,
         history.amount,
-        portOnePayment.emb_pg_provider || '알 수 없음',
-        new Date(portOnePayment.paid_at)
+        payment.method.provider || '알 수 없음',
+        weekDateService.createDayjs().toDate(),
       );
 
       return {
@@ -174,7 +150,8 @@ export default class PayService {
         notificationSent
       };
     } catch (error) {
-      this.logger.error(`결제 웹훅 처리 중 오류 발생: ${error.message}`);
+      this.logger.error(`결제 웹훅 처리 중 오류 발생: `);
+      this.logger.error(error);
       throw error;
     }
   }
@@ -184,65 +161,14 @@ export default class PayService {
       return this.ticketService.createRematchingTickets(userId, customData.productCount);
     }
   }
-
-  private async getServiceToken(): Promise<string> {
-    return await axiosHandler(async () => {
-      const response = await axios.post(TOKEN_GETTER_URL, {
-        imp_key: this.restKey,
-        imp_secret: this.secretKey,
-      }, {
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      return response.data.response.access_token;
-    }, error => {
-      this.logger.error(error);
-      throw new BadGatewayException('결제 서버 오류입니다');
-    }) as Promise<string>;
+  private async getPayment(paymentId: string) {
+    return this.getPaymentByPaymentId(paymentId);
   }
 
-
-  private async getPayment(impUid: string | null, paymentId: string | null, token: string) {
-    if (impUid) {
-      return this.getPaymentByImpUid(impUid, token);
-    }
-
-    if (paymentId) {
-      return this.getPaymentByPaymentId(paymentId);
-    }
-
-    throw new BadRequestException('결제 고유 아이디 또는 트랜잭션 아이디가 필요합니다.');
-  }
-
-  private async getPaymentByImpUid(impUid: string, token: string) {
-    return await axiosHandler(async () => {
-      const response = await axios.get(`https://api.iamport.kr/payments/${impUid}`, {
-        headers: {
-          Authorization: token,
-        },
-      });
-      return response.data;
-    }, error => {
-      this.logger.error(error.response);
-      throw new BadGatewayException('결제 서버 오류입니다');
-    }) as Promise<any>;
-  }
-
-  private async getPaymentByPaymentId(paymentId: string) {
+  // private async getPaymentByPaymentId(paymentId: string): Promise<Payment.Payment> {
+  private async getPaymentByPaymentId(paymentId: string): Promise<any> {
     this.logger.debug(`[getPaymentByPaymentId] paymentId: ${paymentId}`);
-    return await axiosHandler(async () => {
-      const response = await axios.get(`https://api.portone.io/payments/${paymentId}`, {
-        headers: {
-          Authorization: `PortOne ${this.v2SecretKey}`,
-        },
-      });
-      return {
-        response: response.data,
-      }
-    }, error => {
-      this.logger.error(error);
-      throw new BadGatewayException('결제 서버 오류입니다');
-    }) as Promise<any>;
+    const storeId = this.configService.get('PORTONE_STORE_ID') as string;
+    return await this.client.payment.getPayment({ paymentId, storeId });
   }
 }
