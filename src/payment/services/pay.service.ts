@@ -122,7 +122,7 @@ export default class PayService {
   }
 
   async handlePaymentWebhook(webhookData: PortoneWebhookDto) {
-    const { imp_uid, merchant_uid, status } = webhookData;
+    const { payment_id, tx_id, status } = webhookData;
     this.logger.debug(webhookData);
 
     if (status !== PortonePaymentStatus.PAID) {
@@ -130,14 +130,14 @@ export default class PayService {
     }
 
     try {
-      const history = await this.payRepository.findPayHistory(merchant_uid);
+      const history = await this.payRepository.findPayHistory(payment_id);
       if (!history) {
-        this.logger.error(`결제 내역을 찾을 수 없습니다: ${merchant_uid}`);
+        this.logger.error(`결제 내역을 찾을 수 없습니다: ${payment_id}`);
         return { success: false, message: '결제 내역을 찾을 수 없음' };
       }
 
       const accessToken = await this.getServiceToken();
-      const { response: portOnePayment } = await this.getPayment(imp_uid, null, accessToken) as { response: PaymentDetails };
+      const { response: portOnePayment } = await this.getPayment(payment_id, null, accessToken) as { response: PaymentDetails };
 
       let customData: PortOneCustomData;
       try {
@@ -152,7 +152,7 @@ export default class PayService {
         throw new BadGatewayException('결제 내용이 변조되었습니다.');
       }
 
-      await this.payRepository.updateHistory(merchant_uid, {
+      await this.payRepository.updateHistory(payment_id, {
         receiptUrl: portOnePayment.receipt_url,
         paidAt: new Date(portOnePayment.paid_at),
         method: portOnePayment.emb_pg_provider,
