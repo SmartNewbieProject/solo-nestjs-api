@@ -356,13 +356,14 @@ export default class MatchingCreationService {
     }
 
     const users = await this.matchRepository.findRestMembers();
+    this.logger.log({ usersCount: users.length });
 
     // TODO: 배압 처리필요.
-    const tasks = users.map(user =>
-      this.createPartner(user.id, MatchType.SCHEDULED, true)
-    );
-
-    const results = await Promise.allSettled(tasks);
+    const results: any[] = [];
+    for (const user of users) {
+      await this.sleep(200);
+      results.push(await this.createPartner(user.id, MatchType.SCHEDULED, true));
+    }
 
     return {
       totalProcessed: users.length,

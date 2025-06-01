@@ -178,11 +178,9 @@ export default class MatchRepository {
 
   async findRestMembers() {
     const date = weekDateService.createDayjs()
-      .subtract(9, 'hours')
       .format('YYYY-MM-DD');
-    const startOfDay = `${date} 00:00:00`;
-    const endOfDay = `${date} 23:59:59`;
-    this.logger.debug({ startOfDay, endOfDay });
+    const publishedAt = `${date} 11:59:00`;
+    this.logger.log({ publishedAt });
 
     const results = await this.db.select({
       id: schema.users.id,
@@ -207,16 +205,15 @@ export default class MatchRepository {
         and(
           eq(schema.users.id, schema.matches.myId),
           eq(schema.matches.type, 'scheduled'),
-          sql`${schema.matches.createdAt} >= ${startOfDay} AND ${schema.matches.createdAt} <= ${endOfDay}`
+          sql`${schema.matches.publishedAt} >= ${publishedAt}`
         )
       )
       .where(
         and(
           isNull(schema.users.deletedAt),
-          isNull(schema.matches.id),
-          eq(schema.matches.type, 'scheduled'),
           eq(schema.profiles.gender, Gender.FEMALE),
-          ne(schema.profiles.rank, 'UNKNOWN')
+          isNull(schema.matches.id),
+          ne(schema.profiles.rank, 'UNKNOWN'),
         )
       )
       .groupBy(schema.users.id, schema.users.email, schema.users.name)
