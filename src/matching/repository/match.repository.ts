@@ -177,7 +177,9 @@ export default class MatchRepository {
   }
 
   async findRestMembers() {
-    const date = weekDateService.createDayjs().format('YYYY-MM-DD');
+    const date = weekDateService.createDayjs()
+      .subtract(9, 'hours')
+      .format('YYYY-MM-DD');
     const startOfDay = `${date} 00:00:00`;
     const endOfDay = `${date} 23:59:59`;
 
@@ -187,14 +189,26 @@ export default class MatchRepository {
       name: schema.users.name,
     })
       .from(schema.users)
-      .leftJoin(schema.profiles, eq(schema.users.id, schema.profiles.userId))
-      .leftJoin(schema.userPreferences, eq(schema.users.id, schema.userPreferences.userId))
-      .leftJoin(schema.userPreferenceOptions, eq(schema.userPreferences.id, schema.userPreferenceOptions.userPreferenceId))
-      .leftJoin(schema.matches, and(
-        eq(schema.users.id, schema.matches.myId),
-        eq(schema.matches.type, 'scheduled'),
-        sql`${schema.matches.createdAt} >= ${startOfDay} AND ${schema.matches.createdAt} <= ${endOfDay}`
-      ))
+      .leftJoin(
+        schema.profiles,
+        eq(schema.users.id, schema.profiles.userId)
+      )
+      .leftJoin(
+        schema.userPreferences,
+        eq(schema.users.id, schema.userPreferences.userId)
+      )
+      .leftJoin(
+        schema.userPreferenceOptions,
+        eq(schema.userPreferences.id, schema.userPreferenceOptions.userPreferenceId)
+      )
+      .leftJoin(
+        schema.matches,
+        and(
+          eq(schema.users.id, schema.matches.myId),
+          eq(schema.matches.type, 'scheduled'),
+          sql`${schema.matches.createdAt} >= ${startOfDay} AND ${schema.matches.createdAt} <= ${endOfDay}`
+        )
+      )
       .where(
         and(
           isNull(schema.users.deletedAt),
