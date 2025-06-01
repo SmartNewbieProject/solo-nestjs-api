@@ -7,6 +7,7 @@ import weekDateService from '../domain/date';
 import MatchResultRouter from '../domain/match-result-router';
 import { MatchingStatsService } from './stats.service';
 import { MatchUserHistoryManager } from '../domain/match-user-history';
+import { ProfileSimilarFinderService } from '@/embedding/services/profile-similar-finder.service';
 
 export interface MatchingWeights {
   age: number;
@@ -47,6 +48,7 @@ export class MatchingService {
     private readonly matchRepository: MatchRepository,
     private readonly statsService: MatchingStatsService,
     private readonly matchUserHistoryManager: MatchUserHistoryManager,
+    private readonly profileSimilarFinderService: ProfileSimilarFinderService,
   ) { }
 
   /**
@@ -61,7 +63,7 @@ export class MatchingService {
   ): Promise<WeightedPartner[]> {
     try {
       const exceptIds = await this.matchUserHistoryManager.getMatchedUserIds(userId);
-      const similarProfiles = await this.profileEmbeddingService.findSimilarProfiles(userId, limit * 3, type, exceptIds);
+      const similarProfiles = await this.profileSimilarFinderService.findCandidates(userId, limit * 3, type, exceptIds);
       const weightedPartners = await this.statsService.createWeightedPartners(similarProfiles);
 
       return weightedPartners;

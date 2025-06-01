@@ -7,7 +7,7 @@ import { DrizzleModule } from '@/database/drizzle.module';
 import { QdrantModule } from '@/config/qdrant/qdrant.module';
 import { ProfileService } from '@/user/services/profile.service';
 import ProfileRepository from '@/user/repository/profile.repository';
-
+import { ProfileSimilarFinderService } from './services/profile-similar-finder.service';
 @Module({
   imports: [
     ConfigModule,
@@ -20,11 +20,13 @@ import ProfileRepository from '@/user/repository/profile.repository';
     ProfileEmbeddingService,
     ProfileService,
     ProfileRepository,
+    ProfileSimilarFinderService,
   ],
   exports: [
     EmbeddingService,
     InterestEmbeddingService,
     ProfileEmbeddingService,
+    ProfileSimilarFinderService,
   ],
 })
 export class EmbeddingModule {}

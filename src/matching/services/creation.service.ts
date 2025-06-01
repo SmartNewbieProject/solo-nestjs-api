@@ -58,8 +58,8 @@ export default class MatchingCreationService {
       this.logger.debug(`매칭 처리 진행중`);
       return;
     }
-    const threeHoursInMs = 3 * 60 * 60 * 1000;
-    await this.cacheManager.set(this.LOCK_KEY, true, threeHoursInMs);
+    const oneHourInMs = 1 * 60 * 60 * 1000;
+    await this.cacheManager.set(this.LOCK_KEY, true, oneHourInMs);
     const userIds = await this.findAllMatchingUsers();
     this.slackService.sendNotification(`${userIds.length} 명의 매칭처리를 시작합니다.`);
     const result = await this.batch(userIds);
@@ -169,6 +169,14 @@ export default class MatchingCreationService {
               partner.similarity,
               type
             );
+          }
+
+          // 상대도 매칭 데이터를 생성
+          if (type === MatchType.SCHEDULED) {
+            await this.createMatch(partner.userId, {
+              userId,
+              similarity: partner.similarity,
+            }, type);
           }
 
           await this.createMatch(userId, partner, type);
