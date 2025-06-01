@@ -212,6 +212,7 @@ export default class MatchRepository {
       .where(
         and(
           isNull(schema.users.deletedAt),
+          isNull(schema.matches.id),
           eq(schema.matches.type, 'scheduled'),
           eq(schema.profiles.gender, Gender.FEMALE),
           ne(schema.profiles.rank, 'UNKNOWN')
