@@ -182,6 +182,7 @@ export default class MatchRepository {
       .format('YYYY-MM-DD');
     const startOfDay = `${date} 00:00:00`;
     const endOfDay = `${date} 23:59:59`;
+    this.logger.debug({ startOfDay, endOfDay });
 
     const results = await this.db.select({
       id: schema.users.id,
