@@ -51,12 +51,12 @@ const getWeekDates = (): WeekDates => {
     .set('second', 0)
     .set('millisecond', 0);
 
-  console.log('getWeekDates 함수 내부 값:', {
-    start: start.format('YYYY-MM-DD HH:mm:ss'),
-    end: end.format('YYYY-MM-DD HH:mm:ss'),
-    thursday: thursday.format('YYYY-MM-DD HH:mm:ss'),
-    sunday: sunday.format('YYYY-MM-DD HH:mm:ss'),
-  });
+  // console.log('getWeekDates 함수 내부 값:', {
+  //   start: start.format('YYYY-MM-DD HH:mm:ss'),
+  //   end: end.format('YYYY-MM-DD HH:mm:ss'),
+  //   thursday: thursday.format('YYYY-MM-DD HH:mm:ss'),
+  //   sunday: sunday.format('YYYY-MM-DD HH:mm:ss'),
+  // });
 
   return {
     start: start.toDate(),

@@ -138,14 +138,13 @@ export class ProfileEmbeddingService {
    */
   async findSimilarProfiles(userId: string, limit: number = 10, type: MatchType, exceptIds: string[]): Promise<Array<{ userId: string; similarity: number }>> {
     const { payload, vector } = await this.getUserPoint(userId);
-    this.logger.debug({ payload, vector });
     const targetGender = payload.profileSummary.gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
     const profile = await this.profileService.getUserProfiles(userId, false);
     const mustNotIds = [userId, ...exceptIds];
     this.logger.debug(`[mustNotIds]: ${mustNotIds}`);
 
     const { rankFilter, drinkFilter, smokingFilter, tattooFilter, ageFilter } = VectorFilter.getFilters(profile, type, targetGender);
-    this.logger.debug({ type }, { rankFilter }, smokingFilter, tattooFilter, { drinkFilter }, { ageFilter });
+    // this.logger.debug({ type }, { rankFilter }, smokingFilter, tattooFilter, { drinkFilter }, { ageFilter });
 
     if (!rankFilter) {
       return [];
