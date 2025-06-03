@@ -13,8 +13,6 @@ import { SlackService } from "@/slack-notification/slack.service";
 import UserRepository from "@/user/repository/user.repository";
 import weekDateService from "@/matching/domain/date";
 
-const TOKEN_GETTER_URL = 'https://api.iamport.kr/users/getToken';
-
 @Injectable()
 export default class PayService {
   private readonly logger = new Logger(PayService.name);
