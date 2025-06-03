@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
-import { articles } from '@/database/schema';
+import { articles, reports } from '@/database/schema';
 import type { ArticleUpload } from '../dto';
 import { sql, eq, and, isNull, desc, count, SQL } from 'drizzle-orm';
 import { generateUuidV7 } from '@/database/schema/helper';
@@ -192,6 +192,17 @@ export class ArticleRepository {
       `${articleDetails.length}개의 인기 게시글을 조회했습니다.`,
     );
     return articleDetails;
+  }
+
+  async getReportIds(userId: string): Promise<string[]> {
+    const results = await this.db.select({
+      id: reports.postId,
+    })
+      .from(reports)
+      .where(eq(reports.reporterId, userId))
+      .execute();
+
+    return results.map(result => result.id);
   }
 
   async getLatestSimpleHotArticles() {

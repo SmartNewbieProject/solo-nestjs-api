@@ -67,4 +67,5 @@ export interface ArticleQueryOptions {
   includedBlinded?: boolean;
   includedDeleted?: boolean;
   articleId?: string;
+  exceptArticleIds?: string[];
 }

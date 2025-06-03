@@ -43,6 +43,8 @@ export class ArticleService {
     let articles: ArticleDetails[] = [];
     let totalCount: number = 0;
 
+    const reportIds = userId ? await this.articleRepository.getReportIds(userId) : [];
+
     if (categoryCode === ArticleRequestType.HOT) {
       articles = await this.articleRepository.getHotArticles({
         page,
@@ -61,6 +63,7 @@ export class ArticleService {
         comment: { limit: 3 },
         authorId: userId,
         userId,
+        exceptArticleIds: reportIds,
       });
       const { count } = await this.articleRepository.getArticleTotalCount(categoryCode);
       totalCount = Number(count);

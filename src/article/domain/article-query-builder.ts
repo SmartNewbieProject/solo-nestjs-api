@@ -1,7 +1,7 @@
 import { NodePgDatabase } from "drizzle-orm/node-postgres";
 import * as schema from "@database/schema";
 import { ArticleQueryOptions, ArticleRequestType } from "../types/article.types";
-import { eq, SQL, and, sql, desc, isNull, or } from "drizzle-orm";
+import { eq, SQL, and, sql, desc, isNull, or, notInArray } from "drizzle-orm";
 import { PgSelect } from "drizzle-orm/pg-core";
 import { Gender } from "@/types/enum";
 
@@ -94,6 +94,10 @@ export class ArticleQueryBuilder {
 
     if (o.articleId) {
       conditions.push(eq(articles.id, o.articleId));
+    }
+
+    if (o.exceptArticleIds) {
+      conditions.push(notInArray(articles.id, o.exceptArticleIds));
     }
 
     return conditions;
