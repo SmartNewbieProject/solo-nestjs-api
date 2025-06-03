@@ -138,7 +138,7 @@ export class AuthService {
       { id: userId, email, name, role, gender },
       {
         secret: this.configService.get<string>('JWT_SECRET'),
-        expiresIn: '1h',
+        expiresIn: '7d',
       },
     );
 
@@ -146,7 +146,7 @@ export class AuthService {
       { id: userId, email, role, gender },
       {
         secret: this.configService.get<string>('JWT_SECRET'),
-        expiresIn: '7d',
+        expiresIn: '30d',
       },
     );
 
