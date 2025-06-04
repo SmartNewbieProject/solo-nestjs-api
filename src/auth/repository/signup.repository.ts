@@ -3,7 +3,7 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '@database/schema';
 import { users } from '@database/schema/users';
 import { profiles } from '@database/schema/profiles';
-import { and, eq, isNull, between, sql } from 'drizzle-orm';
+import { and, eq, isNull, between, sql, isNotNull } from 'drizzle-orm';
 import { InjectDrizzle } from '@common/decorators';
 import { generateUuidV7 } from '@database/schema/helper';
 import { Role } from '@/auth/domain/user-role.enum';
@@ -132,5 +132,49 @@ export class SignupRepository {
         between(smsAuthorization.createdAt, minutesAgo, now),
       ),
     });
+  }
+
+  async isPhoneNumberBlacklisted(phoneNumber: string): Promise<boolean> {
+    console.log(`[DEBUG] 블랙리스트 검증 시작 - 입력 전화번호: ${phoneNumber}`);
+    const normalizedPhoneNumber = phoneNumber.replaceAll('-', '');
+    console.log(`[DEBUG] 정규화된 전화번호: ${normalizedPhoneNumber}`);
+
+    const allUsersWithPhone = await this.db.select()
+      .from(users)
+      .where(eq(users.phoneNumber, phoneNumber));
+
+    console.log(`[DEBUG] 하이픈 포함 전화번호로 찾은 모든 사용자:`, JSON.stringify(allUsersWithPhone, null, 2));
+
+    const allUsersWithPhoneNormalized = await this.db.select()
+      .from(users)
+      .where(eq(users.phoneNumber, normalizedPhoneNumber));
+
+    console.log(`[DEBUG] 하이픈 제거 전화번호로 찾은 모든 사용자:`, JSON.stringify(allUsersWithPhoneNormalized, null, 2));
+
+    const resultWithHyphen = await this.db.select()
+      .from(users)
+      .where(and(
+        eq(users.phoneNumber, phoneNumber),
+        isNotNull(users.suspendedAt)
+      ))
+      .limit(1);
+
+    console.log(`[DEBUG] 하이픈 포함 + suspended_at 검색 결과:`, JSON.stringify(resultWithHyphen, null, 2));
+
+    // 하이픈 제거된 형태로도 검색
+    const resultWithoutHyphen = await this.db.select()
+      .from(users)
+      .where(and(
+        eq(users.phoneNumber, normalizedPhoneNumber),
+        isNotNull(users.suspendedAt)
+      ))
+      .limit(1);
+
+    console.log(`[DEBUG] 하이픈 제거 + suspended_at 검색 결과:`, JSON.stringify(resultWithoutHyphen, null, 2));
+
+    const isBlacklisted = resultWithHyphen.length > 0 || resultWithoutHyphen.length > 0;
+    console.log(`[DEBUG] 블랙리스트 여부: ${isBlacklisted}`);
+
+    return isBlacklisted;
   }
 }

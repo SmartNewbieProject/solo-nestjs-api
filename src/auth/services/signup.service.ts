@@ -61,6 +61,11 @@ export class SignupService {
   }
 
   async sendVerificationcCode(phoneNumber: string) {
+    const isBlacklisted = await this.signupRepository.isPhoneNumberBlacklisted(phoneNumber);
+    if (isBlacklisted) {
+      throw new BadRequestException('해당 전화번호로는 가입할 수 없습니다.');
+    }
+
     const id = uuidv7();
     const number = phoneNumber.replaceAll('-', '');
     const authorizationCode = generateVerificationCode();
