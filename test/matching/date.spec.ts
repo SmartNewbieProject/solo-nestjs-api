@@ -44,3 +44,80 @@ describe('날짜 공개 객체 테스트', () => {
     expect(formattedDate).toBe('21:00:00');
   });
 });
+
+describe('재매칭권 만료 시간 계산 테스트', () => {
+  const originalConsoleLog = console.log;
+
+  beforeEach(() => {
+    console.log = jest.fn();
+  });
+
+  afterEach(() => {
+    console.log = originalConsoleLog;
+  });
+
+  test('화요일 20시 이후 재매칭권 사용 - 목요일 20시에 만료', () => {
+    const publishedAt = new Date('2025-06-03T21:00:00+09:00');
+    const expiredAt = weekDateService.calculateRematchExpiredAt(publishedAt);
+    const expected = new Date('2025-06-05T20:00:00+09:00');
+
+    expect(expiredAt.getTime()).toBe(expected.getTime());
+  });
+
+  test('금요일 20시 이후 재매칭권 사용 - 일요일 20시에 만료', () => {
+    const publishedAt = new Date('2025-06-06T21:00:00+09:00');
+    const expiredAt = weekDateService.calculateRematchExpiredAt(publishedAt);
+    const expected = new Date('2025-06-08T20:00:00+09:00');
+
+    expect(expiredAt.getTime()).toBe(expected.getTime());
+  });
+
+  test('토요일 재매칭권 사용 - 일요일 20시에 만료', () => {
+    const publishedAt = new Date('2025-06-07T15:00:00+09:00');
+    const expiredAt = weekDateService.calculateRematchExpiredAt(publishedAt);
+    const expected = new Date('2025-06-08T20:00:00+09:00');
+
+    expect(expiredAt.getTime()).toBe(expected.getTime());
+  });
+
+  test('수요일 재매칭권 사용 - 목요일 20시에 만료', () => {
+    const publishedAt = new Date('2025-06-04T15:00:00+09:00');
+    const expiredAt = weekDateService.calculateRematchExpiredAt(publishedAt);
+    const expected = new Date('2025-06-05T20:00:00+09:00');
+
+    expect(expiredAt.getTime()).toBe(expected.getTime());
+  });
+
+  test('월요일 재매칭권 사용 - 기본 48시간 유지', () => {
+    const publishedAt = new Date('2025-06-02T15:00:00+09:00');
+    const expiredAt = weekDateService.calculateRematchExpiredAt(publishedAt);
+    const expected = new Date('2025-06-04T15:00:00+09:00');
+
+    expect(expiredAt.getTime()).toBe(expected.getTime());
+  });
+
+  test('목요일 20시 이후 재매칭권 사용 - 기본 48시간 유지', () => {
+    const publishedAt = new Date('2025-06-05T21:00:00+09:00');
+    const expiredAt = weekDateService.calculateRematchExpiredAt(publishedAt);
+    const expected = new Date('2025-06-07T21:00:00+09:00');
+
+    expect(expiredAt.getTime()).toBe(expected.getTime());
+  });
+
+  test('일요일 20시 이후 재매칭권 사용 - 기본 48시간 유지', () => {
+    const publishedAt = new Date('2025-06-08T21:00:00+09:00');
+    const expiredAt = weekDateService.calculateRematchExpiredAt(publishedAt);
+    const expected = new Date('2025-06-10T21:00:00+09:00');
+
+    expect(expiredAt.getTime()).toBe(expected.getTime());
+  });
+
+  test('calculateRematchExpiredAt 함수가 올바른 형식의 Date 객체를 반환', () => {
+    const publishedAt = new Date('2025-06-05T15:30:00+09:00');
+    const expiredAt = weekDateService.calculateRematchExpiredAt(publishedAt);
+
+    expect(expiredAt instanceof Date).toBe(true);
+    expect(isNaN(expiredAt.getTime())).toBe(false);
+    expect(expiredAt.getTime()).toBeGreaterThan(publishedAt.getTime());
+  });
+});

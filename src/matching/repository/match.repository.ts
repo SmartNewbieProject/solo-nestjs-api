@@ -32,13 +32,24 @@ export default class MatchRepository {
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
     });
 
+    const expiredAt = type === 'rematching'
+      ? weekDateService.calculateRematchExpiredAt(publishedAt)
+      : new Date(publishedAt.getTime() + 48 * 60 * 60 * 1000);
+
+    this.logger.debug({
+      type,
+      publishedAt: formatDate(publishedAt),
+      expiredAt: formatDate(expiredAt),
+      isRematchAdjusted: type === 'rematching' && expiredAt.getTime() !== (publishedAt.getTime() + 48 * 60 * 60 * 1000)
+    });
+
     return await this.db.insert(schema.matches).values({
       id: generateUuidV7(),
       myId,
       matcherId,
       score: score.toString(),
       publishedAt,
-      expiredAt: new Date(publishedAt.getTime() + 48 * 60 * 60 * 1000),
+      expiredAt,
       type,
     }).execute();
   }

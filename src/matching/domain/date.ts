@@ -157,6 +157,44 @@ const test1Minutes = () => {
   return now.add(1, 'minute');
 };
 
+const calculateRematchExpiredAt = (publishedAt: Date): Date => {
+  const published = createDayjs(publishedAt);
+  const dayOfWeek = published.day();
+  const hour = published.hour();
+
+  const isThursdayAdjustmentPeriod =
+    (dayOfWeek === 2 && hour >= 20) ||
+    dayOfWeek === 3 ||
+    (dayOfWeek === 4 && hour < 20);
+
+  const isSundayAdjustmentPeriod =
+    (dayOfWeek === 5 && hour >= 20) ||
+    dayOfWeek === 6 ||
+    (dayOfWeek === 0 && hour < 20);
+
+  if (isThursdayAdjustmentPeriod) {
+    const daysUntilThursday = (4 - dayOfWeek + 7) % 7;
+    return published.startOf('day')
+      .add(daysUntilThursday, 'day')
+      .set('hour', 20)
+      .set('minute', 0)
+      .set('second', 0)
+      .toDate();
+  }
+
+  if (isSundayAdjustmentPeriod) {
+    const daysUntilSunday = dayOfWeek === 0 ? 0 : (7 - dayOfWeek);
+    return published.startOf('day')
+      .add(daysUntilSunday, 'day')
+      .set('hour', 20)
+      .set('minute', 0)
+      .set('second', 0)
+      .toDate();
+  }
+
+  return published.add(48, 'hours').toDate();
+};
+
 const weekDateService = {
   getWeekDates,
   isPublishDay,
@@ -164,6 +202,7 @@ const weekDateService = {
   createDayjs,
   getCheckedDates,
   getNextMatchingDate,
+  calculateRematchExpiredAt,
   test30seconds,
   test1Minutes,
 };
