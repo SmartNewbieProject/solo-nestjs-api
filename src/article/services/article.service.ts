@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, Logger, BadRequestException } from '@nestjs/common';
 import { ArticleRepository } from '../repository/article.repository';
 import { ArticleUpload } from '../dto';
 import { LikeRepository } from '../repository/like.repository';
@@ -35,8 +35,20 @@ export class ArticleService {
   }
 
   async createArticle(user: AuthenticationUser, articleData: ArticleUpload) {
+    await this.checkDuplicateRequest(user.id, articleData);
+
     const anonymousName = articleData.anonymous ? await this.anonymousNameService.generateAnonymousName(user.name) : null;
     await this.articleRepository.createArticle(user.id, articleData, anonymousName);
+  }
+
+  private async checkDuplicateRequest(userId: string, articleData: ArticleUpload) {
+    const recentArticle = await this.articleRepository.getRecentArticleByUser(userId, 10);
+
+    if (recentArticle &&
+        recentArticle.title === articleData.title &&
+        recentArticle.content === articleData.content) {
+      throw new BadRequestException('동일한 게시글을 너무 빠르게 작성할 수 없습니다. 잠시 후 다시 시도해주세요.');
+    }
   }
 
   async getArticles(categoryCode: ArticleRequestType, page: number = 1, limit: number = 10, userId?: string): Promise<PaginatedResponse<ArticleDetails>> {

@@ -228,4 +228,28 @@ export class ArticleRepository {
 
     return result[0];
   }
+
+  async getRecentArticleByUser(userId: string, secondsAgo: number) {
+    const timeThreshold = new Date(Date.now() - secondsAgo * 1000);
+
+    const result = await this.db
+      .select({
+        title: articles.title,
+        content: articles.content,
+        createdAt: articles.createdAt,
+      })
+      .from(articles)
+      .where(
+        and(
+          eq(articles.authorId, userId),
+          isNull(articles.deletedAt),
+          sql`${articles.createdAt} > ${timeThreshold}`
+        )
+      )
+      .orderBy(desc(articles.createdAt))
+      .limit(1)
+      .execute();
+
+    return result.length > 0 ? result[0] : null;
+  }
 }

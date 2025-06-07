@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { comments } from '@/database/schema';
 import { CommentUpload } from '../dto';
-import { eq, and, isNull, desc, asc } from 'drizzle-orm';
+import { eq, and, isNull, desc, asc, sql } from 'drizzle-orm';
 import { generateUuidV7 } from '@/database/schema/helper';
 import * as schema from '@database/schema';
 import { InjectDrizzle } from '@/common';
@@ -97,5 +97,28 @@ export class CommentRepository {
       ));
 
     return result.length > 0 ? result[0].authorId : null;
+  }
+
+  async getRecentCommentByUser(userId: string, secondsAgo: number) {
+    const timeThreshold = new Date(Date.now() - secondsAgo * 1000);
+
+    const result = await this.db
+      .select({
+        content: comments.content,
+        createdAt: comments.createdAt,
+      })
+      .from(comments)
+      .where(
+        and(
+          eq(comments.authorId, userId),
+          isNull(comments.deletedAt),
+          sql`${comments.createdAt} > ${timeThreshold}`
+        )
+      )
+      .orderBy(desc(comments.createdAt))
+      .limit(1)
+      .execute();
+
+    return result.length > 0 ? result[0] : null;
   }
 }

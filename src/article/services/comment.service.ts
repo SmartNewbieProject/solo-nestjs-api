@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { CommentRepository } from '../repository/comment.repository';
 import type { CommentUpdate, CommentUpload } from '../dto';
 import { ArticleRepository } from '../repository/article.repository';
@@ -24,9 +24,19 @@ export class CommentService {
       throw new NotFoundException('게시글을 찾을 수 없습니다.');
     }
 
+    await this.checkDuplicateComment(user.id, data);
+
     const profile = await this.profileRepository.getProfileSummary(user.id);
     const anonymousName = data.anonymous ? await this.anonymousNameService.generateAnonymousName(user.name) : null;
     return await this.commentRepository.createComment(postId, user.id, profile.name, data, anonymousName);
+  }
+
+  private async checkDuplicateComment(userId: string, data: CommentUpload) {
+    const recentComment = await this.commentRepository.getRecentCommentByUser(userId, 5);
+
+    if (recentComment && recentComment.content === data.content) {
+      throw new BadRequestException('동일한 댓글을 너무 빠르게 작성할 수 없습니다. 잠시 후 다시 시도해주세요.');
+    }
   }
 
 
