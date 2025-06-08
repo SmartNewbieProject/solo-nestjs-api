@@ -87,9 +87,11 @@ export class MatchingService {
       onOpen: () => this.profileService.getUserProfiles(latestMatch!.matcherId!),
     });
 
-    // 재매칭이 만료되고 자동매칭 결과가 있는 경우 처리
+    // 재매칭이 만료된 경우 자동매칭 결과 확인
     if (result.type === 'waiting' && latestMatch?.type === 'rematching') {
+      this.logger.debug(`재매칭 만료됨 - 자동매칭 결과 확인 중`);
       const scheduledMatch = await this.matchRepository.findLatestScheduledMatch(userId);
+
       if (scheduledMatch) {
         this.logger.debug(`재매칭 만료 후 자동매칭 결과 반환`);
         return await this.matchResultRouter.resolveMatchingStatus({
@@ -97,6 +99,17 @@ export class MatchingService {
           onRematching: () => this.profileService.getUserProfiles(scheduledMatch.matcherId!),
           onOpen: () => this.profileService.getUserProfiles(scheduledMatch.matcherId!),
         });
+      } else {
+        // 자동매칭 결과가 없는 경우 매칭 실패로 처리
+        this.logger.debug(`재매칭 만료 후 자동매칭 결과 없음 - 매칭 실패 처리`);
+        const nextMatchingDate = weekDateService.getNextMatchingDate();
+        return {
+          id: null,
+          endOfView: null,
+          partner: null,
+          type: 'not-found',
+          untilNext: nextMatchingDate.format('YYYY-MM-DD HH:mm:ss'),
+        };
       }
     }
 
