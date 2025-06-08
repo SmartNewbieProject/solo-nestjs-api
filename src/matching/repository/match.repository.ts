@@ -180,6 +180,35 @@ export default class MatchRepository {
     return results[0] || null;
   }
 
+  async findLatestScheduledMatch(userId: string): Promise<RawMatch | null> {
+    const now = weekDateService.createDayjs()
+      .subtract(48, 'hours')
+      .format('YYYY-MM-DD HH:mm:ss');
+
+    this.logger.debug(`=== findLatestScheduledMatch 디버깅 ===`);
+    this.logger.debug(`사용자 ID: ${userId}`);
+    this.logger.debug(`48시간 전 기준 시간: ${now}`);
+
+    const results = await this.db.select()
+      .from(schema.matches)
+      .where(
+        and(
+          eq(schema.matches.myId, userId),
+          eq(schema.matches.type, 'scheduled'),
+          sql`${schema.matches.createdAt} >= ${now}`
+        )
+      )
+      .orderBy(sql`${schema.matches.createdAt} DESC`)
+      .execute();
+
+    this.logger.debug(`조회된 자동매칭 결과 수: ${results.length}`);
+    if (results.length > 0) {
+      this.logger.debug(`최신 자동매칭: ID=${results[0].id}, 생성일=${results[0].createdAt}, 공개일=${results[0].publishedAt}`);
+    }
+
+    return results[0] || null;
+  }
+
   async getTotalMatchingCount() {
     const results = await this.db.select({
       count: count()

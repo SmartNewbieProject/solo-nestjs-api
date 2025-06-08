@@ -80,11 +80,26 @@ export class MatchingService {
 
   async getLatestPartner(userId: string): Promise<MatchDetails> {
     const latestMatch = await this.matchRepository.findLatestMatch(userId);
+
     const result = await this.matchResultRouter.resolveMatchingStatus({
       latestMatch,
       onRematching: () => this.profileService.getUserProfiles(latestMatch!.matcherId!),
       onOpen: () => this.profileService.getUserProfiles(latestMatch!.matcherId!),
     });
+
+    // 재매칭이 만료되고 자동매칭 결과가 있는 경우 처리
+    if (result.type === 'waiting' && latestMatch?.type === 'rematching') {
+      const scheduledMatch = await this.matchRepository.findLatestScheduledMatch(userId);
+      if (scheduledMatch) {
+        this.logger.debug(`재매칭 만료 후 자동매칭 결과 반환`);
+        return await this.matchResultRouter.resolveMatchingStatus({
+          latestMatch: scheduledMatch,
+          onRematching: () => this.profileService.getUserProfiles(scheduledMatch.matcherId!),
+          onOpen: () => this.profileService.getUserProfiles(scheduledMatch.matcherId!),
+        });
+      }
+    }
+
     return result;
   }
 
