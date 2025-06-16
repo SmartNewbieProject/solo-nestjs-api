@@ -14,10 +14,13 @@ import UniversityRepository from './repository/university.repository';
 import { ImageService } from '@/user/services/image.service';
 import { S3Service } from '@/common/services/s3.service';
 import { SmsModule } from '@/sms/sms.module';
+import { AiTokenController } from './controller/ai-token.controller';
+import { AiTokenService } from './services/ai-token.service';
+import { AiUserSetupService } from './services/ai-user-setup.service';
 
 @Module({
-  imports: [SmsModule], 
-  controllers: [SignupController, AuthController, UniversityController],
+  imports: [SmsModule],
+  controllers: [SignupController, AuthController, UniversityController, AiTokenController],
   providers: [
     SignupService,
     SignupRepository,
@@ -27,7 +30,9 @@ import { SmsModule } from '@/sms/sms.module';
     UniversityRepository,
     ImageService,
     S3Service,
+    AiTokenService,
+    AiUserSetupService,
   ],
-  exports: [SignupService, AuthService, UniversityService],
+  exports: [SignupService, AuthService, UniversityService, AiTokenService],
 })
 export class AuthModule { }

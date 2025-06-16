@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNotEmpty } from 'class-validator';
+import { Role } from '../domain/user-role.enum';
 
 export class TokenResponse {
   @ApiProperty({
@@ -29,8 +30,9 @@ export class TokenResponse {
   @ApiProperty({
     description: '권한',
     example: 'user',
+    enum: Role,
   })
-  role: 'user' | 'admin';
+  role: Role;
 }
 
 export class RefreshToken {

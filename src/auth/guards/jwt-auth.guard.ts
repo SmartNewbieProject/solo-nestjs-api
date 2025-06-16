@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '@auth/decorators/public.decorator';
 import { AuthRepository } from '@auth/repository/auth.repository';
+import { Role } from '@auth/domain/user-role.enum';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -58,7 +59,14 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         ignoreExpiration: false,
       });
 
-      // 실시간으로 사용자 상태 확인
+      // AI 봇 토큰인 경우 데이터베이스 확인 생략
+      if (payload.type === 'permanent_ai_token') {
+        this.logger.debug('AI 봇 토큰 인증 성공');
+        request.user = payload;
+        return true;
+      }
+
+      // 일반 사용자의 경우 실시간으로 사용자 상태 확인
       const user = await this.authRepository.findUserById(payload.id);
       if (!user) {
         this.logger.warn(`User ${payload.id} not found or inactive`);

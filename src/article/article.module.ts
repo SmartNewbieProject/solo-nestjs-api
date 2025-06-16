@@ -17,10 +17,13 @@ import { ViewCountAggregator } from './services/view-count-aggregator.service';
 import { UserModule } from '@/user/user.module';
 import { DatabaseModule } from '@/database/database.module';
 import { AnonymousNameService } from './services/anonymous-name.service';
+import { AiContentController } from './controllers/ai-content.controller';
+import { AiContentService } from './services/ai-content.service';
+import { AiProfileService } from './services/ai-profile.service';
 
 @Module({
   imports: [ScheduleModule.forRoot(), UserModule, DatabaseModule],
-  controllers: [ArticleController, CommentController, ReportController],
+  controllers: [ArticleController, CommentController, ReportController, AiContentController],
   providers: [
     RedisService,
     ArticleService,
@@ -34,7 +37,9 @@ import { AnonymousNameService } from './services/anonymous-name.service';
     LikeRepository,
     ViewCountAggregator,
     AnonymousNameService,
+    AiContentService,
+    AiProfileService,
   ],
-  exports: [ArticleService, AnonymousNameService]
+  exports: [ArticleService, AnonymousNameService, AiContentService]
 })
 export class ArticleModule { }

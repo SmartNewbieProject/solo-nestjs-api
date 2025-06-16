@@ -3,12 +3,19 @@ import { ArticleQueryResult, CommentResult } from './article-query-builder';
 import { CommentDetails } from '../types/comment.type';
 import { UniversityDetail } from '@/types/user';
 import { Logger } from '@nestjs/common';
-import { dayUtils } from '@/common/helper/day';
 import weekDateService from '@/matching/domain/date';
 import * as dayjs from 'dayjs';
+import { getUniversities, getDepartmentsByUniversity } from '@/auth/domain/university';
+import { Gender } from '@/types/enum';
 
 export class ArticleMapper {
-  private static logger = new Logger(ArticleMapper.name);
+  private static readonly logger = new Logger(ArticleMapper.name);
+  private static readonly AI_USER_ID = 'ai-bot-user-id-permanent';
+  private static readonly GRADES = ['1학년', '2학년', '3학년', '4학년'];
+  private static readonly NAMES = [
+    '민준', '서준', '도윤', '예준', '시우', '하준', '주원', '지호', '지후', '준서',
+    '서연', '서윤', '지우', '서현', '민서', '하은', '지유', '예은', '소율', '지민'
+  ];
 
   static toArticleDetails(result: ArticleQueryResult): ArticleDetails {
     const updatedAt = result.article.updatedAt || result.article.createdAt;
@@ -45,6 +52,10 @@ export class ArticleMapper {
   }
 
   private static toAuthorDetails(result: ArticleQueryResult): AuthorDetails {
+    if (result.author.id === this.AI_USER_ID) {
+      return this.generateAiAuthorDetails(result);
+    }
+
     return {
       id: result.author.id,
       name: result.article.anonymous ? result.article.anonymous : result.author.name,
@@ -65,22 +76,26 @@ export class ArticleMapper {
   }
 
   static toCommentDetails(comment: CommentResult): CommentDetails {
+    const author = comment.authorId === this.AI_USER_ID
+      ? this.generateAiCommentAuthorDetails(comment)
+      : {
+          id: comment.authorId,
+          name: comment.nickname || comment.authorName,
+          age: comment.authorAge,
+          gender: comment.authorGender,
+          universityDetails: {
+            name: comment.universityName,
+            authentication: comment.universityAuthentication,
+            department: comment.universityDepartment,
+            grade: comment.universityGrade,
+            studentNumber: comment.universityStudentNumber,
+          },
+        };
+
     return {
       id: comment.id,
       content: comment.content,
-      author: {
-        id: comment.authorId,
-        name: comment.nickname || comment.authorName,
-        age: comment.authorAge,
-        gender: comment.authorGender,
-        universityDetails: {
-          name: comment.universityName,
-          authentication: comment.universityAuthentication,
-          department: comment.universityDepartment,
-          grade: comment.universityGrade,
-          studentNumber: comment.universityStudentNumber,
-        },
-      },
+      author,
       updatedAt: comment.updatedAt || comment.createdAt,
       createdAt: comment.createdAt,
     };
@@ -88,5 +103,91 @@ export class ArticleMapper {
 
   private static getCategoryCode(_result: ArticleQueryResult): ArticleRequestType {
     return _result.categoryCode;
+  }
+
+  private static generateAiAuthorDetails(result: ArticleQueryResult): AuthorDetails {
+    const seed = this.generateSeedFromString(result.article.id);
+    const { university, department, grade, age, gender } = this.generateConsistentProfile(seed);
+
+    return {
+      id: result.author.id,
+      name: result.article.anonymous || this.generateConsistentRandomName(seed),
+      age,
+      gender,
+      universityDetails: {
+        name: university,
+        authentication: true,
+        department,
+        grade,
+        studentNumber: this.generateConsistentStudentNumber(seed),
+      },
+    };
+  }
+
+  private static generateRandomName(): string {
+    return this.NAMES[Math.floor(Math.random() * this.NAMES.length)];
+  }
+
+  private static generateRandomStudentNumber(): string {
+    const year = Math.floor(Math.random() * 6) + 19;
+    const number = Math.floor(Math.random() * 9000) + 1000;
+    return `${year}${number}`;
+  }
+
+  private static generateSeedFromString(str: string): number {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = ((hash << 5) - hash) + str.charCodeAt(i);
+      hash = hash & hash;
+    }
+    return Math.abs(hash);
+  }
+
+  private static generateConsistentRandomName(seed: number): string {
+    return this.NAMES[seed % this.NAMES.length];
+  }
+
+  private static generateConsistentStudentNumber(seed: number): string {
+    const year = 19 + (seed % 6);
+    const number = 1000 + (seed % 9000);
+    return `${year}${number}`;
+  }
+
+  private static generateConsistentProfile(seed: number) {
+    const universities = getUniversities();
+    const universityIndex = seed % universities.length;
+    const university = universities[universityIndex];
+
+    const departments = getDepartmentsByUniversity(university);
+    const departmentIndex = Math.floor(seed / universities.length) % Math.max(departments.length, 1);
+    const department = departments.length > 0 ? departments[departmentIndex] : '자율전공학부';
+
+    const gradeIndex = Math.floor(seed / (universities.length * Math.max(departments.length, 1))) % this.GRADES.length;
+    const grade = this.GRADES[gradeIndex];
+
+    const age = 19 + (seed % 4);
+    const gender = (seed % 2 === 0) ? Gender.MALE : Gender.FEMALE;
+
+    return { university, department, grade, age, gender };
+  }
+
+  private static generateAiCommentAuthorDetails(comment: CommentResult): any {
+    // 댓글 ID 기반으로 일관된 학교 정보 생성 (조회할 때마다 동일)
+    const seed = this.generateSeedFromString(comment.id);
+    const { university, department, grade, age, gender } = this.generateConsistentProfile(seed);
+
+    return {
+      id: comment.authorId,
+      name: comment.nickname || this.generateConsistentRandomName(seed),
+      age,
+      gender,
+      universityDetails: {
+        name: university,
+        authentication: true,
+        department,
+        grade,
+        studentNumber: this.generateConsistentStudentNumber(seed),
+      },
+    };
   }
 }

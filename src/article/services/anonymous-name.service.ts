@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { generateConsistentAnonymousName } from '../domain/anonymous-user-generator';
+import { generateConsistentAnonymousName, generateAnonymousName } from '../domain/anonymous-user-generator';
 
 @Injectable()
 export class AnonymousNameService {

@@ -37,24 +37,20 @@ async function bootstrap() {
   });
 
   app.enableCors({
-    origin: true,
+    origin: [
+      'http://localhost:3000',
+      'http://172.20.196.148:3000',
+      'http://localhost:3001',
+      'http://localhost:8000',  // Community Bot API 포트 추가
+      'https://project-solo-gray.vercel.app',
+      'some-in-univ.com',
+      'https://some-in-univ.com',
+      '52.78.178.66',
+      ...portOneOrigins,
+    ],
     credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
-
-  // app.enableCors({
-  //   origin: [
-  //     'http://localhost:3000',
-  //     'http://172.20.196.148:3000',
-  //     'http://localhost:3001',
-  //     'https://project-solo-gray.vercel.app',
-  //     'some-in-univ.com',
-  //     'https://some-in-univ.com',
-  //     '52.78.178.66',
-  //     ...portOneOrigins,
-  //   ],
-  //   credentials: true,
-  //   allowedHeaders: ['Content-Type', 'Authorization'],
-  // });
 
   app.useGlobalPipes(
     new ValidationPipe({
