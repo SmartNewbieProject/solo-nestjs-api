@@ -4,13 +4,10 @@ import { RolesGuard } from "../auth/guards/roles.guard";
 import { APP_GUARD } from '@nestjs/core';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AuthRepository } from '../auth/repository/auth.repository';
-import { DatabaseModule } from '../database/database.module';
 
 @Global()
 @Module({
   imports: [
-    DatabaseModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -21,7 +18,6 @@ import { DatabaseModule } from '../database/database.module';
   ],
   controllers: [],
   providers: [
-    AuthRepository,
     {
       provide: APP_GUARD,
       useClass: JwtAuthGuard,

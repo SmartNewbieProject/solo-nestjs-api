@@ -15,12 +15,11 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly reflector: Reflector,
-    private readonly authRepository: AuthRepository,
   ) {
     super();
   }
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
+  canActivate(context: ExecutionContext) {
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -36,12 +35,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
             secret: this.configService.get<string>('JWT_SECRET'),
             ignoreExpiration: false,
           });
-
-          // Public 라우트에서도 사용자 상태 확인
-          const user = await this.authRepository.findUserById(payload.id);
-          if (user) {
-            request.user = payload;
-          }
+          request.user = payload;
         } catch (error) {
           this.logger.debug('Token verification failed for public route:', error);
         }
@@ -76,9 +70,6 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       request.user = payload;
       return true;
     } catch (error) {
-      if (error instanceof UnauthorizedException) {
-        throw error;
-      }
       this.logger.error('Token verification failed:', error);
       throw new UnauthorizedException('유효하지 않은 토큰입니다.');
     }
