@@ -3,9 +3,11 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
 import { LoginRequest, TokenResponse } from '../dto';
+import { PassLoginRequest, PassLoginResponse } from '../dto/pass-login.dto';
 import { Role } from '../domain/user-role.enum';
 import { AuthRepository } from '../repository/auth.repository';
 import { Gender } from '@/types/enum';
+import { IamportService } from './iamport.service';
 
 interface JwtPayload {
   email: string;
@@ -22,6 +24,7 @@ export class AuthService {
     private readonly authRepository: AuthRepository,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly iamportService: IamportService,
   ) { }
 
   async login(loginRequest: LoginRequest): Promise<TokenResponse> {
@@ -46,6 +49,57 @@ export class AuthService {
     await this.authRepository.saveRefreshToken(user.id, tokens.refreshToken);
 
     return { ...tokens, role: user.role };
+  }
+
+  async passLogin(passLoginRequest: PassLoginRequest): Promise<PassLoginResponse> {
+    const { impUid } = passLoginRequest;
+
+    // PortOne V2에서 본인인증 정보 조회
+    const certification = await this.iamportService.getCertification(impUid);
+
+    // 전화번호로 기존 사용자 찾기
+    const existingUser = await this.authRepository.findUserByPhoneNumber(certification.phone);
+
+    if (existingUser) {
+      // 기존 사용자 로그인
+      const genderResult = await this.authRepository.findGenderByUserId(existingUser.id);
+
+      if (!genderResult) {
+        throw new BadGatewayException("성별정보가 없습니다.");
+      }
+
+      const tokens = await this.generateTokens(
+        existingUser.id,
+        existingUser.email,
+        existingUser.name,
+        existingUser.role,
+        genderResult.gender
+      );
+
+      await this.authRepository.saveRefreshToken(existingUser.id, tokens.refreshToken);
+
+      return {
+        ...tokens,
+        role: existingUser.role,
+        isNewUser: false,
+      };
+    } else {
+      // 신규 사용자 - 회원가입 필요
+      return {
+        accessToken: '',
+        refreshToken: '',
+        tokenType: 'Bearer',
+        expiresIn: 0,
+        role: '',
+        isNewUser: true,
+        certificationInfo: {
+          name: certification.name,
+          phone: certification.phone,
+          gender: certification.gender === 'MALE' ? 'MALE' : 'FEMALE',
+          birthday: certification.birthday,
+        },
+      };
+    }
   }
 
   async withdraw(userId: string, password: string) {
