@@ -394,7 +394,7 @@ export class SlackService {
 
     // 슬랙 메시지 전송
     await this.slack.chat.postMessage({
-      channel: '썸타임-운영알림',
+      channel: '썸타임-회원가입-알림',
       blocks,
       text: `${signupData.name}님이 회원가입했습니다.`, // 알림이 꺼져있을 때 보이는 텍스트
       username: '썸타임 봇',
