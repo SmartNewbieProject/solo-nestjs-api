@@ -38,8 +38,9 @@ async function bootstrap() {
 
   app.enableCors({
     origin: [
+      'http://10.0.2.2:3000',
       'http://localhost:3000',
-      'http://172.20.196.148:3000',
+      'http://192.168.1.100:3000',
       'http://localhost:3001',
       'http://localhost:8000',  // Community Bot API 포트 추가
       'https://project-solo-gray.vercel.app',
