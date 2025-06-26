@@ -56,9 +56,10 @@ export class AuthService {
 
     // PortOne V2에서 본인인증 정보 조회
     const certification = await this.iamportService.getCertification(impUid);
+    const formattedPhoneNumber = this.formatPhoneNumber(certification.phone);
 
     // 전화번호로 기존 사용자 찾기
-    const existingUser = await this.authRepository.findUserByPhoneNumber(certification.phone);
+    const existingUser = await this.authRepository.findUserByPhoneNumber(formattedPhoneNumber);
 
     if (existingUser) {
       // 기존 사용자 로그인
@@ -94,7 +95,7 @@ export class AuthService {
         isNewUser: true,
         certificationInfo: {
           name: certification.name,
-          phone: certification.phone,
+          phone: formattedPhoneNumber,
           gender: certification.gender === 'MALE' ? 'MALE' : 'FEMALE',
           birthday: certification.birthday,
         },
@@ -183,6 +184,24 @@ export class AuthService {
 
   private async verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
     return bcrypt.compare(plainPassword, hashedPassword);
+  }
+
+  /**
+   * 전화번호를 기존 형식(010-XXXX-XXXX)으로 변환합니다.
+   * @param phoneNumber 하이픈이 없는 전화번호 (예: 01077241084)
+   * @returns 하이픈이 포함된 전화번호 (예: 010-7724-1084)
+   */
+  private formatPhoneNumber(phoneNumber: string): string {
+    // 하이픈 제거 후 숫자만 추출
+    const cleanNumber = phoneNumber.replace(/[^0-9]/g, '');
+
+    // 010으로 시작하는 11자리 전화번호인지 확인
+    if (cleanNumber.length === 11 && cleanNumber.startsWith('010')) {
+      return `${cleanNumber.slice(0, 3)}-${cleanNumber.slice(3, 7)}-${cleanNumber.slice(7)}`;
+    }
+
+    // 형식이 맞지 않으면 원본 반환
+    return phoneNumber;
   }
 
   private async generateTokens(userId: string, email: string, name: string, role: Role, gender: Gender): Promise<TokenResponse> {
