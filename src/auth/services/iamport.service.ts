@@ -43,7 +43,7 @@ export class IamportService {
 
   constructor(private readonly configService: ConfigService) {
     this.impKey = this.configService.get<string>('PORTONE_REST_API_KEY') || '';
-    this.impSecret = this.configService.get<string>('PORTONE_SECRET_KEY') || '';
+    this.impSecret = this.configService.get<string>('PORTONE_V2_SECRET_KEY') || '';
 
     this.httpClient = axios.create({
       baseURL: 'https://api.portone.io',
