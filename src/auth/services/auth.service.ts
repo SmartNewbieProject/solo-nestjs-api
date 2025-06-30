@@ -1,4 +1,9 @@
-import { BadGatewayException, Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  BadGatewayException,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcryptjs';
@@ -25,33 +30,45 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly iamportService: IamportService,
-  ) { }
+  ) {}
 
   async login(loginRequest: LoginRequest): Promise<TokenResponse> {
     const { email, password } = loginRequest;
 
     const user = await this.authRepository.findUserByEmail(email);
     if (!user) {
-      throw new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다.');
+      throw new UnauthorizedException(
+        '이메일 또는 비밀번호가 올바르지 않습니다.',
+      );
     }
     const genderResult = await this.authRepository.findGenderByUserId(user.id);
 
-    if (!genderResult) {  
-      throw new BadGatewayException("성별정보가 없습니다.");
+    if (!genderResult) {
+      throw new BadGatewayException('성별정보가 없습니다.');
     }
 
     const isPasswordValid = await this.verifyPassword(password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('이메일 또는 비밀번호가 올바르지 않습니다.');
+      throw new UnauthorizedException(
+        '이메일 또는 비밀번호가 올바르지 않습니다.',
+      );
     }
 
-    const tokens = await this.generateTokens(user.id, user.email, user.name, user.role, genderResult.gender);
+    const tokens = await this.generateTokens(
+      user.id,
+      user.email,
+      user.name,
+      user.role,
+      genderResult.gender,
+    );
     await this.authRepository.saveRefreshToken(user.id, tokens.refreshToken);
 
     return { ...tokens, role: user.role };
   }
 
-  async passLogin(passLoginRequest: PassLoginRequest): Promise<PassLoginResponse> {
+  async passLogin(
+    passLoginRequest: PassLoginRequest,
+  ): Promise<PassLoginResponse> {
     const { impUid } = passLoginRequest;
 
     // PortOne V2에서 본인인증 정보 조회
@@ -59,14 +76,17 @@ export class AuthService {
     const formattedPhoneNumber = this.formatPhoneNumber(certification.phone);
 
     // 전화번호로 기존 사용자 찾기
-    const existingUser = await this.authRepository.findUserByPhoneNumber(formattedPhoneNumber);
+    const existingUser =
+      await this.authRepository.findUserByPhoneNumber(formattedPhoneNumber);
 
     if (existingUser) {
       // 기존 사용자 로그인
-      const genderResult = await this.authRepository.findGenderByUserId(existingUser.id);
+      const genderResult = await this.authRepository.findGenderByUserId(
+        existingUser.id,
+      );
 
       if (!genderResult) {
-        throw new BadGatewayException("성별정보가 없습니다.");
+        throw new BadGatewayException('성별정보가 없습니다.');
       }
 
       const tokens = await this.generateTokens(
@@ -74,10 +94,13 @@ export class AuthService {
         existingUser.email,
         existingUser.name,
         existingUser.role,
-        genderResult.gender
+        genderResult.gender,
       );
 
-      await this.authRepository.saveRefreshToken(existingUser.id, tokens.refreshToken);
+      await this.authRepository.saveRefreshToken(
+        existingUser.id,
+        tokens.refreshToken,
+      );
 
       return {
         ...tokens,
@@ -120,7 +143,9 @@ export class AuthService {
   async refreshToken(refreshToken: string): Promise<TokenResponse> {
     try {
       this.logger.log(`리프레시 토큰 검증, 토큰 길이: ${refreshToken?.length}`);
-      this.logger.log(`JWT_SECRET: ${this.configService.get<string>('JWT_SECRET')?.substring(0, 3)}...`);
+      this.logger.log(
+        `JWT_SECRET: ${this.configService.get<string>('JWT_SECRET')?.substring(0, 3)}...`,
+      );
 
       // 토큰 디코딩 시도 (검증 없이)
       try {
@@ -130,15 +155,21 @@ export class AuthService {
         this.logger.error(`토큰 디코딩 실패: ${decodeError.message}`);
       }
 
-      const payload = await this.jwtService.verifyAsync<JwtPayload>(refreshToken, {
-        secret: this.configService.get<string>('JWT_SECRET'),
-      });
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(
+        refreshToken,
+        {
+          secret: this.configService.get<string>('JWT_SECRET'),
+        },
+      );
 
       this.logger.log(`토큰 검증 성공, payload: ${JSON.stringify(payload)}`);
 
-      const storedToken = await this.authRepository.findRefreshToken(payload.id, refreshToken);
+      const storedToken = await this.authRepository.findRefreshToken(
+        payload.id,
+        refreshToken,
+      );
       if (!storedToken) {
-        this.logger.log("저장된 리프레시토큰이 없음");
+        this.logger.log('저장된 리프레시토큰이 없음');
         throw new UnauthorizedException('유효하지 않은 리프레시 토큰입니다.');
       }
 
@@ -147,18 +178,30 @@ export class AuthService {
         throw new UnauthorizedException('사용자를 찾을 수 없습니다.');
       }
 
-      const genderResult = await this.authRepository.findGenderByUserId(user.id);
+      const genderResult = await this.authRepository.findGenderByUserId(
+        user.id,
+      );
 
       if (!genderResult) {
-        throw new BadGatewayException("성별정보가 없습니다.");
+        throw new BadGatewayException('성별정보가 없습니다.');
       }
 
-      const tokens = await this.generateTokens(user.id, user.email, user.name, user.role, genderResult.gender);
-      await this.authRepository.updateRefreshToken(user.id, refreshToken, tokens.refreshToken);
+      const tokens = await this.generateTokens(
+        user.id,
+        user.email,
+        user.name,
+        user.role,
+        genderResult.gender,
+      );
+      await this.authRepository.updateRefreshToken(
+        user.id,
+        refreshToken,
+        tokens.refreshToken,
+      );
 
       return tokens;
     } catch (error) {
-      this.logger.error("리프레시 토큰 검증 실패");
+      this.logger.error('리프레시 토큰 검증 실패');
       this.logger.error(`오류 타입: ${error.name}, 메시지: ${error.message}`);
       this.logger.error(`오류 상세: ${JSON.stringify(error)}`);
 
@@ -182,7 +225,10 @@ export class AuthService {
     await this.authRepository.removeRefreshToken(userId, refreshToken);
   }
 
-  private async verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
+  private async verifyPassword(
+    plainPassword: string,
+    hashedPassword: string,
+  ): Promise<boolean> {
     return bcrypt.compare(plainPassword, hashedPassword);
   }
 
@@ -204,8 +250,16 @@ export class AuthService {
     return phoneNumber;
   }
 
-  private async generateTokens(userId: string, email: string, name: string, role: Role, gender: Gender): Promise<TokenResponse> {
-    this.logger.log(`토큰 생성 시작 - userId: ${userId}, email: ${email}, name: ${name}, role: ${role}, gender: ${gender}`);
+  private async generateTokens(
+    userId: string,
+    email: string,
+    name: string,
+    role: Role,
+    gender: Gender,
+  ): Promise<TokenResponse> {
+    this.logger.log(
+      `토큰 생성 시작 - userId: ${userId}, email: ${email}, name: ${name}, role: ${role}, gender: ${gender}`,
+    );
 
     const accessToken = await this.jwtService.signAsync(
       { id: userId, email, name, role, gender },
@@ -225,8 +279,9 @@ export class AuthService {
 
     try {
       const decoded = this.jwtService.decode(refreshToken);
-      this.logger.log(`생성된 리프레시 토큰 디코딩: ${JSON.stringify(decoded)}`);
-
+      this.logger.log(
+        `생성된 리프레시 토큰 디코딩: ${JSON.stringify(decoded)}`,
+      );
     } catch (error) {
       this.logger.error(`생성된 토큰 디코딩 실패: ${error.message}`);
     }
