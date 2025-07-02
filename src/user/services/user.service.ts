@@ -13,6 +13,11 @@ export default class UserService {
 
   async updatePassword(userId: string, data: PasswordUpdated) {
     const user = await this.userRepository.getUser(userId);
+
+    if (!user.password) {
+      throw new BadRequestException('Pass 인증 사용자는 비밀번호 변경이 불가능합니다.');
+    }
+
     const isPasswordCorrect = await bcrypt.compare(data.oldPassword, user.password);
     if (!isPasswordCorrect) {
       throw new BadRequestException('비밀번호가 일치하지 않습니다.');
@@ -54,7 +59,7 @@ export default class UserService {
     return {
       id: userRaw.id,
       age: profile.age,
-      email: userRaw.email,
+      email: userRaw.email || '',
       gender: profile.gender,
       name: userRaw.name,
       phoneNumber: userRaw.phoneNumber,

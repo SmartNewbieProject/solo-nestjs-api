@@ -47,7 +47,7 @@ export class AuthService {
       throw new BadGatewayException('성별정보가 없습니다.');
     }
 
-    const isPasswordValid = await this.verifyPassword(password, user.password);
+    const isPasswordValid = await this.verifyPassword(password, user.password!);
     if (!isPasswordValid) {
       throw new UnauthorizedException(
         '이메일 또는 비밀번호가 올바르지 않습니다.',
@@ -56,7 +56,7 @@ export class AuthService {
 
     const tokens = await this.generateTokens(
       user.id,
-      user.email,
+      user.email || '',
       user.name,
       user.role,
       genderResult.gender,
@@ -91,7 +91,7 @@ export class AuthService {
 
       const tokens = await this.generateTokens(
         existingUser.id,
-        existingUser.email,
+        existingUser.email || '',
         existingUser.name,
         existingUser.role,
         genderResult.gender,
@@ -132,7 +132,7 @@ export class AuthService {
       throw new UnauthorizedException('사용자를 찾을 수 없습니다.');
     }
 
-    const isPasswordValid = await this.verifyPassword(password, user.password);
+    const isPasswordValid = await this.verifyPassword(password, user.password!);
     if (!isPasswordValid) {
       throw new UnauthorizedException('비밀번호가 올바르지 않습니다.');
     }
@@ -188,7 +188,7 @@ export class AuthService {
 
       const tokens = await this.generateTokens(
         user.id,
-        user.email,
+        user.email || '',
         user.name,
         user.role,
         genderResult.gender,
