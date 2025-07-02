@@ -38,11 +38,11 @@ export default class UserService {
     const universityDetails = profile.universityDetail;
 
     const university: UniversityDetail = {
-      name: universityDetails?.universityName ?? '',
+      name: universityDetails?.universityName ?? null,
       authentication: universityDetails?.authentication ?? false,
-      department: universityDetails?.department ?? '',
-      grade: universityDetails?.grade ?? '',
-      studentNumber: universityDetails?.studentNumber ?? '',
+      department: universityDetails?.department ?? null,
+      grade: universityDetails?.grade ?? null,
+      studentNumber: universityDetails?.studentNumber ?? null,
     };
 
     const profileImages = Array.isArray(profile.profileImages)
@@ -54,12 +54,12 @@ export default class UserService {
       }))
       : [];
 
-    const instagramId = profile.instagramId ?? '';
+    const instagramId = profile.instagramId ?? null;
 
     return {
       id: userRaw.id,
       age: profile.age,
-      email: userRaw.email || '',
+      email: userRaw.email ?? null,
       gender: profile.gender,
       name: userRaw.name,
       phoneNumber: userRaw.phoneNumber,
