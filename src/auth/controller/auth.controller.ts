@@ -71,8 +71,7 @@ export class AuthController {
   ): Promise<PassLoginResponse> {
     const result = await this.authService.passLogin(passLoginRequest);
 
-    // 기존 사용자인 경우에만 리프레시 토큰 쿠키 설정
-    if (!result.isNewUser && result.refreshToken) {
+    if (result.refreshToken) {
       this.setRefreshTokenCookie(response, result.refreshToken);
     }
 

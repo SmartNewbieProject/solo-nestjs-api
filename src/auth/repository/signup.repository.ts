@@ -48,14 +48,12 @@ export class SignupRepository {
       const userId = generateUuidV7();
       const preferenceId = generateUuidV7();
 
-      const { email, password, name, age, gender, profileImages, phoneNumber, instagramId } = createUserDto;
+      const { name, phoneNumber, gender, age, instagramId } = createUserDto;
 
       const [user] = await tx.insert(users)
         .values({
           id: userId,
-          email,
           phoneNumber,
-          password,
           name,
           profileId,
           role: Role.USER,
@@ -73,13 +71,7 @@ export class SignupRepository {
         })
         .returning();
 
-      if (createUserDto.mbti) {
-        await tx.update(profiles)
-        .set({
-          mbti: createUserDto.mbti,
-        })
-        .where(eq(profiles.userId, user.id));
-      }
+
 
       await tx.insert(schema.userPreferences)
         .values({

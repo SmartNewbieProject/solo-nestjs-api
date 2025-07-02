@@ -47,7 +47,7 @@ export class AuthService {
       throw new BadGatewayException('성별정보가 없습니다.');
     }
 
-    const isPasswordValid = await this.verifyPassword(password, user.password);
+    const isPasswordValid = await this.verifyPassword(password, user.password!);
     if (!isPasswordValid) {
       throw new UnauthorizedException(
         '이메일 또는 비밀번호가 올바르지 않습니다.',
@@ -56,7 +56,7 @@ export class AuthService {
 
     const tokens = await this.generateTokens(
       user.id,
-      user.email,
+      user.email || '',
       user.name,
       user.role,
       genderResult.gender,
@@ -71,50 +71,19 @@ export class AuthService {
   ): Promise<PassLoginResponse> {
     const { impUid } = passLoginRequest;
 
-    // PortOne V2에서 본인인증 정보 조회
     const certification = await this.iamportService.getCertification(impUid);
     const formattedPhoneNumber = this.formatPhoneNumber(certification.phone);
 
-    // 전화번호로 기존 사용자 찾기
     const existingUser =
       await this.authRepository.findUserByPhoneNumber(formattedPhoneNumber);
 
-    if (existingUser) {
-      // 기존 사용자 로그인
-      const genderResult = await this.authRepository.findGenderByUserId(
-        existingUser.id,
-      );
-
-      if (!genderResult) {
-        throw new BadGatewayException('성별정보가 없습니다.');
-      }
-
-      const tokens = await this.generateTokens(
-        existingUser.id,
-        existingUser.email,
-        existingUser.name,
-        existingUser.role,
-        genderResult.gender,
-      );
-
-      await this.authRepository.saveRefreshToken(
-        existingUser.id,
-        tokens.refreshToken,
-      );
-
+    if (!existingUser) {
       return {
-        ...tokens,
-        role: existingUser.role,
-        isNewUser: false,
-      };
-    } else {
-      // 신규 사용자 - 회원가입 필요
-      return {
-        accessToken: '',
-        refreshToken: '',
-        tokenType: 'Bearer',
-        expiresIn: 0,
-        role: '',
+        accessToken: null,
+        refreshToken: null,
+        tokenType: null,
+        expiresIn: null,
+        role: null,
         isNewUser: true,
         certificationInfo: {
           name: certification.name,
@@ -124,6 +93,33 @@ export class AuthService {
         },
       };
     }
+
+    const genderResult = await this.authRepository.findGenderByUserId(
+      existingUser.id,
+    );
+
+    if (!genderResult) {
+      throw new BadGatewayException('성별정보가 없습니다.');
+    }
+
+    const tokens = await this.generateTokens(
+      existingUser.id,
+      existingUser.email || '',
+      existingUser.name,
+      existingUser.role,
+      genderResult.gender,
+    );
+
+    await this.authRepository.saveRefreshToken(
+      existingUser.id,
+      tokens.refreshToken,
+    );
+
+    return {
+      ...tokens,
+      role: existingUser.role,
+      isNewUser: false,
+    };
   }
 
   async withdraw(userId: string, password: string) {
@@ -132,7 +128,7 @@ export class AuthService {
       throw new UnauthorizedException('사용자를 찾을 수 없습니다.');
     }
 
-    const isPasswordValid = await this.verifyPassword(password, user.password);
+    const isPasswordValid = await this.verifyPassword(password, user.password!);
     if (!isPasswordValid) {
       throw new UnauthorizedException('비밀번호가 올바르지 않습니다.');
     }
@@ -188,7 +184,7 @@ export class AuthService {
 
       const tokens = await this.generateTokens(
         user.id,
-        user.email,
+        user.email || '',
         user.name,
         user.role,
         genderResult.gender,

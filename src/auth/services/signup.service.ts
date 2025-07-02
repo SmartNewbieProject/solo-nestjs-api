@@ -1,6 +1,5 @@
-import { Injectable, ConflictException, NotFoundException, BadGatewayException, Logger, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadGatewayException, Logger, BadRequestException } from '@nestjs/common';
 import { SignupRepository } from '@auth/repository/signup.repository';
-import * as bcrypt from 'bcryptjs';
 import { SignupRequest } from '@/auth/dto';
 import UniversityRepository from '../repository/university.repository';
 import { S3Service } from '@/common/services/s3.service';
@@ -12,7 +11,6 @@ import { dayUtils } from '@/common/helper';
 import * as dayjs from 'dayjs';
 import axios from 'axios';
 import { SlackService } from '@/slack-notification/slack.service';
-import { MailService } from '@/common/services/mail.service';
 
 @Injectable()
 export class SignupService {
@@ -25,40 +23,22 @@ export class SignupService {
     private readonly imageService: ImageService,
     private readonly smsService: SmsService,
     private readonly slackService: SlackService,
-    private readonly mailService: MailService,
   ) { }
 
-  checkEmail(email: string) {
-    return this.signupRepository.checkEmailExists(email);
-  }
 
   async signup(signupRequest: SignupRequest) {
-    const { email, name, phoneNumber } = signupRequest;
-    await this.checkVerifySms(phoneNumber);
-    const existingUser = await this.checkEmail(email);
-    if (existingUser) {
-      throw new ConflictException('이미 등록된 이메일입니다.');
-    }
     const user = await this.createUser(signupRequest);
-    await this.mailService.sendWelcomeEmail(email, name);
     await this.slackService.sendSignupNotification(signupRequest);
 
     return {
       id: user.id,
-      email: user.email,
-      name,
+      name: signupRequest.name,
+      phoneNumber: signupRequest.phoneNumber,
       createdAt: user.createdAt,
     };
   }
 
-  async sendPreWelcomeEmail(email: string, name: string, request: SignupRequest) {
-    try {
-      await this.mailService.sendPreSignupEmail(email, name, request);
-      this.logger.log(`Pre-signup email sent to ${email}`);
-    } catch (error) {
-      this.logger.error(`Failed to send pre-signup email to ${email}`, error);
-    }
-  }
+
 
   async sendVerificationcCode(phoneNumber: string) {
     const isBlacklisted = await this.signupRepository.isPhoneNumberBlacklisted(phoneNumber);
@@ -156,19 +136,10 @@ export class SignupService {
     }
   }
 
-  private async hashPassword(password: string): Promise<string> {
-    const saltRounds = 10;
-    return bcrypt.hash(password, saltRounds);
-  }
-
   private async createUser(signup: SignupRequest) {
     const { profileImages } = signup;
-    const password = await this.hashPassword(signup.password);
 
-    const user = await this.signupRepository.createUser({
-      ...signup,
-      password,
-    });
+    const user = await this.signupRepository.createUser(signup);
     const university = await this.universityRepository.registerUniversity(user.id, {
       universityName: signup.universityName,
       department: signup.departmentName,
@@ -195,11 +166,5 @@ export class SignupService {
     return user;
   }
 
-  private async checkVerifySms(phoneNumber: string) {
-    const exists = await this.signupRepository.existsVerifiedSms(phoneNumber);
-    this.logger.debug(exists);
-    if (!exists) {
-      throw new BadGatewayException("휴대폰 인증을 수행해주세요.");
-    }
-  }
+
 }
