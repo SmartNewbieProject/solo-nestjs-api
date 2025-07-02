@@ -15,32 +15,37 @@ export class PassLoginResponse {
   @ApiProperty({
     description: '액세스 토큰',
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    nullable: true,
   })
-  accessToken: string;
+  accessToken: string | null;
 
   @ApiProperty({
     description: '리프레시 토큰',
     example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...',
+    nullable: true,
   })
-  refreshToken: string;
+  refreshToken: string | null;
 
   @ApiProperty({
     description: '토큰 타입',
     example: 'Bearer',
+    nullable: true,
   })
-  tokenType: string;
+  tokenType: string | null;
 
   @ApiProperty({
     description: '토큰 만료 시간 (초)',
     example: 3600,
+    nullable: true,
   })
-  expiresIn: number;
+  expiresIn: number | null;
 
   @ApiProperty({
     description: '사용자 역할',
     example: 'user',
+    nullable: true,
   })
-  role: string;
+  role: string | null;
 
   @ApiProperty({
     description: '신규 사용자 여부',
