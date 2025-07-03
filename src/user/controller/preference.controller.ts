@@ -44,17 +44,7 @@ export class PreferenceController {
     @CurrentUser() user: AuthenticationUser,
     @Body() data: PreferenceSave,
   ) {
-    const updatedProfile = await this.profileService.updatePreferences(
-      user.id,
-      data,
-    );
-
-    this.eventEmitter.emit(
-      'profile.updated',
-      new ProfileUpdatedEvent(user.id, updatedProfile),
-    );
-
-    return updatedProfile;
+    return await this.profileService.updatePreferences(user.id, data);
   }
 
   @Get('self')
