@@ -1,29 +1,38 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { InjectDrizzle } from "@common/decorators";
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
-import * as schema from "@database/schema";
-import { eq, and, isNull } from "drizzle-orm";
-import { PreferenceSave } from "../dto/profile.dto";
-import { generateUuidV7 } from "@database/schema/helper";
-import { ProfileRawDetails, ProfileSummary } from "@/types/user";
-import { UserRank } from "@/database/schema/profiles";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { InjectDrizzle } from '@common/decorators';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import * as schema from '@database/schema';
+import { and, eq, ExtractTablesWithRelations, isNull } from 'drizzle-orm';
+import { PreferenceSave, SelfPreferenceSave } from '../dto/profile.dto';
+import { generateUuidV7 } from '@database/schema/helper';
+import { ProfileRawDetails, ProfileSummary } from '@/types/user';
+import { UserRank } from '@/database/schema/profiles';
+import { PreferenceTarget } from '@/database/schema/enums';
+import { PgQueryResultHKT, PgTransaction } from 'drizzle-orm/pg-core';
+
+type Transaction = PgTransaction<
+  PgQueryResultHKT,
+  typeof schema,
+  ExtractTablesWithRelations<typeof schema>
+>;
 
 @Injectable()
 export default class ProfileRepository {
   constructor(
     @InjectDrizzle()
     private readonly db: NodePgDatabase<typeof schema>,
-  ) { }
+  ) {}
 
   async getProfileSummary(userId: string): Promise<ProfileSummary> {
-    const result = await this.db.select({
-      id: schema.profiles.id,
-      name: schema.profiles.name,
-      age: schema.profiles.age,
-      gender: schema.profiles.gender,
-      title: schema.profiles.title,
-      introduction: schema.profiles.introduction,
-    })
+    const result = await this.db
+      .select({
+        id: schema.profiles.id,
+        name: schema.profiles.name,
+        age: schema.profiles.age,
+        gender: schema.profiles.gender,
+        title: schema.profiles.title,
+        introduction: schema.profiles.introduction,
+      })
       .from(schema.profiles)
       .where(eq(schema.profiles.userId, userId))
       .execute();
@@ -43,33 +52,31 @@ export default class ProfileRepository {
   }
 
   async getProfileDetails(userId: string): Promise<ProfileRawDetails | null> {
-    const profileResults = await this.db.select()
+    const profileResults = await this.db
+      .select()
       .from(schema.profiles)
-      .leftJoin(schema.universityDetails, eq(schema.universityDetails.userId, userId))
+      .leftJoin(
+        schema.universityDetails,
+        eq(schema.universityDetails.userId, userId),
+      )
       .where(eq(schema.profiles.userId, userId))
       .execute();
 
     if (profileResults.length === 0) return null;
 
     const union = profileResults[0];
-    const profileImages = await this.db.select()
+    const profileImages = await this.db
+      .select()
       .from(schema.profileImages)
-      .where(and(eq(schema.profileImages.profileId, union.profiles.id), isNull(schema.profileImages.deletedAt)))
-      .innerJoin(schema.images, eq(schema.profileImages.imageId, schema.images.id))
-      .execute();
-
-    const mbtiResults = await this.db.select({
-      mbti: schema.preferenceOptions.displayName,
-    })
-      .from(schema.userPreferences)
-      .leftJoin(schema.userPreferenceOptions, eq(schema.userPreferenceOptions.userPreferenceId, schema.userPreferences.id))
-      .leftJoin(schema.preferenceOptions, eq(schema.userPreferenceOptions.preferenceOptionId, schema.preferenceOptions.id))
-      .leftJoin(schema.preferenceTypes, eq(schema.preferenceOptions.preferenceTypeId, schema.preferenceTypes.id))
       .where(
         and(
-          eq(schema.preferenceTypes.name, 'MBTI 유형'),
-          eq(schema.userPreferences.userId, userId)
+          eq(schema.profileImages.profileId, union.profiles.id),
+          isNull(schema.profileImages.deletedAt),
         ),
+      )
+      .innerJoin(
+        schema.images,
+        eq(schema.profileImages.imageId, schema.images.id),
       )
       .execute();
 
@@ -77,76 +84,104 @@ export default class ProfileRepository {
       ...union.profiles,
       mbti: union.profiles.mbti,
       rank: union.profiles.rank as UserRank,
-      universityDetail: union.university_details ? {
-        name: union.university_details.universityName,
-        authentication: union.university_details.authentication,
-        department: union.university_details.department,
-        grade: union.university_details.grade,
-        studentNumber: union.university_details.studentNumber,
-      } : null,
-      profileImages: profileImages.map(({ images: { s3Url }, profile_images: { imageOrder, isMain, id } }) => ({
-        id,
-        order: imageOrder,
-        isMain,
-        url: s3Url,
-      }))
+      universityDetail: union.university_details
+        ? {
+            name: union.university_details.universityName,
+            authentication: union.university_details.authentication,
+            department: union.university_details.department,
+            grade: union.university_details.grade,
+            studentNumber: union.university_details.studentNumber,
+          }
+        : null,
+      profileImages: profileImages.map(
+        ({
+          images: { s3Url },
+          profile_images: { imageOrder, isMain, id },
+        }) => ({
+          id,
+          order: imageOrder,
+          isMain,
+          url: s3Url,
+        }),
+      ),
     };
   }
 
   async getPreferenceTypeByName(typeName: string) {
-    return await this.db.query.preferenceTypes.findFirst({
-      where: eq(schema.preferenceTypes.name, typeName)
+    return this.db.query.preferenceTypes.findFirst({
+      where: eq(schema.preferenceTypes.name, typeName),
     });
   }
 
   async getUserPreferenceOptions(userId: string) {
     return await this.db.transaction(async (tx) => {
       const userPreference = await tx.query.userPreferences.findFirst({
-        where: eq(schema.userPreferences.userId, userId)
+        where: eq(schema.userPreferences.userId, userId),
       });
 
       if (!userPreference) {
         throw new NotFoundException('사용자 선호도 정보를 찾을 수 없습니다.');
       }
 
-      const userPreferenceOptions = await tx.select({
-        optionId: schema.userPreferenceOptions.preferenceOptionId,
-        optionDisplayName: schema.preferenceOptions.displayName,
-        typeName: schema.preferenceTypes.name,
-      })
+      return tx
+        .select({
+          optionId: schema.userPreferenceOptions.preferenceOptionId,
+          optionDisplayName: schema.preferenceOptions.displayName,
+          typeName: schema.preferenceTypes.name,
+        })
         .from(schema.userPreferenceOptions)
         .innerJoin(
           schema.preferenceOptions,
-          eq(schema.userPreferenceOptions.preferenceOptionId, schema.preferenceOptions.id)
+          eq(
+            schema.userPreferenceOptions.preferenceOptionId,
+            schema.preferenceOptions.id,
+          ),
         )
         .innerJoin(
           schema.preferenceTypes,
-          eq(schema.preferenceOptions.preferenceTypeId, schema.preferenceTypes.id)
+          eq(
+            schema.preferenceOptions.preferenceTypeId,
+            schema.preferenceTypes.id,
+          ),
         )
-        .where(eq(schema.userPreferenceOptions.userPreferenceId, userPreference.id));
-
-      return userPreferenceOptions;
+        .where(
+          and(
+            eq(
+              schema.userPreferenceOptions.userPreferenceId,
+              userPreference.id,
+            ),
+            eq(
+              schema.userPreferenceOptions.preferenceTarget,
+              PreferenceTarget.SELF,
+            ),
+          ),
+        );
     });
   }
 
-  async updateInstagramId(userId: string, instagramId: string) {
-    return await this.db.update(schema.profiles)
+  updateInstagramId(userId: string, instagramId: string) {
+    return this.db
+      .update(schema.profiles)
       .set({ instagramId })
       .where(eq(schema.profiles.userId, userId));
   }
 
-  async getAllPreferences() {
-    return await this.db.select({
-      typeName: schema.preferenceTypes.name,
-      multiple: schema.preferenceTypes.multiSelect,
-      maximumChoiceCount: schema.preferenceTypes.maximumChoiceCount,
-      optionId: schema.preferenceOptions.id,
-      optionDisplayName: schema.preferenceOptions.displayName,
-    })
+  getAllPreferences() {
+    return this.db
+      .select({
+        typeName: schema.preferenceTypes.name,
+        multiple: schema.preferenceTypes.multiSelect,
+        maximumChoiceCount: schema.preferenceTypes.maximumChoiceCount,
+        optionId: schema.preferenceOptions.id,
+        optionDisplayName: schema.preferenceOptions.displayName,
+      })
       .from(schema.preferenceOptions)
       .innerJoin(
         schema.preferenceTypes,
-        eq(schema.preferenceOptions.preferenceTypeId, schema.preferenceTypes.id)
+        eq(
+          schema.preferenceOptions.preferenceTypeId,
+          schema.preferenceTypes.id,
+        ),
       )
       .orderBy(schema.preferenceTypes.code);
   }
@@ -161,9 +196,9 @@ export default class ProfileRepository {
     });
   }
 
-  async getUserPreferenceId(tx: any, userId: string): Promise<string> {
+  async getUserPreferenceId(tx: Transaction, userId: string): Promise<string> {
     const userPreference = await tx.query.userPreferences.findFirst({
-      where: eq(schema.userPreferences.userId, userId)
+      where: eq(schema.userPreferences.userId, userId),
     });
 
     if (!userPreference) {
@@ -173,106 +208,243 @@ export default class ProfileRepository {
     return userPreference.id;
   }
 
-  async updateNickname(userId: string, nickname: string) {
-    return await this.db.update(schema.profiles)
+  updateNickname(userId: string, nickname: string) {
+    return this.db
+      .update(schema.profiles)
       .set({ name: nickname })
       .where(eq(schema.profiles.userId, userId));
   }
 
-  private async deleteExistingOptions(tx: any, userPreferenceId: string): Promise<void> {
-    await tx.delete(schema.userPreferenceOptions)
-      .where(eq(schema.userPreferenceOptions.userPreferenceId, userPreferenceId));
+  private async deleteExistingOptions(
+    tx: Transaction,
+    userPreferenceId: string,
+  ): Promise<void> {
+    await tx
+      .delete(schema.userPreferenceOptions)
+      .where(
+        eq(schema.userPreferenceOptions.userPreferenceId, userPreferenceId),
+      );
   }
 
-  private async insertPreferenceOptions(tx: any, userPreferenceId: string, data: PreferenceSave['data']): Promise<void> {
+  private async insertPreferenceOptions(
+    tx: Transaction,
+    userPreferenceId: string,
+    data: PreferenceSave['data'],
+  ): Promise<void> {
     const preferencePromises = data.map(async (preference) => {
       const preferenceType = await tx.query.preferenceTypes.findFirst({
-        where: eq(schema.preferenceTypes.name, preference.typeName)
+        where: eq(schema.preferenceTypes.name, preference.typeName),
       });
 
-      if (!preferenceType || preference.optionIds.length === 0) return;
-
-      // 선호 나이대 처리 로직
-      if (preference.typeName === '선호 나이대') {
-        // 선택된 옵션 값 (OLDER, YOUNGER, SAME_AGE, NO_PREFERENCE 중 하나)
-        const selectedValue = preference.optionIds[0];
-        console.log('선택된 선호 나이대 값:', selectedValue);
-
-        // 선호 나이대 타입 조회
-        const agePreferenceType = await tx.query.preferenceTypes.findFirst({
-          where: eq(schema.preferenceTypes.code, 'AGE_PREFERENCE')
-        });
-
-        if (!agePreferenceType) {
-          console.log('선호 나이대 타입을 찾을 수 없음');
-          return;
-        }
-
-        console.log('선호 나이대 타입:', agePreferenceType);
-
-        // 선택된 값에 해당하는 옵션 ID 조회
-        const ageOption = await tx.query.preferenceOptions.findFirst({
-          where: and(
-            eq(schema.preferenceOptions.preferenceTypeId, agePreferenceType.id),
-            eq(schema.preferenceOptions.value, selectedValue)
-          )
-        });
-
-        if (ageOption) {
-          console.log('찾은 선호 나이대 옵션:', ageOption);
-
-          const optionEntryId = generateUuidV7();
-          const now = new Date();
-
-          await tx.insert(schema.userPreferenceOptions)
-            .values({
-              id: optionEntryId,
-              userPreferenceId,
-              preferenceOptionId: ageOption.id, // 조회된 실제 옵션 ID 사용
-              createdAt: now,
-              updatedAt: now,
-              deletedAt: null
-            });
-        } else {
-          console.log('선호 나이대 옵션을 찾을 수 없음:', selectedValue);
-        }
-      } else {
-        // 다른 선호도 타입은 기존 로직 유지
-        const optionPromises = preference.optionIds.map(async (optionId) => {
-          const optionEntryId = generateUuidV7();
-          const now = new Date();
-
-          await tx.insert(schema.userPreferenceOptions)
-            .values({
-              id: optionEntryId,
-              userPreferenceId,
-              preferenceOptionId: optionId,
-              createdAt: now,
-              updatedAt: now,
-              deletedAt: null
-            });
-        });
-
-        await Promise.all(optionPromises);
+      if (!preferenceType) {
+        throw new Error(
+          `선호도 타입을 찾을 수 없습니다: ${preference.typeName}`,
+        );
       }
+
+      if (preference.optionIds.length === 0) return;
+
+      if (preference.typeName === '선호 나이대') {
+        await this.insertAgePreferenceOption(
+          tx,
+          userPreferenceId,
+          preference.optionIds[0],
+        );
+        return;
+      }
+
+      await this.insertNormalPreferenceOptions(
+        tx,
+        userPreferenceId,
+        preference.optionIds,
+      );
     });
 
     await Promise.all(preferencePromises);
   }
 
+  private async insertAgePreferenceOption(
+    tx: Transaction,
+    userPreferenceId: string,
+    selectedValue: string,
+  ): Promise<void> {
+    const agePreferenceType = await tx.query.preferenceTypes.findFirst({
+      where: eq(schema.preferenceTypes.code, 'AGE_PREFERENCE'),
+    });
+
+    if (!agePreferenceType) {
+      throw new Error('선호 나이대 타입을 찾을 수 없습니다');
+    }
+
+    const ageOption = await tx.query.preferenceOptions.findFirst({
+      where: and(
+        eq(schema.preferenceOptions.preferenceTypeId, agePreferenceType.id),
+        eq(schema.preferenceOptions.value, selectedValue),
+      ),
+    });
+
+    if (!ageOption) {
+      throw new Error(`선호 나이대 옵션을 찾을 수 없습니다: ${selectedValue}`);
+    }
+
+    await this.insertUserPreferenceOption(tx, userPreferenceId, ageOption.id);
+  }
+
+  private async insertNormalPreferenceOptions(
+    tx: Transaction,
+    userPreferenceId: string,
+    optionIds: string[],
+  ): Promise<void> {
+    const optionPromises = optionIds.map(async (optionId) => {
+      await this.insertUserPreferenceOption(tx, userPreferenceId, optionId);
+    });
+
+    await Promise.all(optionPromises);
+  }
+
+  private async insertUserPreferenceOption(
+    tx: Transaction,
+    userPreferenceId: string,
+    preferenceOptionId: string,
+    preferenceTarget: PreferenceTarget = PreferenceTarget.PARTNER,
+  ): Promise<void> {
+    const optionEntryId = generateUuidV7();
+    const now = new Date();
+
+    await tx.insert(schema.userPreferenceOptions).values({
+      id: optionEntryId,
+      userPreferenceId,
+      preferenceOptionId,
+      preferenceTarget,
+      createdAt: now,
+      updatedAt: now,
+      deletedAt: null,
+    });
+  }
+
   async getMbti(userId: string) {
-    const results = await this.db.select({
-      mbti: schema.profiles.mbti,
-    })
+    const results = await this.db
+      .select({
+        mbti: schema.profiles.mbti,
+      })
       .from(schema.profiles)
       .where(eq(schema.profiles.userId, userId));
     return results[0]?.mbti;
   }
 
-  async updateMbti(userId: string, mbti: string) {
-    return await this.db.update(schema.profiles)
+  updateMbti(userId: string, mbti: string) {
+    return this.db
+      .update(schema.profiles)
       .set({ mbti })
       .where(eq(schema.profiles.userId, userId));
   }
 
+  async getUserSelfPreferenceOptions(userId: string) {
+    return await this.db.transaction(async (tx) => {
+      const userPreference = await tx.query.userPreferences.findFirst({
+        where: eq(schema.userPreferences.userId, userId),
+      });
+
+      if (!userPreference) {
+        throw new NotFoundException('사용자 선호도 정보를 찾을 수 없습니다.');
+      }
+
+      return tx
+        .select({
+          optionId: schema.userPreferenceOptions.preferenceOptionId,
+          optionDisplayName: schema.preferenceOptions.displayName,
+          typeName: schema.preferenceTypes.name,
+        })
+        .from(schema.userPreferenceOptions)
+        .innerJoin(
+          schema.preferenceOptions,
+          eq(
+            schema.userPreferenceOptions.preferenceOptionId,
+            schema.preferenceOptions.id,
+          ),
+        )
+        .innerJoin(
+          schema.preferenceTypes,
+          eq(
+            schema.preferenceOptions.preferenceTypeId,
+            schema.preferenceTypes.id,
+          ),
+        )
+        .where(
+          and(
+            eq(
+              schema.userPreferenceOptions.userPreferenceId,
+              userPreference.id,
+            ),
+            eq(
+              schema.userPreferenceOptions.preferenceTarget,
+              PreferenceTarget.SELF,
+            ),
+          ),
+        );
+    });
+  }
+
+  async updateSelfPreferences(
+    userId: string,
+    data: SelfPreferenceSave['data'],
+  ) {
+    return await this.db.transaction(async (tx) => {
+      const userPreferenceId = await this.getUserPreferenceId(tx, userId);
+      await this.deleteExistingSelfOptions(tx, userPreferenceId);
+
+      if (data.length === 0) return;
+      await this.insertSelfPreferenceOptions(tx, userPreferenceId, data);
+    });
+  }
+
+  private async deleteExistingSelfOptions(
+    tx: Transaction,
+    userPreferenceId: string,
+  ): Promise<void> {
+    await tx
+      .delete(schema.userPreferenceOptions)
+      .where(
+        and(
+          eq(schema.userPreferenceOptions.userPreferenceId, userPreferenceId),
+          eq(
+            schema.userPreferenceOptions.preferenceTarget,
+            PreferenceTarget.SELF,
+          ),
+        ),
+      );
+  }
+
+  private async insertSelfPreferenceOptions(
+    tx: Transaction,
+    userPreferenceId: string,
+    data: SelfPreferenceSave['data'],
+  ): Promise<void> {
+    const preferencePromises = data.map(async (preference) => {
+      const preferenceType = await tx.query.preferenceTypes.findFirst({
+        where: eq(schema.preferenceTypes.name, preference.typeName),
+      });
+
+      if (!preferenceType) {
+        throw new Error(
+          `선호도 타입을 찾을 수 없습니다: ${preference.typeName}`,
+        );
+      }
+
+      if (preference.optionIds.length === 0) return;
+
+      const optionPromises = preference.optionIds.map(async (optionId) => {
+        await this.insertUserPreferenceOption(
+          tx,
+          userPreferenceId,
+          optionId,
+          PreferenceTarget.SELF,
+        );
+      });
+
+      await Promise.all(optionPromises);
+    });
+
+    await Promise.all(preferencePromises);
+  }
 }

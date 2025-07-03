@@ -10,16 +10,13 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 import * as cookieParser from 'cookie-parser';
 
-const portOneOrigins = [
-  '52.78.100.19',
-  '52.78.48.223',
-  '52.78.5.241',
-];
+const portOneOrigins = ['52.78.100.19', '52.78.48.223', '52.78.5.241'];
 
 async function bootstrap() {
-  const logLevels: LogLevel[] = process.env.NODE_ENV === 'development'
-    ? ['error', 'warn', 'log', 'debug', 'verbose']
-    : ['error', 'warn', 'log'];
+  const logLevels: LogLevel[] =
+    process.env.NODE_ENV === 'development'
+      ? ['error', 'warn', 'log', 'debug', 'verbose']
+      : ['error', 'warn', 'log'];
 
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     logger: logLevels,
@@ -27,13 +24,28 @@ async function bootstrap() {
   });
 
   app.useStaticAssets(join(__dirname, '..', 'public'));
-  const apiPrefix = ['development', 'production'].includes(process.env.NODE_ENV) ? 'api' : 'api';
-  const excludePaths = process.env.NODE_ENV === 'development'
-    ? ['docs', 'docs-json', 'swagger-ui-bundle.js', 'swagger-ui-standalone-preset.js', 'swagger-ui.css']
-    : ['app/docs', 'app/docs-json', 'swagger-ui-bundle.js', 'swagger-ui-standalone-preset.js', 'swagger-ui.css'];
+  const apiPrefix = ['development', 'production'].includes(process.env.NODE_ENV)
+    ? 'api'
+    : 'api';
+  const excludePaths =
+    process.env.NODE_ENV === 'development'
+      ? [
+          'docs',
+          'docs-json',
+          'swagger-ui-bundle.js',
+          'swagger-ui-standalone-preset.js',
+          'swagger-ui.css',
+        ]
+      : [
+          'app/docs',
+          'app/docs-json',
+          'swagger-ui-bundle.js',
+          'swagger-ui-standalone-preset.js',
+          'swagger-ui.css',
+        ];
 
   app.setGlobalPrefix(apiPrefix, {
-    exclude: excludePaths
+    exclude: excludePaths,
   });
 
   app.enableCors({
@@ -42,7 +54,7 @@ async function bootstrap() {
       'http://localhost:3000',
       'http://192.168.1.100:3000',
       'http://localhost:3001',
-      'http://localhost:8000',  // Community Bot API 포트 추가
+      'http://localhost:8000', // Community Bot API 포트 추가
       'https://project-solo-gray.vercel.app',
       'some-in-univ.com',
       'https://some-in-univ.com',
@@ -50,7 +62,7 @@ async function bootstrap() {
       ...portOneOrigins,
     ],
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['*'],
   });
 
   app.useGlobalPipes(
@@ -97,8 +109,10 @@ async function bootstrap() {
       ignoreGlobalPrefix: false,
     });
 
-    const docsPath = process.env.NODE_ENV === 'development' ? 'docs' : 'app/docs';
-    const jsonDocumentUrl = process.env.NODE_ENV === 'development' ? '/docs-json' : '/app/docs-json';
+    const docsPath =
+      process.env.NODE_ENV === 'development' ? 'docs' : 'app/docs';
+    const jsonDocumentUrl =
+      process.env.NODE_ENV === 'development' ? '/docs-json' : '/app/docs-json';
 
     SwaggerModule.setup(docsPath, app, document, {
       jsonDocumentUrl: jsonDocumentUrl,
