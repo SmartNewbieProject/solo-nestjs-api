@@ -145,7 +145,16 @@ export default class ProfileRepository {
           ),
         )
         .where(
-          eq(schema.userPreferenceOptions.userPreferenceId, userPreference.id),
+          and(
+            eq(
+              schema.userPreferenceOptions.userPreferenceId,
+              userPreference.id,
+            ),
+            eq(
+              schema.userPreferenceOptions.preferenceTarget,
+              PreferenceTarget.SELF,
+            ),
+          ),
         );
     });
   }
