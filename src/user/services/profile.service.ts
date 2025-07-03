@@ -1,39 +1,58 @@
-import { BadRequestException, Injectable, Logger } from "@nestjs/common";
-import ProfileRepository from "../repository/profile.repository";
-import { PreferenceSave } from "../dto/profile.dto";
-import { NotFoundException } from "@nestjs/common";
-import { UserProfile, UniversityDetail, ProfileImage, Preference, PreferenceOption, PreferenceTypeGroup } from "@/types/user";
-import { Gender } from "@/types/enum";
-import { UserRank } from "@/database/schema/profiles";
+import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import ProfileRepository from '../repository/profile.repository';
+import { PreferenceSave, SelfPreferenceSave } from '../dto/profile.dto';
+import { NotFoundException } from '@nestjs/common';
+import { UserProfile, Preference, PreferenceTypeGroup } from '@/types/user';
+import { Gender } from '@/types/enum';
 
 type Option = {
   id: string;
   displayName: string;
-}
+};
 
 export type PreferenceSet = {
   typeName: string;
   options: Option[];
   multiple: boolean;
   maximumChoiceCount: number;
-}
+};
+
+type PreferenceTypeWithOptions = {
+  type: {
+    id: string;
+    name: string;
+    maximumChoiceCount: number | null;
+  } | null;
+  options: string[];
+};
+
+type UserPreferenceOption = {
+  optionId: string;
+  optionDisplayName: string;
+  typeName: string;
+};
 
 @Injectable()
 export class ProfileService {
   private readonly logger = new Logger(ProfileService.name);
 
-  constructor(
-    private readonly profileRepository: ProfileRepository,
-  ) { }
+  constructor(private readonly profileRepository: ProfileRepository) {}
 
-  async getUserProfiles(userId: string, sensitive: boolean = true): Promise<UserProfile> {
-    const profileDetails = await this.profileRepository.getProfileDetails(userId);
+  async getUserProfiles(
+    userId: string,
+    sensitive: boolean = true,
+  ): Promise<UserProfile> {
+    const profileDetails =
+      await this.profileRepository.getProfileDetails(userId);
 
     if (!profileDetails) {
-      throw new NotFoundException(`사용자 프로필을 찾을 수 없습니다. ${userId}`);
+      throw new NotFoundException(
+        `사용자 프로필을 찾을 수 없습니다. ${userId}`,
+      );
     }
 
-    const userPreferenceOptions = await this.profileRepository.getUserPreferenceOptions(userId);
+    const userPreferenceOptions =
+      await this.profileRepository.getUserPreferenceOptions(userId);
     const preferences = this.processPreferences(userPreferenceOptions);
 
     return {
@@ -42,16 +61,16 @@ export class ProfileService {
       name: profileDetails.name,
       age: profileDetails.age,
       gender: profileDetails.gender,
-      rank: sensitive ? null : profileDetails.rank as UserRank,
+      rank: sensitive ? null : profileDetails.rank,
       profileImages: profileDetails.profileImages,
       instagramId: profileDetails.instagramId,
       universityDetails: profileDetails.universityDetail,
-      preferences
+      preferences,
     };
   }
 
   async getProfilesByIds(ids: string[]): Promise<UserProfile[]> {
-    const promises = ids.map(id => this.getUserProfiles(id));
+    const promises = ids.map((id) => this.getUserProfiles(id));
     return Promise.all(promises);
   }
 
@@ -61,14 +80,17 @@ export class ProfileService {
     const map = this.convertMap(preferences);
 
     if (gender === Gender.MALE) {
-      map.delete("군필 여부 선호도");
+      map.delete('군필 여부 선호도');
     }
     if (gender === Gender.FEMALE) {
-      map.delete("군필 여부");
+      map.delete('군필 여부');
     }
 
     map.forEach((options, typeName) => {
-      const { multiple, maximumChoiceCount } = this.findOne(typeName, preferences);
+      const { multiple, maximumChoiceCount } = this.findOne(
+        typeName,
+        preferences,
+      );
 
       list.push({
         typeName,
@@ -82,28 +104,13 @@ export class ProfileService {
   }
 
   async updatePreferences(userId: string, { data }: PreferenceSave) {
-    const fns = data.map(async (preference) => {
-      const type = await this.profileRepository.getPreferenceTypeByName(preference.typeName);
-      return {
-        type,
-        options: preference.optionIds
-      };
-    });
-    const types = await Promise.all(fns);
-    types.forEach(({ type, options }) => {
-      if (type?.maximumChoiceCount && type.maximumChoiceCount < options.length) {
-        throw new BadRequestException(`[${type.name},최대 개수:${type.maximumChoiceCount}] 선택 가능한 최대 수를 초과했습니다.`);
-      }
-    });
-
-    this.logger.debug({ types });
-
+    await this.validatePreferenceData(data);
     await this.profileRepository.updatePreferences(userId, data);
     return this.getUserProfiles(userId, false);
   }
 
   async updateInstagramId(userId: string, instagramId: string) {
-    return await this.profileRepository.updateInstagramId(userId, instagramId);
+    return this.profileRepository.updateInstagramId(userId, instagramId);
   }
 
   private convertMap(preferences: Preference[]) {
@@ -113,23 +120,64 @@ export class ProfileService {
         map.set(typeName, []);
       }
       const exists = map.get(typeName) as Option[];
-      map.set(typeName, [...exists, { id: optionId, displayName: optionDisplayName }]);
+      map.set(typeName, [
+        ...exists,
+        { id: optionId, displayName: optionDisplayName },
+      ]);
     });
     return map;
   }
 
   private findOne(typeName: string, preferences: Preference[]) {
-    return preferences.find(p => p.typeName === typeName) as Preference;
+    return preferences.find((p) => p.typeName === typeName) as Preference;
   }
 
-  private processPreferences(userPreferenceOptions: any[]): PreferenceTypeGroup[] {
+  private async validatePreferenceData(
+    data: { typeName: string; optionIds: string[] }[],
+  ): Promise<PreferenceTypeWithOptions[]> {
+    const fns = data.map(async (preference) => {
+      const type = await this.profileRepository.getPreferenceTypeByName(
+        preference.typeName,
+      );
+      return {
+        type: type
+          ? {
+              id: type.id,
+              name: type.name,
+              maximumChoiceCount: type.maximumChoiceCount,
+            }
+          : null,
+        options: preference.optionIds,
+      };
+    });
+
+    const types = await Promise.all(fns);
+
+    types.forEach(({ type, options }) => {
+      if (
+        type?.maximumChoiceCount &&
+        type.maximumChoiceCount < options.length
+      ) {
+        throw new BadRequestException(
+          `[${type.name},최대 개수:${type.maximumChoiceCount}] 선택 가능한 최대 수를 초과했습니다.`,
+        );
+      }
+    });
+
+    this.logger.debug({ types });
+    return types;
+  }
+
+  private processPreferences(
+    userPreferenceOptions: UserPreferenceOption[],
+  ): PreferenceTypeGroup[] {
     const preferencesByType = new Map<string, PreferenceTypeGroup>();
 
-    userPreferenceOptions.forEach(option => {
+    userPreferenceOptions.forEach((option) => {
       if (!preferencesByType.has(option.typeName)) {
         preferencesByType.set(option.typeName, {
           typeName: option.typeName,
-          selectedOptions: []
+          selectedOptions: [],
         });
       }
 
@@ -150,12 +198,23 @@ export class ProfileService {
     return nickname;
   }
 
-  async getMbti(userId: string) {
-    return await this.profileRepository.getMbti(userId);
+  getMbti(userId: string) {
+    return this.profileRepository.getMbti(userId);
   }
 
-  async updateMbti(userId: string, mbti: string) {
-    return await this.profileRepository.updateMbti(userId, mbti);
+  updateMbti(userId: string, mbti: string) {
+    return this.profileRepository.updateMbti(userId, mbti);
   }
 
+  async updateSelfPreferences(userId: string, { data }: SelfPreferenceSave) {
+    await this.validatePreferenceData(data);
+    await this.profileRepository.updateSelfPreferences(userId, data);
+    return this.getUserProfiles(userId, false);
+  }
+
+  async getSelfPreferences(userId: string) {
+    const userPreferenceOptions =
+      await this.profileRepository.getUserSelfPreferenceOptions(userId);
+    return this.processPreferences(userPreferenceOptions);
+  }
 }

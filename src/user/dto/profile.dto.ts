@@ -80,3 +80,29 @@ export class MbtiUpdate {
   @IsNotEmpty()
   mbti: string;
 }
+
+export class SelfPreferenceSave {
+  @ApiProperty({
+    description: '본인 성향 데이터 배열',
+    example: [
+      {
+        typeName: '성격 유형',
+        optionIds: [
+          '8dc5e263-e4b1-4975-8ec9-faf905a8dd7e',
+          '700c83fa-b614-483b-9556-750b7d70d3a1',
+        ]
+      },
+      {
+        typeName: '라이프스타일',
+        optionIds: [
+          '1d9cad0b-9065-4ee8-8c15-b24527f64407',
+        ]
+      }
+    ],
+    type: [PreferenceData]
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => PreferenceData)
+  data: PreferenceData[];
+}
