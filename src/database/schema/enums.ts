@@ -97,3 +97,8 @@ export enum AgePreference {
   SAME_AGE = 'SAME_AGE',
   NO_PREFERENCE = 'NO_PREFERENCE',
 }
+
+export enum PreferenceTarget {
+  SELF = 'SELF',
+  PARTNER = 'PARTNER',
+}
