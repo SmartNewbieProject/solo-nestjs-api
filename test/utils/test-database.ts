@@ -85,6 +85,18 @@ export class TestDatabase {
       ]
     );
 
+    // 사용자 선호도 생성
+    const userPreferenceId = uuidv4();
+    await this.client.query(
+      'INSERT INTO user_preferences (id, user_id, created_at, updated_at) VALUES ($1, $2, $3, $4)',
+      [
+        userPreferenceId,
+        userId,
+        new Date(),
+        new Date()
+      ]
+    );
+
     const user = { id: userId, email, password: plainPassword };
     this.testUsers.push(user);
     return user;
@@ -92,6 +104,26 @@ export class TestDatabase {
 
   async createTestAdmin(): Promise<{ id: string; email: string; password: string }> {
     return this.createTestUser(Role.ADMIN);
+  }
+
+  async getPreferenceOptions(): Promise<{ id: string; typeName: string; displayName: string }[]> {
+    if (!this.client) {
+      throw new Error('데이터베이스에 연결되어 있지 않습니다.');
+    }
+
+    const result = await this.client.query(`
+      SELECT po.id, pt.name as type_name, po.display_name
+      FROM preference_options po
+      JOIN preference_types pt ON po.preference_type_id = pt.id
+      ORDER BY pt.code
+      LIMIT 10
+    `);
+
+    return result.rows.map(row => ({
+      id: row.id,
+      typeName: row.type_name,
+      displayName: row.display_name
+    }));
   }
 
   async cleanupTestData(): Promise<void> {
