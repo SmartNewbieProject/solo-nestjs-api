@@ -2,11 +2,19 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectDrizzle } from '@common/decorators';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '@database/schema';
-import { and, eq, ExtractTablesWithRelations, isNull } from 'drizzle-orm';
+import { PreferenceTarget } from '@database/schema';
+import {
+  and,
+  eq,
+  ExtractTablesWithRelations,
+  inArray,
+  isNull,
+} from 'drizzle-orm';
 import {
   PreferenceData,
   PreferenceSave,
   SelfPreferencesSave,
+  PartnerPreferencesSave,
 } from '../dto/profile.dto';
 import { generateUuidV7 } from '@database/schema/helper';
 import {
@@ -15,7 +23,7 @@ import {
   ProfileSummary,
 } from '@/types/user';
 import { UserRank } from '@/database/schema/profiles';
-import { PreferenceTarget } from '@/database/schema/enums';
+import { PreferenceTarget as PreferenceTargetEnum } from '@/database/schema/enums';
 import { PgQueryResultHKT, PgTransaction } from 'drizzle-orm/pg-core';
 
 type Transaction = PgTransaction<
@@ -24,8 +32,21 @@ type Transaction = PgTransaction<
   ExtractTablesWithRelations<typeof schema>
 >;
 
+const COMMON_CODES = [
+  'personality',
+  'DATING_STYLE',
+  'DRINKING',
+  'SMOKING',
+  'TATTOO',
+  'MILITARY_STATUS_MALE',
+  'MILITARY_PREFERENCE_FEMALE',
+];
+
 @Injectable()
 export default class ProfileRepository {
+  private readonly SELF_CODES: string[] = ['INTEREST', ...COMMON_CODES];
+  private readonly PARTNER_CODES: string[] = [...COMMON_CODES];
+
   constructor(
     @InjectDrizzle()
     private readonly db: NodePgDatabase<typeof schema>,
@@ -171,7 +192,12 @@ export default class ProfileRepository {
       .where(eq(schema.profiles.userId, userId));
   }
 
-  getAllPreferences() {
+  getPreferences(target: PreferenceTargetEnum) {
+    const CASES =
+      target === PreferenceTarget.PARTNER
+        ? this.PARTNER_CODES
+        : this.SELF_CODES;
+
     return this.db
       .select({
         typeName: schema.preferenceTypes.name,
@@ -188,7 +214,8 @@ export default class ProfileRepository {
           schema.preferenceTypes.id,
         ),
       )
-      .orderBy(schema.preferenceTypes.code);
+      .orderBy(schema.preferenceTypes.code)
+      .where(inArray(schema.preferenceTypes.code, CASES));
   }
 
   async updatePreferences(userId: string, data: PreferenceSave['data']) {
@@ -390,11 +417,7 @@ export default class ProfileRepository {
     });
   }
 
-  async updateSelfPreferences(
-    userId: string,
-    profileId: string,
-    data: SelfPreferencesSave,
-  ) {
+  async updateSelfPreferences(userId: string, data: SelfPreferencesSave) {
     return await this.db.transaction(async (tx) => {
       const userPreferenceId = await this.getUserPreferenceId(tx, userId);
       await this.deleteExistingSelfOptions(tx, userPreferenceId);
@@ -405,7 +428,6 @@ export default class ProfileRepository {
         userPreferenceId,
         data.preferences,
       );
-      await this.insertAdditionalSelfOptions(tx, profileId, data.additional);
     });
   }
 
@@ -471,5 +493,98 @@ export default class ProfileRepository {
     });
 
     await Promise.all(preferencePromises);
+  }
+
+  async updatePartnerPreferences(
+    userId: string,
+    profileId: string,
+    data: PartnerPreferencesSave,
+  ) {
+    return await this.db.transaction(async (tx) => {
+      const userPreferenceId = await this.getUserPreferenceId(tx, userId);
+      await this.deleteExistingPartnerOptions(tx, userPreferenceId);
+      await this.deleteExistingAdditionalPreferences(tx, profileId);
+
+      if (data.preferences.length === 0) return;
+      await this.insertPartnerPreferenceOptions(
+        tx,
+        userPreferenceId,
+        data.preferences,
+      );
+      await this.insertAdditionalPartnerOptions(tx, profileId, data.additional);
+    });
+  }
+
+  private async deleteExistingPartnerOptions(
+    tx: Transaction,
+    userPreferenceId: string,
+  ): Promise<void> {
+    await tx
+      .delete(schema.userPreferenceOptions)
+      .where(
+        and(
+          eq(schema.userPreferenceOptions.userPreferenceId, userPreferenceId),
+          eq(
+            schema.userPreferenceOptions.preferenceTarget,
+            PreferenceTarget.PARTNER,
+          ),
+        ),
+      );
+  }
+
+  private async insertPartnerPreferenceOptions(
+    tx: Transaction,
+    userPreferenceId: string,
+    data: PreferenceData[],
+  ): Promise<void> {
+    const preferencePromises = data.map(async (preference) => {
+      const preferenceType = await tx.query.preferenceTypes.findFirst({
+        where: eq(schema.preferenceTypes.name, preference.typeName),
+      });
+
+      if (!preferenceType) {
+        throw new Error(
+          `선호도 타입을 찾을 수 없습니다: ${preference.typeName}`,
+        );
+      }
+
+      if (preference.optionIds.length === 0) return;
+
+      const optionPromises = preference.optionIds.map(async (optionId) => {
+        await this.insertUserPreferenceOption(
+          tx,
+          userPreferenceId,
+          optionId,
+          PreferenceTarget.PARTNER,
+        );
+      });
+
+      await Promise.all(optionPromises);
+    });
+
+    await Promise.all(preferencePromises);
+  }
+
+  private async insertAdditionalPartnerOptions(
+    tx: Transaction,
+    profileId: string,
+    additionalPreferences: any,
+  ) {
+    await tx.insert(schema.additionalPreferences).values({
+      id: generateUuidV7(),
+      profileId,
+      ...additionalPreferences,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+
+  private async deleteExistingAdditionalPreferences(
+    tx: Transaction,
+    profileId: string,
+  ): Promise<void> {
+    await tx
+      .delete(schema.additionalPreferences)
+      .where(eq(schema.additionalPreferences.profileId, profileId));
   }
 }

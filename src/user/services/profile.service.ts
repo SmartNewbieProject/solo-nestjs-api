@@ -5,7 +5,11 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import ProfileRepository from '../repository/profile.repository';
-import { PreferenceSave, SelfPreferencesSave } from '../dto/profile.dto';
+import {
+  PartnerPreferencesSave,
+  PreferenceSave,
+  SelfPreferencesSave,
+} from '../dto/profile.dto';
 import { Preference, PreferenceTypeGroup, UserProfile } from '@/types/user';
 import { Gender } from '@/types/enum';
 import { PreferenceTarget } from '@database/schema';
@@ -91,15 +95,21 @@ export class ProfileService {
     return Promise.all(promises);
   }
 
-  async getAllPreferences(gender: Gender) {
-    const preferences = await this.profileRepository.getAllPreferences();
+  async getPreferences(gender: Gender, target: PreferenceTarget) {
+    const preferences = await this.profileRepository.getPreferences(target);
     const list: PreferenceSet[] = [];
-    const map = this.convertMap(preferences);
+    const map = this.convertFilteredOptions(
+      this.convertMap(preferences),
+      target,
+    );
+
+    this.logger.log(map);
 
     if (gender === Gender.MALE) {
       map.delete('군필 여부 선호도');
     }
-    if (gender === Gender.FEMALE) {
+
+    if (gender === Gender.FEMALE || target === PreferenceTarget.PARTNER) {
       map.delete('군필 여부');
     }
 
@@ -128,6 +138,50 @@ export class ProfileService {
 
   async updateInstagramId(userId: string, instagramId: string) {
     return this.profileRepository.updateInstagramId(userId, instagramId);
+  }
+
+  private convertFilteredOptions(
+    options: Map<string, Option[]>,
+    preferenceTarget: PreferenceTarget,
+  ) {
+    const selfFilteredItems = [
+      '안마시면 좋겠음',
+      '가끔마시면 좋겠음',
+      '적당히 마시면 좋겠음',
+      '마셔도 괜찮음',
+      '자주 마셔도 괜찮음',
+      '문신 없음',
+      '상관 없음',
+    ];
+    const partnerFilteredItems = [
+      '전혀 안마시지 않음',
+      '거의 못마심',
+      '적당히 마심',
+      '자주 마심',
+      '매우 즐겨 마심',
+      '전자담배',
+      '작은 문신',
+    ];
+
+    const tattoos = options.get('문신 선호도') as Option[];
+    const smokings = options.get('흡연 선호도') as Option[];
+    const drinkings = options.get('음주 선호도') as Option[];
+
+    if (preferenceTarget === PreferenceTarget.SELF) {
+      const filter = (options: Option[]) =>
+        options.filter((o) => !selfFilteredItems.includes(o.displayName));
+      options.set('음주 선호도', filter(drinkings));
+      options.set('흡연 선호도', filter(smokings));
+      options.set('문신 선호도', filter(tattoos));
+    } else {
+      const filter = (options: Option[]) =>
+        options.filter((o) => !partnerFilteredItems.includes(o.displayName));
+      options.set('음주 선호도', filter(drinkings));
+      options.set('흡연 선호도', filter(smokings));
+      options.set('문신 선호도', filter(tattoos));
+    }
+
+    return options;
   }
 
   private convertMap(preferences: Preference[]) {
@@ -225,9 +279,7 @@ export class ProfileService {
 
   async updateSelfPreferences(userId: string, data: SelfPreferencesSave) {
     await this.validatePreferenceData(data.preferences);
-    const { id: profileId } =
-      await this.profileRepository.getProfileSummary(userId);
-    await this.profileRepository.updateSelfPreferences(userId, profileId, data);
+    await this.profileRepository.updateSelfPreferences(userId, data);
     return this.getUserProfiles(userId, false);
   }
 
@@ -235,5 +287,17 @@ export class ProfileService {
     const userPreferenceOptions =
       await this.profileRepository.getUserSelfPreferenceOptions(userId);
     return this.processPreferences(userPreferenceOptions);
+  }
+
+  async updatePartnerPreferences(userId: string, data: PartnerPreferencesSave) {
+    await this.validatePreferenceData(data.preferences);
+    const { id: profileId } =
+      await this.profileRepository.getProfileSummary(userId);
+    await this.profileRepository.updatePartnerPreferences(
+      userId,
+      profileId,
+      data,
+    );
+    return this.getUserProfiles(userId, false);
   }
 }
