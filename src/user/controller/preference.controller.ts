@@ -3,7 +3,12 @@ import { PreferenceService } from '../services/preference.service';
 import { ProfileService } from '../services/profile.service';
 import { CurrentUser, Roles } from '@/auth/decorators';
 import { Role } from '@/auth/domain/user-role.enum';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiResponse,
+  ApiTags,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { AuthenticationUser } from '@/types';
 import { PreferenceSave, SelfPreferenceSave } from '../dto/profile.dto';
 import { ProfileDocs } from '../docs/profile.docs';
@@ -11,6 +16,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfileUpdatedEvent } from '@/events/profile-updated.event';
 
 @ApiTags('이상형')
+@ApiBearerAuth('access-token')
 @Controller('preferences')
 @Roles(Role.USER, Role.ADMIN)
 export class PreferenceController {
