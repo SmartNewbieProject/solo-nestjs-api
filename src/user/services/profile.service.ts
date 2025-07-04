@@ -1,9 +1,14 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import ProfileRepository from '../repository/profile.repository';
-import { PreferenceSave, SelfPreferenceSave } from '../dto/profile.dto';
-import { NotFoundException } from '@nestjs/common';
-import { UserProfile, Preference, PreferenceTypeGroup } from '@/types/user';
+import { PreferenceSave, SelfPreferencesSave } from '../dto/profile.dto';
+import { Preference, PreferenceTypeGroup, UserProfile } from '@/types/user';
 import { Gender } from '@/types/enum';
+import { PreferenceTarget } from '@database/schema';
 
 type Option = {
   id: string;
@@ -52,8 +57,19 @@ export class ProfileService {
     }
 
     const userPreferenceOptions =
-      await this.profileRepository.getUserPreferenceOptions(userId);
+      await this.profileRepository.getUserPreferenceOptions(
+        userId,
+        PreferenceTarget.PARTNER,
+      );
+
+    const characteristicsOptions =
+      await this.profileRepository.getUserPreferenceOptions(
+        userId,
+        PreferenceTarget.SELF,
+      );
+
     const preferences = this.processPreferences(userPreferenceOptions);
+    const characteristics = this.processPreferences(characteristicsOptions);
 
     return {
       id: userId,
@@ -66,6 +82,7 @@ export class ProfileService {
       instagramId: profileDetails.instagramId,
       universityDetails: profileDetails.universityDetail,
       preferences,
+      characteristics,
     };
   }
 
@@ -206,9 +223,11 @@ export class ProfileService {
     return this.profileRepository.updateMbti(userId, mbti);
   }
 
-  async updateSelfPreferences(userId: string, { data }: SelfPreferenceSave) {
-    await this.validatePreferenceData(data);
-    await this.profileRepository.updateSelfPreferences(userId, data);
+  async updateSelfPreferences(userId: string, data: SelfPreferencesSave) {
+    await this.validatePreferenceData(data.preferences);
+    const { id: profileId } =
+      await this.profileRepository.getProfileSummary(userId);
+    await this.profileRepository.updateSelfPreferences(userId, profileId, data);
     return this.getUserProfiles(userId, false);
   }
 
