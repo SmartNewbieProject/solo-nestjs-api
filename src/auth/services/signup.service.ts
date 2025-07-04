@@ -11,6 +11,7 @@ import { dayUtils } from '@/common/helper';
 import * as dayjs from 'dayjs';
 import axios from 'axios';
 import { SlackService } from '@/slack-notification/slack.service';
+import { MailService } from '@/common/services/mail.service';
 
 @Injectable()
 export class SignupService {
