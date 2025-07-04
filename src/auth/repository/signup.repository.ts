@@ -48,13 +48,14 @@ export class SignupRepository {
       const userId = generateUuidV7();
       const preferenceId = generateUuidV7();
 
-      const { name, phoneNumber, gender, age, instagramId } = createUserDto;
+      const { name, phoneNumber, gender, age, instagramId, birthday } = createUserDto;
 
       const [user] = await tx.insert(users)
         .values({
           id: userId,
           phoneNumber,
           name,
+          birthday,
           profileId,
           role: Role.USER,
         })
