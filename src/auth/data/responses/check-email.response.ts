@@ -5,9 +5,9 @@ export const checkEmailSuccessResponse: ApiResponseOptions = {
   description: '이메일 중복 확인 성공',
   schema: {
     example: {
-      exists: true // 또는 false
-    }
-  }
+      exists: true, // 또는 false
+    },
+  },
 };
 
 export const checkEmailFailureResponse: ApiResponseOptions = {
@@ -16,6 +16,6 @@ export const checkEmailFailureResponse: ApiResponseOptions = {
   schema: {
     example: {
       error: '유효한 이메일 주소를 입력해주세요.',
-    }
-  }
+    },
+  },
 };

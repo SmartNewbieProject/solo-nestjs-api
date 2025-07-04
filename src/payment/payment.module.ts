@@ -12,7 +12,14 @@ import UserRepository from '@/user/repository/user.repository';
 @Module({
   imports: [ConfigModule],
   controllers: [PaymentController, TicketController],
-  providers: [PayService, DrizzleService, PayRepository, TicketService, TicketRepository, UserRepository],
+  providers: [
+    PayService,
+    DrizzleService,
+    PayRepository,
+    TicketService,
+    TicketRepository,
+    UserRepository,
+  ],
   exports: [PayService, TicketService, TicketRepository],
 })
-export class PaymentModule { }
+export class PaymentModule {}

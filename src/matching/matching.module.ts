@@ -66,4 +66,4 @@ import { MatchUserHistoryManager } from './domain/match-user-history';
   ],
   exports: [MatchingService, MatchingCreationService],
 })
-export class MatchingModule { }
+export class MatchingModule {}

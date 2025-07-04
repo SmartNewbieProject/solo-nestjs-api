@@ -1,4 +1,15 @@
-import { Controller, Post, Delete, Param, Body, UseInterceptors, UploadedFiles, BadRequestException, HttpCode, HttpStatus } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Delete,
+  Param,
+  Body,
+  UseInterceptors,
+  UploadedFiles,
+  BadRequestException,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import * as multer from 'multer';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { Roles } from '@/auth/decorators';
@@ -32,7 +43,9 @@ export class ImageController {
     if (!files || files.length === 0) {
       throw new BadRequestException('파일이 제공되지 않았습니다.');
     }
-    const invalidFiles = files.filter(file => !file.mimetype.includes('image'));
+    const invalidFiles = files.filter(
+      (file) => !file.mimetype.includes('image'),
+    );
     if (invalidFiles.length > 0) {
       throw new BadRequestException('이미지 파일만 업로드할 수 있습니다.');
     }

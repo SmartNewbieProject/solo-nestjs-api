@@ -18,7 +18,7 @@ import { SlackService } from '@/slack-notification/slack.service';
 export class AllExceptionsFilter implements ExceptionFilter {
   private readonly logger = new Logger(AllExceptionsFilter.name);
 
-  constructor(private readonly slackService: SlackService) { }
+  constructor(private readonly slackService: SlackService) {}
 
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -66,9 +66,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
       // 일반 HTTP 예외 처리
       const errorResponse: ApiErrorResponse = {
-        error: typeof exceptionResponse === 'string'
-          ? exceptionResponse
-          : exceptionResponse.message || exception.message,
+        error:
+          typeof exceptionResponse === 'string'
+            ? exceptionResponse
+            : exceptionResponse.message || exception.message,
       };
 
       return response.status(status).json(errorResponse);
@@ -95,11 +96,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
       user: request.user,
     };
 
-    this.slackService.sendErrorNotification(
-      exception as Error,
-      errorContext,
-    );
+    this.slackService.sendErrorNotification(exception as Error, errorContext);
 
-    return response.status(HttpStatus.INTERNAL_SERVER_ERROR).json(errorResponse);
+    return response
+      .status(HttpStatus.INTERNAL_SERVER_ERROR)
+      .json(errorResponse);
   }
 }

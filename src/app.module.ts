@@ -28,7 +28,9 @@ import { createKeyv } from '@keyv/redis';
       isGlobal: true,
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        stores: createKeyv(`redis://:${configService.get('REDIS_PASSWORD', '')}@${configService.get('REDIS_HOST', 'localhost')}:${configService.get('REDIS_PORT', 6379)}`),
+        stores: createKeyv(
+          `redis://:${configService.get('REDIS_PASSWORD', '')}@${configService.get('REDIS_HOST', 'localhost')}:${configService.get('REDIS_PORT', 6379)}`,
+        ),
         ttl: 60 * 60 * 24, // 24시간
       }),
       inject: [ConfigService],
@@ -51,13 +53,11 @@ import { createKeyv } from '@keyv/redis';
     {
       provide: APP_FILTER,
       useClass: AllExceptionsFilter,
-    }
+    },
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(TransformDateMiddleware)
-      .forRoutes('*');
+    consumer.apply(TransformDateMiddleware).forRoutes('*');
   }
 }

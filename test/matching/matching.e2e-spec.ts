@@ -94,9 +94,7 @@ describe('매칭 컨트롤러 (e2e)', () => {
     });
 
     it('인증되지 않은 사용자는 매칭 파트너를 조회할 수 없어야 함', async () => {
-      await request(app.getHttpServer())
-        .get('/api/matching')
-        .expect(401);
+      await request(app.getHttpServer()).get('/api/matching').expect(401);
     });
   });
 

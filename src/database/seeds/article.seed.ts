@@ -3,17 +3,20 @@ import { faker } from '@faker-js/faker/locale/ko';
 import { DrizzleService } from '@/database/drizzle.service';
 import { generateUuidV7 } from '@/database/schema/helper';
 import { Pool, PoolClient } from 'pg';
-import { generateAnonymousName, generateConsistentAnonymousName } from '@/article/domain';
+import {
+  generateAnonymousName,
+  generateConsistentAnonymousName,
+} from '@/article/domain';
 
 @Injectable()
 export class ArticleSeeder {
-  constructor(private readonly drizzleService: DrizzleService) { }
+  constructor(private readonly drizzleService: DrizzleService) {}
 
   async seed(
     articleCount: number = 100,
     commentCountPerArticle: number = 5,
     likeCountPerArticle: number = 10,
-    batchSize: number = 20
+    batchSize: number = 20,
   ) {
     const db = this.drizzleService.db;
     const pool: Pool = this.drizzleService.getPool();
@@ -25,11 +28,19 @@ export class ArticleSeeder {
       console.log('데이터베이스 연결 성공');
 
       // 데이터베이스 상태 확인
-      const { rows: userRows } = await client.query('SELECT COUNT(*) FROM users');
-      console.log(`현재 데이터베이스에 ${userRows[0].count}명의 사용자가 있습니다.`);
+      const { rows: userRows } = await client.query(
+        'SELECT COUNT(*) FROM users',
+      );
+      console.log(
+        `현재 데이터베이스에 ${userRows[0].count}명의 사용자가 있습니다.`,
+      );
 
-      const { rows: categoryRows } = await client.query('SELECT COUNT(*) FROM article_categories');
-      console.log(`현재 데이터베이스에 ${categoryRows[0].count}개의 게시글 카테고리가 있습니다.`);
+      const { rows: categoryRows } = await client.query(
+        'SELECT COUNT(*) FROM article_categories',
+      );
+      console.log(
+        `현재 데이터베이스에 ${categoryRows[0].count}개의 게시글 카테고리가 있습니다.`,
+      );
 
       client.release();
     } catch (error) {
@@ -39,18 +50,26 @@ export class ArticleSeeder {
     }
 
     // 사용자 ID 목록 가져오기
-    const { rows: users } = await pool.query('SELECT id FROM users WHERE deleted_at IS NULL');
+    const { rows: users } = await pool.query(
+      'SELECT id FROM users WHERE deleted_at IS NULL',
+    );
     if (users.length === 0) {
       throw new Error('사용자가 없습니다. 먼저 사용자 데이터를 생성해주세요.');
     }
 
     // 카테고리 ID 목록 가져오기
-    const { rows: categories } = await pool.query('SELECT id, code FROM article_categories');
+    const { rows: categories } = await pool.query(
+      'SELECT id, code FROM article_categories',
+    );
     if (categories.length === 0) {
-      throw new Error('게시글 카테고리가 없습니다. 먼저 카테고리 데이터를 생성해주세요.');
+      throw new Error(
+        '게시글 카테고리가 없습니다. 먼저 카테고리 데이터를 생성해주세요.',
+      );
     }
 
-    console.log(`${articleCount}개의 게시글 데이터 시드를 생성합니다... (배치 크기: ${batchSize})`);
+    console.log(
+      `${articleCount}개의 게시글 데이터 시드를 생성합니다... (배치 크기: ${batchSize})`,
+    );
 
     // 배치 단위로 처리
     for (let i = 0; i < articleCount; i += batchSize) {
@@ -73,7 +92,8 @@ export class ArticleSeeder {
           const authorId = users[Math.floor(Math.random() * users.length)].id;
 
           // 랜덤 카테고리 선택
-          const category = categories[Math.floor(Math.random() * categories.length)];
+          const category =
+            categories[Math.floor(Math.random() * categories.length)];
 
           // 익명 여부 랜덤 결정 (30% 확률로 익명)
           const isAnonymous = Math.random() < 0.3;
@@ -93,14 +113,16 @@ export class ArticleSeeder {
               faker.number.int({ min: 0, max: 500 }), // 랜덤 조회수
               faker.date.recent({ days: 30 }), // 최근 30일 내 생성
               faker.date.recent({ days: 30 }), // 최근 30일 내 업데이트
-            ]
+            ],
           );
 
           // 댓글 생성
-          const commentCount = Math.floor(Math.random() * commentCountPerArticle) + 1;
+          const commentCount =
+            Math.floor(Math.random() * commentCountPerArticle) + 1;
           for (let k = 0; k < commentCount; k++) {
             const commentId = generateUuidV7();
-            const commentAuthorId = users[Math.floor(Math.random() * users.length)].id;
+            const commentAuthorId =
+              users[Math.floor(Math.random() * users.length)].id;
             const isCommentAnonymous = Math.random() < 0.5; // 50% 확률로 익명 댓글
             const commentNickname = isCommentAnonymous
               ? generateConsistentAnonymousName(commentAuthorId)
@@ -116,7 +138,7 @@ export class ArticleSeeder {
                 commentNickname,
                 faker.date.recent({ days: 30 }),
                 faker.date.recent({ days: 30 }),
-              ]
+              ],
             );
           }
 
@@ -125,7 +147,10 @@ export class ArticleSeeder {
           const likedUserIds = new Set();
 
           // 중복 없이 랜덤 사용자 선택
-          while (likedUserIds.size < likeCount && likedUserIds.size < users.length) {
+          while (
+            likedUserIds.size < likeCount &&
+            likedUserIds.size < users.length
+          ) {
             const userId = users[Math.floor(Math.random() * users.length)].id;
             likedUserIds.add(userId);
           }
@@ -142,14 +167,14 @@ export class ArticleSeeder {
                 true, // 좋아요 상태
                 faker.date.recent({ days: 30 }),
                 faker.date.recent({ days: 30 }),
-              ]
+              ],
             );
           }
 
           // 좋아요 수 업데이트
           await client.query(
             'UPDATE articles SET like_count = $1 WHERE id = $2',
-            [likedUserIds.size, articleId]
+            [likedUserIds.size, articleId],
           );
         }
 
@@ -157,11 +182,14 @@ export class ArticleSeeder {
         await client.query('COMMIT');
 
         // 진행률 표시
-        const progress = Math.round(((i + currentBatchSize) / articleCount) * 100);
+        const progress = Math.round(
+          ((i + currentBatchSize) / articleCount) * 100,
+        );
         if (progress % 25 === 0 || i + currentBatchSize === articleCount) {
-          console.log(`진행률: ${progress}% (${i + currentBatchSize}/${articleCount} 게시글 생성 완료)`);
+          console.log(
+            `진행률: ${progress}% (${i + currentBatchSize}/${articleCount} 게시글 생성 완료)`,
+          );
         }
-
       } catch (error) {
         // 오류 발생 시 롤백
         await client.query('ROLLBACK');
@@ -187,9 +215,15 @@ export class ArticleSeeder {
       await client.query('BEGIN');
 
       // 현재 데이터베이스 상태 확인
-      const { rows: articleRows } = await client.query('SELECT COUNT(*) FROM articles');
-      const { rows: commentRows } = await client.query('SELECT COUNT(*) FROM comments');
-      const { rows: likeRows } = await client.query('SELECT COUNT(*) FROM likes');
+      const { rows: articleRows } = await client.query(
+        'SELECT COUNT(*) FROM articles',
+      );
+      const { rows: commentRows } = await client.query(
+        'SELECT COUNT(*) FROM comments',
+      );
+      const { rows: likeRows } = await client.query(
+        'SELECT COUNT(*) FROM likes',
+      );
 
       console.log('현재 데이터베이스 상태:');
       console.log(`- 게시글: ${articleRows[0].count}개`);

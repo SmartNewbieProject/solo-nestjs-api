@@ -59,6 +59,6 @@ import { AdminProfileController } from './controllers/admin-profile.controller';
     QdrantService,
     AdminProfileService,
   ],
-  exports: [AdminMatchService]
+  exports: [AdminMatchService],
 })
-export class AdminModule { }
+export class AdminModule {}

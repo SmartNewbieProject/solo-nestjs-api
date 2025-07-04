@@ -1,19 +1,26 @@
-import { BadRequestException, Injectable, NotFoundException } from "@nestjs/common";
-import { PasswordUpdated, WithdrawRequest } from "../dto/user";
-import UserRepository from "../repository/user.repository";
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { PasswordUpdated, WithdrawRequest } from '../dto/user';
+import UserRepository from '../repository/user.repository';
 import * as bcrypt from 'bcryptjs';
-import { UniversityDetail, UserDetails } from "@/types/user";
-import { QdrantService } from "@/config/qdrant/qdrant.service";
+import { UniversityDetail, UserDetails } from '@/types/user';
+import { QdrantService } from '@/config/qdrant/qdrant.service';
 @Injectable()
 export default class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly qdrantService: QdrantService,
-  ) { }
+  ) {}
 
   async updatePassword(userId: string, data: PasswordUpdated) {
     const user = await this.userRepository.getUser(userId);
-    const isPasswordCorrect = await bcrypt.compare(data.oldPassword, user.password);
+    const isPasswordCorrect = await bcrypt.compare(
+      data.oldPassword,
+      user.password,
+    );
     if (!isPasswordCorrect) {
       throw new BadRequestException('비밀번호가 일치하지 않습니다.');
     }
@@ -42,11 +49,11 @@ export default class UserService {
 
     const profileImages = Array.isArray(profile.profileImages)
       ? profile.profileImages.map((d: any) => ({
-        id: d.id,
-        order: d.imageOrder,
-        isMain: d.isMain,
-        url: d.image.s3Url,
-      }))
+          id: d.id,
+          order: d.imageOrder,
+          isMain: d.isMain,
+          url: d.image.s3Url,
+        }))
       : [];
 
     const instagramId = profile.instagramId ?? '';
@@ -72,5 +79,4 @@ export default class UserService {
   async deleteQdrantUser(userId: string) {
     await this.qdrantService.deletePoints('profiles', [userId]);
   }
-
 }

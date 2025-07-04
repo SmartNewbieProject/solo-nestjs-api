@@ -28,19 +28,28 @@ const watingResponse: MatchDetails = {
 export default class MatchResultRouter {
   private readonly logger = new Logger(MatchResultRouter.name);
 
-  constructor() { }
+  constructor() {}
 
-  async resolveMatchingStatus({ latestMatch, onRematching, onOpen, onNotFound }: MatchingStatus): Promise<MatchDetails> {
+  async resolveMatchingStatus({
+    latestMatch,
+    onRematching,
+    onOpen,
+    onNotFound,
+  }: MatchingStatus): Promise<MatchDetails> {
     const nextMatchingDate = weekDateService.getNextMatchingDate();
 
     if (!latestMatch) {
       const earlyView = this.checkEarlyView();
       await onNotFound?.();
       if (earlyView) {
-        this.logger.debug(`아직 매칭 전임: ${weekDateService.createDayjs(nextMatchingDate).format('YYYY-MM-DD HH:mm:ss')}`);
+        this.logger.debug(
+          `아직 매칭 전임: ${weekDateService.createDayjs(nextMatchingDate).format('YYYY-MM-DD HH:mm:ss')}`,
+        );
         return {
           ...watingResponse,
-          untilNext: weekDateService.createDayjs(nextMatchingDate).format('YYYY-MM-DD HH:mm:ss'),
+          untilNext: weekDateService
+            .createDayjs(nextMatchingDate)
+            .format('YYYY-MM-DD HH:mm:ss'),
         };
       }
 
@@ -50,7 +59,9 @@ export default class MatchResultRouter {
         endOfView: null,
         partner: null,
         type: 'not-found',
-        untilNext: weekDateService.createDayjs(nextMatchingDate).format('YYYY-MM-DD HH:mm:ss'),
+        untilNext: weekDateService
+          .createDayjs(nextMatchingDate)
+          .format('YYYY-MM-DD HH:mm:ss'),
       };
     }
 
@@ -69,8 +80,12 @@ export default class MatchResultRouter {
 
     if (this.checkOver(endOfView)) {
       this.logger.debug(`매칭 대상 시간 만료`);
-      this.logger.debug(`endOfView: ${endOfView.format('YYYY-MM-DD HH:mm:ss')} is over`);
-      const untilNext = weekDateService.getNextMatchingDate().format('YYYY-MM-DD HH:mm:ss');
+      this.logger.debug(
+        `endOfView: ${endOfView.format('YYYY-MM-DD HH:mm:ss')} is over`,
+      );
+      const untilNext = weekDateService
+        .getNextMatchingDate()
+        .format('YYYY-MM-DD HH:mm:ss');
       this.logger.debug(`untilNext: ${untilNext}`);
       return {
         ...watingResponse,
@@ -79,14 +94,20 @@ export default class MatchResultRouter {
     }
 
     const publishedDate = weekDateService.createDayjs(latestMatch.publishedAt);
-    this.logger.debug(`매칭 대상 공개 기간: ${publishedDate.format('YYYY-MM-DD HH:mm:ss')}`);
-    const publishNotAllowed = publishedDate.isAfter(weekDateService.createDayjs());
+    this.logger.debug(
+      `매칭 대상 공개 기간: ${publishedDate.format('YYYY-MM-DD HH:mm:ss')}`,
+    );
+    const publishNotAllowed = publishedDate.isAfter(
+      weekDateService.createDayjs(),
+    );
     if (publishNotAllowed) {
       this.logger.debug(`매칭 대상 공개 전`);
       return {
         ...watingResponse,
-        untilNext: weekDateService.createDayjs(nextMatchingDate).format('YYYY-MM-DD HH:mm:ss'),
-      }
+        untilNext: weekDateService
+          .createDayjs(nextMatchingDate)
+          .format('YYYY-MM-DD HH:mm:ss'),
+      };
     }
 
     this.logger.log(`endOfView: ${endOfView.format('YYYY-MM-DD HH:mm:ss')}`);
@@ -97,29 +118,36 @@ export default class MatchResultRouter {
       partner: await onOpen(),
       type: 'open',
       untilNext: null,
-    }
+    };
   }
 
   checkRematchingEligibility(match: RawMatch): Rematching {
     const endOfView = weekDateService.createDayjs(match.expiredAt);
     // REMATCHING과 ADMIN 타입은 즉시 공개
-    const typeCorrected = [MatchType.REMATCHING, MatchType.ADMIN].includes(match.type as MatchType);
+    const typeCorrected = [MatchType.REMATCHING, MatchType.ADMIN].includes(
+      match.type as MatchType,
+    );
 
     return {
       endOfView: endOfView.format('YYYY-MM-DD HH:mm:ss'),
-      is: (!this.checkOver(endOfView.toDate()) && typeCorrected),
+      is: !this.checkOver(endOfView.toDate()) && typeCorrected,
     };
   }
 
   checkEarlyView() {
     const { thursday, sunday } = weekDateService.getWeekDates();
-    const thursdayMatchingOpenTime = weekDateService.createDayjs(thursday)
+    const thursdayMatchingOpenTime = weekDateService
+      .createDayjs(thursday)
       .set('hour', 21);
-    const sundayMatchingOpenTime = weekDateService.createDayjs(sunday)
+    const sundayMatchingOpenTime = weekDateService
+      .createDayjs(sunday)
       .set('hour', 21);
     const now = weekDateService.createDayjs();
 
-    if (now.isAfter(thursdayMatchingOpenTime) && now.isBefore(sundayMatchingOpenTime)) {
+    if (
+      now.isAfter(thursdayMatchingOpenTime) &&
+      now.isBefore(sundayMatchingOpenTime)
+    ) {
       return true;
     }
 
@@ -129,5 +157,4 @@ export default class MatchResultRouter {
   checkOver(day: Date | Dayjs): boolean {
     return weekDateService.createDayjs().isAfter(day);
   }
-
 }

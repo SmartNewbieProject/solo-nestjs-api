@@ -21,7 +21,7 @@ import { ArticleSwagger } from '../docs';
 @Roles(Role.USER, Role.ADMIN)
 @Controller('articles')
 export class ArticleController {
-  constructor(private readonly articleService: ArticleService) { }
+  constructor(private readonly articleService: ArticleService) {}
 
   @Post()
   @ArticleSwagger.createArticle()
@@ -49,7 +49,12 @@ export class ArticleController {
     @Query('limit') limit: number = 10,
     @CurrentUser() user: AuthenticationUser,
   ) {
-    return await this.articleService.getArticles(categoryCode, page, limit, user?.id);
+    return await this.articleService.getArticles(
+      categoryCode,
+      page,
+      limit,
+      user?.id,
+    );
   }
 
   @Public()
@@ -97,5 +102,4 @@ export class ArticleController {
   async getLatestHotArticles() {
     return await this.articleService.getLatestHotArticles();
   }
-
 }

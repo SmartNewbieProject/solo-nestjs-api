@@ -1,14 +1,17 @@
-import { Injectable } from "@nestjs/common";
-import { MatchingService } from "@/matching/services/matching.service";
-import AdminMatchRepository from "../repositories/match.repository";
-import { AdminMatchRequest, AdminMatchSimulationRequest } from "@/matching/dto/matching";
-import { ProfileService } from "@/user/services/profile.service";
-import { PaginatedResponse, Pagination } from "@/types/common";
-import { MatchType, Similarity, UnmatchedUser } from "@/types/match";
-import { Gender } from "@/types/enum";
-import weekDateService from "@/matching/domain/date";
-import dayjs from "dayjs";
-import { choiceRandom } from "@/matching/domain/random";
+import { Injectable } from '@nestjs/common';
+import { MatchingService } from '@/matching/services/matching.service';
+import AdminMatchRepository from '../repositories/match.repository';
+import {
+  AdminMatchRequest,
+  AdminMatchSimulationRequest,
+} from '@/matching/dto/matching';
+import { ProfileService } from '@/user/services/profile.service';
+import { PaginatedResponse, Pagination } from '@/types/common';
+import { MatchType, Similarity, UnmatchedUser } from '@/types/match';
+import { Gender } from '@/types/enum';
+import weekDateService from '@/matching/domain/date';
+import dayjs from 'dayjs';
+import { choiceRandom } from '@/matching/domain/random';
 
 interface MatchStats {
   totalMatchRate: number;
@@ -21,12 +24,14 @@ export default class AdminMatchService {
   constructor(
     private readonly matchingService: MatchingService,
     private readonly profileService: ProfileService,
-    private readonly adminMatchRepository: AdminMatchRepository
-  ) { }
+    private readonly adminMatchRepository: AdminMatchRepository,
+  ) {}
 
   // 기존 findMatches 메서드는 simulateMatching으로 대체됨
 
-  async getUnmatchedUsers(pagination: Pagination): Promise<PaginatedResponse<UnmatchedUser>> {
+  async getUnmatchedUsers(
+    pagination: Pagination,
+  ): Promise<PaginatedResponse<UnmatchedUser>> {
     return await this.adminMatchRepository.getUnmatchedUsers(pagination);
   }
 
@@ -43,21 +48,27 @@ export default class AdminMatchService {
         totalMatchRate: 0,
         ...(gender === Gender.MALE ? { maleMatchRate: 0 } : {}),
         ...(gender === Gender.FEMALE ? { femaleMatchRate: 0 } : {}),
-        ...((!gender) ? { maleMatchRate: 0, femaleMatchRate: 0 } : {})
+        ...(!gender ? { maleMatchRate: 0, femaleMatchRate: 0 } : {}),
       };
     }
 
     const stats: MatchStats = {
-      totalMatchRate: 100
+      totalMatchRate: 100,
     };
 
     if (!gender || gender === Gender.MALE) {
-      const maleCount = await this.adminMatchRepository.getGenderMatchCount(date, Gender.MALE);
+      const maleCount = await this.adminMatchRepository.getGenderMatchCount(
+        date,
+        Gender.MALE,
+      );
       stats.maleMatchRate = (maleCount / totalCount) * 100;
     }
 
     if (!gender || gender === Gender.FEMALE) {
-      const femaleCount = await this.adminMatchRepository.getGenderMatchCount(date, Gender.FEMALE);
+      const femaleCount = await this.adminMatchRepository.getGenderMatchCount(
+        date,
+        Gender.FEMALE,
+      );
       stats.femaleMatchRate = (femaleCount / totalCount) * 100;
     }
 
@@ -69,19 +80,25 @@ export default class AdminMatchService {
    * @param request 매칭 시뮬레이션 요청 (AdminMatchRequest 또는 AdminMatchSimulationRequest)
    * @returns 매칭 시뮬레이션 결과
    */
-  async simulateMatching(request: AdminMatchRequest | AdminMatchSimulationRequest) {
+  async simulateMatching(
+    request: AdminMatchRequest | AdminMatchSimulationRequest,
+  ) {
     const { userId, limit = 5 } = request;
 
     // 매칭 가능한 파트너 찾기 (limit보다 많은 결과를 가져와서 나중에 제한)
     // 다양한 결과를 얻기 위해 더 많은 후보를 가져옴
-    const similarUsers = await this.matchingService.findMatches(userId, Math.max(limit * 2, 10), MatchType.ADMIN);
+    const similarUsers = await this.matchingService.findMatches(
+      userId,
+      Math.max(limit * 2, 10),
+      MatchType.ADMIN,
+    );
 
     if (similarUsers.length === 0) {
       return {
         success: false,
         message: '매칭 가능한 파트너가 없습니다.',
         requester: null,
-        potentialPartners: []
+        potentialPartners: [],
       };
     }
 
@@ -89,15 +106,16 @@ export default class AdminMatchService {
     const requester = await this.profileService.getUserProfiles(userId);
 
     // 파트너 프로필 조회
-    const partnerIds = similarUsers.map(user => user.userId);
-    const partnerProfiles = await this.profileService.getProfilesByIds(partnerIds);
+    const partnerIds = similarUsers.map((user) => user.userId);
+    const partnerProfiles =
+      await this.profileService.getProfilesByIds(partnerIds);
 
     // 파트너 정보와 유사도 점수 결합
-    let potentialPartners = similarUsers.map(similarUser => {
-      const profile = partnerProfiles.find(p => p.id === similarUser.userId);
+    let potentialPartners = similarUsers.map((similarUser) => {
+      const profile = partnerProfiles.find((p) => p.id === similarUser.userId);
       return {
         profile,
-        similarity: similarUser.similarity
+        similarity: similarUser.similarity,
       };
     });
 
@@ -108,15 +126,15 @@ export default class AdminMatchService {
     potentialPartners = potentialPartners.slice(0, limit);
 
     // 무작위로 하나의 파트너 선택 (실제 매칭과 동일한 로직)
-    const selectedPartner = potentialPartners.length > 0 ?
-      choiceRandom(potentialPartners) : null;
+    const selectedPartner =
+      potentialPartners.length > 0 ? choiceRandom(potentialPartners) : null;
 
     return {
       success: true,
       message: '매칭 시뮬레이션이 성공적으로 수행되었습니다.',
       requester,
       potentialPartners,
-      selectedPartner
+      selectedPartner,
     };
   }
 

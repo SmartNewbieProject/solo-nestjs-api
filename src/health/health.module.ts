@@ -5,4 +5,4 @@ import { HealthController } from './health.controller';
   imports: [],
   controllers: [HealthController],
 })
-export class HealthModule { }
+export class HealthModule {}

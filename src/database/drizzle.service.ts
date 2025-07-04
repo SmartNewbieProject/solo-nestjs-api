@@ -22,7 +22,7 @@ export class DrizzleService {
     });
 
     this._pool.on('connect', (client) => {
-      client.query('SET timezone = \'Asia/Seoul\'');
+      client.query("SET timezone = 'Asia/Seoul'");
     });
   }
 

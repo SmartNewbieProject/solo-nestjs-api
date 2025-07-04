@@ -5,11 +5,14 @@ import { Injectable } from '@nestjs/common';
 export class MatchUserHistoryManager {
   private readonly TTL = 3 * 24 * 60 * 60 * 1000; // 3일(ms)
 
-  constructor(
-    private readonly redisService: RedisService,
-  ) {}
+  constructor(private readonly redisService: RedisService) {}
 
-  async addMatchedUser(requesterId: string, matcherId: string, matcherName: string, ttl: number = this.TTL) {
+  async addMatchedUser(
+    requesterId: string,
+    matcherId: string,
+    matcherName: string,
+    ttl: number = this.TTL,
+  ) {
     const key = `${requesterId}:match_users:${matcherId}`;
     await this.redisService.set(key, matcherName, ttl);
   }

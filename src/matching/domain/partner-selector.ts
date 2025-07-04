@@ -1,6 +1,8 @@
-import { WeightedPartner } from "@/types/match";
+import { WeightedPartner } from '@/types/match';
 
-export function weightedRandomChoice<T = any>(partners: WeightedPartner[]): WeightedPartner| null {
+export function weightedRandomChoice<T = any>(
+  partners: WeightedPartner[],
+): WeightedPartner | null {
   if (!partners.length) return null;
   const total = partners.reduce((sum, p) => sum + p.finalWeight, 0);
   if (total === 0) return partners[0];

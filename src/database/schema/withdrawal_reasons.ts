@@ -1,4 +1,10 @@
-import { pgTable, varchar, text, integer, timestamp } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  varchar,
+  text,
+  integer,
+  timestamp,
+} from 'drizzle-orm/pg-core';
 import { uuid, timestamps } from './helper';
 
 export enum WithdrawalReason {
@@ -9,7 +15,7 @@ export enum WithdrawalReason {
   TECHNICAL_ISSUES = 'TECHNICAL_ISSUES',
   INACTIVE_USAGE = 'INACTIVE_USAGE',
   DISSATISFIED_SERVICE = 'DISSATISFIED_SERVICE',
-  OTHER = 'OTHER'
+  OTHER = 'OTHER',
 }
 
 export const withdrawalReasons = pgTable('withdrawal_reasons', {

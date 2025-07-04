@@ -1,5 +1,5 @@
-import { UserRank } from "@/database/schema/profiles";
-import { MatchType } from "@/types/match";
+import { UserRank } from '@/database/schema/profiles';
+import { MatchType } from '@/types/match';
 
 const LOSER = [UserRank.C, UserRank.B];
 
@@ -27,7 +27,10 @@ const RANK_MATCHING_RULES = {
   },
 } satisfies Record<MatchType, Record<UserRank, UserRank[] | false>>;
 
-export const createRankFilter = (rank: UserRank, type: MatchType): string[] | false => {
+export const createRankFilter = (
+  rank: UserRank,
+  type: MatchType,
+): string[] | false => {
   const rules = RANK_MATCHING_RULES[type];
   return rules[rank];
 };

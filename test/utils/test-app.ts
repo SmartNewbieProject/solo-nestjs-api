@@ -29,7 +29,15 @@ export class TestApp {
 
     // 실제 애플리케이션과 동일한 설정 적용
     this.app.useStaticAssets(join(__dirname, '../../', 'public'));
-    this.app.setGlobalPrefix('api', { exclude: ['docs', 'docs-json', 'swagger-ui-bundle.js', 'swagger-ui-standalone-preset.js', 'swagger-ui.css'] });
+    this.app.setGlobalPrefix('api', {
+      exclude: [
+        'docs',
+        'docs-json',
+        'swagger-ui-bundle.js',
+        'swagger-ui-standalone-preset.js',
+        'swagger-ui.css',
+      ],
+    });
     this.app.enableCors({
       origin: ['http://localhost:3000', 'http://localhost:3001'],
       credentials: true,
@@ -74,7 +82,9 @@ export class TestApp {
 
   getApp(): INestApplication {
     if (!this.app) {
-      throw new Error('애플리케이션이 초기화되지 않았습니다. init() 메서드를 먼저 호출하세요.');
+      throw new Error(
+        '애플리케이션이 초기화되지 않았습니다. init() 메서드를 먼저 호출하세요.',
+      );
     }
     return this.app;
   }

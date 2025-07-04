@@ -103,7 +103,11 @@ export class RedisService {
    * @param min 최소 점수
    * @param max 최대 점수
    */
-  async zrangebyscore(key: string, min: number, max: number): Promise<string[]> {
+  async zrangebyscore(
+    key: string,
+    min: number,
+    max: number,
+  ): Promise<string[]> {
     return await this.redisClient.zrangebyscore(key, min, max);
   }
 

@@ -9,7 +9,7 @@ export enum WithdrawalReason {
   TECHNICAL_ISSUES = 'TECHNICAL_ISSUES', // 기술적 문제
   INACTIVE_USAGE = 'INACTIVE_USAGE', // 서비스를 잘 사용하지 않아서
   DISSATISFIED_SERVICE = 'DISSATISFIED_SERVICE', // 서비스에 불만족
-  OTHER = 'OTHER' // 기타 사유
+  OTHER = 'OTHER', // 기타 사유
 }
 
 /**
@@ -23,5 +23,5 @@ export const withdrawalReasonDisplayNames: Record<WithdrawalReason, string> = {
   [WithdrawalReason.TECHNICAL_ISSUES]: '기술적 문제',
   [WithdrawalReason.INACTIVE_USAGE]: '서비스를 잘 사용하지 않아서',
   [WithdrawalReason.DISSATISFIED_SERVICE]: '서비스에 불만족',
-  [WithdrawalReason.OTHER]: '기타 사유'
+  [WithdrawalReason.OTHER]: '기타 사유',
 };

@@ -1,6 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { WithdrawalReason, withdrawalReasonDisplayNames } from '@/types/withdrawal';
+import {
+  WithdrawalReason,
+  withdrawalReasonDisplayNames,
+} from '@/types/withdrawal';
 
 export class WithdrawRequest {
   @ApiProperty({

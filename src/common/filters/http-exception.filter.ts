@@ -29,9 +29,10 @@ export class HttpExceptionFilter implements ExceptionFilter {
     }
 
     const errorResponse: ApiErrorResponse = {
-      error: typeof exceptionResponse === 'string'
-        ? exceptionResponse
-        : exceptionResponse.message || exception.message,
+      error:
+        typeof exceptionResponse === 'string'
+          ? exceptionResponse
+          : exceptionResponse.message || exception.message,
     };
 
     return response.status(status).json(errorResponse);

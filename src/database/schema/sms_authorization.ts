@@ -1,5 +1,5 @@
-import { pgTable, varchar, boolean } from "drizzle-orm/pg-core";
-import { timestamps, uuid } from "./helper";
+import { pgTable, varchar, boolean } from 'drizzle-orm/pg-core';
+import { timestamps, uuid } from './helper';
 
 export const smsAuthorization = pgTable('sms_authorization', {
   id: uuid(),

@@ -6,7 +6,10 @@ import * as schema from '@database/schema';
 import { articles } from '@database/schema';
 import { eq } from 'drizzle-orm';
 import { Cron } from '@nestjs/schedule';
-import { ViewCountKeyManager, ViewCountSyncProcessor } from '../domain/view-count-sync';
+import {
+  ViewCountKeyManager,
+  ViewCountSyncProcessor,
+} from '../domain/view-count-sync';
 
 @Injectable()
 export class ArticleViewService {
@@ -25,7 +28,7 @@ export class ArticleViewService {
       this.redisService,
       this.db,
       this.BATCH_SIZE,
-      this.VIEW_COUNT_PREFIX
+      this.VIEW_COUNT_PREFIX,
     );
   }
 
@@ -44,7 +47,6 @@ export class ArticleViewService {
 
     await this.redisService.incr(key);
   }
-
 
   async getViewCount(articleId: string): Promise<number> {
     const tempCount = await this.getViewWithoutDbCount(articleId);
@@ -80,7 +82,7 @@ export class ArticleViewService {
 
       this.logger.log(
         `조회수 동기화 완료: 총 ${result.processedCount}개 처리 ` +
-        `(성공: ${result.successCount}, 실패: ${result.failedCount})`
+          `(성공: ${result.successCount}, 실패: ${result.failedCount})`,
       );
       if (result.errors.length > 0) {
         this.logger.warn(`${result.errors.length}개의 오류가 발생했습니다.`);
@@ -92,5 +94,4 @@ export class ArticleViewService {
       this.logger.error('조회수 동기화 중 오류 발생:', error);
     }
   }
-
 }

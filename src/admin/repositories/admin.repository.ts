@@ -13,7 +13,7 @@ export class AdminRepository {
       .select({ count: count() })
       .from(users)
       .where(sql`${users.deletedAt} IS NULL`);
-    
+
     return result[0].count;
   }
 
