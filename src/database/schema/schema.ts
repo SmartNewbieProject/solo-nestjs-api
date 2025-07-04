@@ -22,6 +22,7 @@ import { articleCategory } from './article_categories';
 import { hotArticles } from './hot_articles';
 import { withdrawalReasons } from './withdrawal_reasons';
 import { matchingFailureLogs } from './matching_failure_logs';
+import { additionalPreferences } from './addtional_preferences';
 
 // 관계형 매핑 파일 가져오기
 import './relations';
@@ -57,6 +58,7 @@ export {
   articleCategory,
   hotArticles,
   matchingFailureLogs,
+  additionalPreferences,
 };
 
 // 모든 테이블 스키마를 배열로 내보내기
@@ -83,4 +85,5 @@ export const schemas = [
   articleCategory,
   hotArticles,
   matchingFailureLogs,
+  additionalPreferences,
 ];

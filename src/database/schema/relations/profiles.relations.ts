@@ -5,7 +5,7 @@ import { universityDetails } from '../university_details';
 import { profileImages } from '../profile_images';
 import { userPreferences } from '../user_preferences';
 import { matchingRequests } from '../matching_requests';
-import { matches } from '../matches';
+import { additionalPreferences } from '../addtional_preferences';
 
 export const profilesRelations = relations(profiles, ({ one, many }) => ({
   user: one(users, {
@@ -19,4 +19,8 @@ export const profilesRelations = relations(profiles, ({ one, many }) => ({
   profileImages: many(profileImages),
   userPreference: one(userPreferences),
   matchingRequests: many(matchingRequests),
+  additionalPreference: one(additionalPreferences, {
+    fields: [profiles.id],
+    references: [additionalPreferences.profileId],
+  }),
 }));
