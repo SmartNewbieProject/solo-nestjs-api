@@ -13,10 +13,11 @@ import {
 
 import { InjectDrizzle } from '@/common/decorators';
 import type { NodePgDatabase } from 'drizzle-orm/node-postgres';
-import { generateAnonymousName, generateConsistentAnonymousName } from '../domain';
 import {
-  ArticleQueryBuilder,
-} from '../domain/article-query-builder';
+  generateAnonymousName,
+  generateConsistentAnonymousName,
+} from '../domain';
+import { ArticleQueryBuilder } from '../domain/article-query-builder';
 import { HotArticleQueryBuilder } from '../domain/hot-article-query-builder';
 import { ArticleMapper } from '../domain/article-mapper';
 
@@ -29,7 +30,7 @@ export class ArticleRepository {
 
   constructor(
     @InjectDrizzle() private readonly db: NodePgDatabase<typeof schema>,
-  ) { }
+  ) {}
 
   getArticleCategories() {
     return this.db.query.articleCategory.findMany({
@@ -41,7 +42,11 @@ export class ArticleRepository {
     });
   }
 
-  async createArticle(authorId: string, articleData: ArticleUpload, anonymousName: string | null) {
+  async createArticle(
+    authorId: string,
+    articleData: ArticleUpload,
+    anonymousName: string | null,
+  ) {
     const category = await this.db.query.articleCategory.findFirst({
       where: eq(schema.articleCategory.code, articleData.type),
     });
@@ -195,14 +200,15 @@ export class ArticleRepository {
   }
 
   async getReportIds(userId: string): Promise<string[]> {
-    const results = await this.db.select({
-      id: reports.postId,
-    })
+    const results = await this.db
+      .select({
+        id: reports.postId,
+      })
       .from(reports)
       .where(eq(reports.reporterId, userId))
       .execute();
 
-    return results.map(result => result.id);
+    return results.map((result) => result.id);
   }
 
   async getLatestSimpleHotArticles() {
@@ -243,8 +249,8 @@ export class ArticleRepository {
         and(
           eq(articles.authorId, userId),
           isNull(articles.deletedAt),
-          sql`${articles.createdAt} > ${timeThreshold}`
-        )
+          sql`${articles.createdAt} > ${timeThreshold}`,
+        ),
       )
       .orderBy(desc(articles.createdAt))
       .limit(1)

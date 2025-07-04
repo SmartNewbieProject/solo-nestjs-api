@@ -20,11 +20,15 @@ export class QdrantService implements OnModuleInit {
       await this.connect();
     } catch (error) {
       if (retryCount < this.MAX_RETRIES) {
-        this.logger.warn(`Qdrant 연결 실패. ${this.RETRY_DELAY/1000}초 후 재시도합니다. (시도 ${retryCount + 1}/${this.MAX_RETRIES})`);
-        await new Promise(resolve => setTimeout(resolve, this.RETRY_DELAY));
+        this.logger.warn(
+          `Qdrant 연결 실패. ${this.RETRY_DELAY / 1000}초 후 재시도합니다. (시도 ${retryCount + 1}/${this.MAX_RETRIES})`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, this.RETRY_DELAY));
         await this.connectWithRetry(retryCount + 1);
       } else {
-        this.logger.error(`Qdrant 연결이 ${this.MAX_RETRIES}번의 시도 후에도 실패했습니다.`);
+        this.logger.error(
+          `Qdrant 연결이 ${this.MAX_RETRIES}번의 시도 후에도 실패했습니다.`,
+        );
         throw error;
       }
     }
@@ -37,7 +41,9 @@ export class QdrantService implements OnModuleInit {
       const apiKey = this.configService.get<string>('QDRANT_API_KEY');
       const https = this.configService.get<boolean>('QDRANT_HTTPS', false);
 
-      this.logger.log(`Qdrant 연결 설정: host=${host}, port=${port}, https=${https}, apiKey=${apiKey ? '설정됨' : '미설정'}`);
+      this.logger.log(
+        `Qdrant 연결 설정: host=${host}, port=${port}, https=${https}, apiKey=${apiKey ? '설정됨' : '미설정'}`,
+      );
 
       // URL 기반 설정으로 변경
       const url = `http://${host}:${port}`;
@@ -53,7 +59,9 @@ export class QdrantService implements OnModuleInit {
 
       // 연결 테스트
       const collections = await this.client.getCollections();
-      this.logger.log(`Qdrant 연결 성공. 컬렉션 목록: ${JSON.stringify(collections)}`);
+      this.logger.log(
+        `Qdrant 연결 성공. 컬렉션 목록: ${JSON.stringify(collections)}`,
+      );
     } catch (error) {
       this.logger.error(`Qdrant 연결 실패: ${error.message}`, error.stack);
       this.logger.error(`상세 오류 정보: ${JSON.stringify(error)}`);
@@ -79,12 +87,12 @@ export class QdrantService implements OnModuleInit {
     try {
       const collections = await this.client.getCollections();
       return collections.collections.some(
-        (collection) => collection.name === collectionName
+        (collection) => collection.name === collectionName,
       );
     } catch (error) {
       this.logger.error(
         `컬렉션 확인 중 오류 발생: ${error.message}`,
-        error.stack
+        error.stack,
       );
       return false;
     }
@@ -97,7 +105,7 @@ export class QdrantService implements OnModuleInit {
    */
   async createCollection(
     collectionName: string,
-    dimension: number
+    dimension: number,
   ): Promise<void> {
     try {
       const exists = await this.collectionExists(collectionName);
@@ -117,7 +125,7 @@ export class QdrantService implements OnModuleInit {
     } catch (error) {
       this.logger.error(
         `컬렉션 생성 중 오류 발생: ${error.message}`,
-        error.stack
+        error.stack,
       );
       throw new Error(`컬렉션 생성 실패: ${error.message}`);
     }
@@ -134,7 +142,7 @@ export class QdrantService implements OnModuleInit {
       id: string;
       vector: number[];
       payload?: Record<string, any>;
-    }>
+    }>,
   ): Promise<void> {
     try {
       await this.client.upsert(collectionName, {
@@ -142,12 +150,12 @@ export class QdrantService implements OnModuleInit {
       });
 
       this.logger.log(
-        `${points.length}개의 포인트가 '${collectionName}' 컬렉션에 업서트되었습니다.`
+        `${points.length}개의 포인트가 '${collectionName}' 컬렉션에 업서트되었습니다.`,
       );
     } catch (error) {
       this.logger.error(
         `포인트 업서트 중 오류 발생: ${error.message}`,
-        error.stack
+        error.stack,
       );
       throw new Error(`포인트 업서트 실패: ${error.message}`);
     }
@@ -164,7 +172,7 @@ export class QdrantService implements OnModuleInit {
     collectionName: string,
     vector: number[],
     limit: number = 10,
-    filter?: Record<string, any>
+    filter?: Record<string, any>,
   ) {
     try {
       const searchParams: any = {
@@ -181,12 +189,12 @@ export class QdrantService implements OnModuleInit {
     } catch (error) {
       this.logger.error(
         `벡터 검색 중 오류 발생: ${error.message}`,
-        error.stack
+        error.stack,
       );
       throw new Error(`벡터 검색 실패: ${error.message}`);
     }
   }
- 
+
   /**
    * 컬렉션에서 포인트를 삭제합니다.
    * @param collectionName 컬렉션 이름
@@ -194,7 +202,7 @@ export class QdrantService implements OnModuleInit {
    */
   async deletePoints(
     collectionName: string,
-    pointIds: string[]
+    pointIds: string[],
   ): Promise<void> {
     try {
       await this.client.delete(collectionName, {
@@ -202,12 +210,12 @@ export class QdrantService implements OnModuleInit {
       });
 
       this.logger.log(
-        `${pointIds.length}개의 포인트가 '${collectionName}' 컬렉션에서 삭제되었습니다.`
+        `${pointIds.length}개의 포인트가 '${collectionName}' 컬렉션에서 삭제되었습니다.`,
       );
     } catch (error) {
       this.logger.error(
         `포인트 삭제 중 오류 발생: ${error.message}`,
-        error.stack
+        error.stack,
       );
       throw new Error(`포인트 삭제 실패: ${error.message}`);
     }
@@ -216,10 +224,15 @@ export class QdrantService implements OnModuleInit {
   async testConnection(): Promise<boolean> {
     try {
       const collections = await this.client.getCollections();
-      this.logger.log(`Qdrant 연결 테스트 성공. 컬렉션: ${JSON.stringify(collections)}`);
+      this.logger.log(
+        `Qdrant 연결 테스트 성공. 컬렉션: ${JSON.stringify(collections)}`,
+      );
       return true;
     } catch (error) {
-      this.logger.error(`Qdrant 연결 테스트 실패: ${error.message}`, error.stack);
+      this.logger.error(
+        `Qdrant 연결 테스트 실패: ${error.message}`,
+        error.stack,
+      );
       return false;
     }
   }

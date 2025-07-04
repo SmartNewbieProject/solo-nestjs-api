@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectDrizzle } from '@common/decorators';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '@database/schema';
@@ -27,11 +31,16 @@ export class ImageService {
         throw new NotFoundException('사용자 프로필을 찾을 수 없습니다.');
       }
       const existingImages = await tx.query.profileImages.findMany({
-        where: and(eq(schema.profileImages.profileId, profile.id), isNull(schema.profileImages.deletedAt)),
+        where: and(
+          eq(schema.profileImages.profileId, profile.id),
+          isNull(schema.profileImages.deletedAt),
+        ),
       });
 
       if (existingImages.length >= 3) {
-        throw new BadRequestException('프로필 이미지는 최대 3개까지만 등록할 수 있습니다.');
+        throw new BadRequestException(
+          '프로필 이미지는 최대 3개까지만 등록할 수 있습니다.',
+        );
       }
 
       const imageId = generateUuidV7();
@@ -44,15 +53,16 @@ export class ImageService {
       });
 
       const profileImageId = generateUuidV7();
-      
+
       if (isMain) {
-        await tx.update(schema.profileImages)
+        await tx
+          .update(schema.profileImages)
           .set({ isMain: false })
           .where(eq(schema.profileImages.profileId, profile.id));
       }
 
       const imageOrder = existingImages.length + 1;
-      
+
       await tx.insert(schema.profileImages).values({
         id: profileImageId,
         profileId: profile.id,
@@ -93,20 +103,30 @@ export class ImageService {
         throw new NotFoundException('프로필 이미지를 찾을 수 없습니다.');
       }
 
-      await tx.update(schema.profileImages)
+      await tx
+        .update(schema.profileImages)
         .set({ deletedAt: new Date() })
         .where(eq(schema.profileImages.id, profileImageId));
 
       if (profileImage.isMain) {
         const nextMainImage = await tx.query.profileImages.findFirst({
-          where: and(eq(schema.profileImages.profileId, profile.id), isNull(schema.profileImages.deletedAt)),
+          where: and(
+            eq(schema.profileImages.profileId, profile.id),
+            isNull(schema.profileImages.deletedAt),
+          ),
           orderBy: schema.profileImages.imageOrder,
         });
 
         if (nextMainImage) {
-          await tx.update(schema.profileImages)
+          await tx
+            .update(schema.profileImages)
             .set({ isMain: true })
-            .where(and(eq(schema.profileImages.id, nextMainImage.id), isNull(schema.profileImages.deletedAt)));
+            .where(
+              and(
+                eq(schema.profileImages.id, nextMainImage.id),
+                isNull(schema.profileImages.deletedAt),
+              ),
+            );
         }
       }
     });
@@ -130,11 +150,13 @@ export class ImageService {
         throw new NotFoundException('프로필 이미지를 찾을 수 없습니다.');
       }
 
-      await tx.update(schema.profileImages)
+      await tx
+        .update(schema.profileImages)
         .set({ isMain: false })
         .where(eq(schema.profileImages.profileId, profile.id));
 
-      await tx.update(schema.profileImages)
+      await tx
+        .update(schema.profileImages)
         .set({ isMain: true })
         .where(eq(schema.profileImages.id, profileImageId));
     });

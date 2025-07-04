@@ -1,5 +1,5 @@
-const S3_BASE_URL = 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/resources';
-
+const S3_BASE_URL =
+  'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/resources';
 
 export enum ImageResources {
   TICKET = `${S3_BASE_URL}/ticket.png`,

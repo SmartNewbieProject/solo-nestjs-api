@@ -6,7 +6,7 @@ export enum ReportReason {
   PERSONAL_INFO = '개인정보 노출',
   FAKE_INFO = '가짜 정보',
   COPYRIGHT = '저작권 침해',
-  OTHER = '기타 사유'
+  OTHER = '기타 사유',
 }
 
 export const reportReasons: ReportReason[] = Object.values(ReportReason);

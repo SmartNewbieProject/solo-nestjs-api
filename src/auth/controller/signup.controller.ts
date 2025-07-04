@@ -11,19 +11,21 @@ import * as multer from 'multer';
 @SignupDocs.controller()
 @Public()
 export class SignupController {
-  constructor(private readonly signupService: SignupService) { }
+  constructor(private readonly signupService: SignupService) {}
 
   @Post('signup')
   @ApiConsumes('multipart/form-data')
   @SignupDocs.signup()
-  @UseInterceptors(FilesInterceptor('profileImages', 3, {
-    limits: {
-      fileSize: 20 * 1024 * 1024,
-    }
-  }))
+  @UseInterceptors(
+    FilesInterceptor('profileImages', 3, {
+      limits: {
+        fileSize: 20 * 1024 * 1024,
+      },
+    }),
+  )
   async signup(
     @Body() signupRequest: SignupRequest,
-    @UploadedFiles() files: multer.File[]
+    @UploadedFiles() files: multer.File[],
   ) {
     signupRequest.profileImages = files;
     if (!files || files.length === 0) {
@@ -31,7 +33,9 @@ export class SignupController {
     }
 
     if (files.length > 3) {
-      throw new BadRequestException('프로필 이미지는 최대 3개까지 업로드 가능합니다.');
+      throw new BadRequestException(
+        '프로필 이미지는 최대 3개까지 업로드 가능합니다.',
+      );
     }
 
     return await this.signupService.signup({

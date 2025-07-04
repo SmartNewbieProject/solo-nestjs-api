@@ -11,7 +11,7 @@ import { map } from 'rxjs/operators';
 export class TransformInterceptor<T> implements NestInterceptor<T, T> {
   intercept(context: ExecutionContext, next: CallHandler): Observable<T> {
     return next.handle().pipe(
-      map(data => {
+      map((data) => {
         return data;
       }),
     );

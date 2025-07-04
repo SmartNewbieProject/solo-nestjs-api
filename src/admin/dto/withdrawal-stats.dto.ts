@@ -1,6 +1,9 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsDateString, IsOptional } from 'class-validator';
-import { WithdrawalReason, withdrawalReasonDisplayNames } from '@/types/withdrawal';
+import {
+  WithdrawalReason,
+  withdrawalReasonDisplayNames,
+} from '@/types/withdrawal';
 
 /**
  * 기간별 탈퇴자 수 요청 DTO

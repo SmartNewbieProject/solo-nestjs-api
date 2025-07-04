@@ -38,8 +38,10 @@ export class SignupRequest {
   })
   @IsString()
   @IsNotEmpty({ message: '성별은 필수 입력 항목입니다.' })
-  @Matches(/^(MALE|FEMALE)$/, { message: '성별은 MALE 또는 FEMALE이어야 합니다.' })
-  @Transform(({ value }) => value === 'MALE' ? Gender.MALE : Gender.FEMALE)
+  @Matches(/^(MALE|FEMALE)$/, {
+    message: '성별은 MALE 또는 FEMALE이어야 합니다.',
+  })
+  @Transform(({ value }) => (value === 'MALE' ? Gender.MALE : Gender.FEMALE))
   gender: Gender;
 
   @ApiProperty({

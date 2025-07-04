@@ -9,9 +9,9 @@ export const signupSuccessResponse: ApiResponseOptions = {
       email: 'user@example.com',
       name: '홍길동',
       createdAt: '2025-04-04T12:39:45.000Z',
-      updatedAt: '2025-04-04T12:39:45.000Z'
-    }
-  }
+      updatedAt: '2025-04-04T12:39:45.000Z',
+    },
+  },
 };
 
 export const signupValidationFailureResponse: ApiResponseOptions = {
@@ -19,9 +19,9 @@ export const signupValidationFailureResponse: ApiResponseOptions = {
   description: '잘못된 요청 데이터',
   schema: {
     example: {
-      error: '비밀번호는 최소 8자 이상이어야 합니다.'
-    }
-  }
+      error: '비밀번호는 최소 8자 이상이어야 합니다.',
+    },
+  },
 };
 
 export const signupConflictResponse: ApiResponseOptions = {
@@ -30,6 +30,6 @@ export const signupConflictResponse: ApiResponseOptions = {
   schema: {
     example: {
       error: '이미 등록된 이메일입니다.',
-    }
-  }
+    },
+  },
 };

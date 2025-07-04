@@ -6,6 +6,6 @@ import { SlackService } from './slack.service';
 @Module({
   imports: [ConfigModule],
   providers: [SlackService],
-  exports: [SlackService]
+  exports: [SlackService],
 })
 export class SlackNotificationModule {}

@@ -1,7 +1,7 @@
-import { relations } from "drizzle-orm";
-import { likes } from "../likes";
-import { articles } from "../articles";
-import { users } from "../users";
+import { relations } from 'drizzle-orm';
+import { likes } from '../likes';
+import { articles } from '../articles';
+import { users } from '../users';
 
 export const likesRelations = relations(likes, ({ one }) => ({
   user: one(users, {

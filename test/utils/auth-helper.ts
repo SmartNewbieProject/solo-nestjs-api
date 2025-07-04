@@ -10,7 +10,9 @@ export class AuthHelper {
       .send({ email, password });
 
     if (response.status !== 200) {
-      throw new Error(`로그인 실패: ${response.status} ${JSON.stringify(response.body)}`);
+      throw new Error(
+        `로그인 실패: ${response.status} ${JSON.stringify(response.body)}`,
+      );
     }
 
     // 응답에서 액세스 토큰 추출

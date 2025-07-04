@@ -6,10 +6,10 @@ import { images } from '../images';
 export const profileImagesRelations = relations(profileImages, ({ one }) => ({
   profile: one(profiles, {
     fields: [profileImages.profileId],
-    references: [profiles.id]
+    references: [profiles.id],
   }),
   image: one(images, {
     fields: [profileImages.imageId],
-    references: [images.id]
-  })
+    references: [images.id],
+  }),
 }));

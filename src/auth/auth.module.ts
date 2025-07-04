@@ -21,7 +21,12 @@ import { IamportService } from './services/iamport.service';
 
 @Module({
   imports: [SmsModule],
-  controllers: [SignupController, AuthController, UniversityController, AiTokenController],
+  controllers: [
+    SignupController,
+    AuthController,
+    UniversityController,
+    AiTokenController,
+  ],
   providers: [
     SignupService,
     SignupRepository,
@@ -37,4 +42,4 @@ import { IamportService } from './services/iamport.service';
   ],
   exports: [SignupService, AuthService, UniversityService, AiTokenService],
 })
-export class AuthModule { }
+export class AuthModule {}

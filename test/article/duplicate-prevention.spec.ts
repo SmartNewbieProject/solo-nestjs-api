@@ -57,14 +57,25 @@ describe('중복 요청 방지 테스트', () => {
 
     articleService = module.get<ArticleService>(ArticleService);
     commentService = module.get<CommentService>(CommentService);
-    
+
     jest.clearAllMocks();
   });
 
   describe('게시글 중복 방지', () => {
     test('10초 이내 동일한 게시글 작성 시 에러 발생', async () => {
-      const user = { id: 'user1', name: 'Test User', role: Role.USER, email: 'test@test.com', gender: Gender.MALE };
-      const articleData = { title: '테스트 제목', content: '테스트 내용', type: ArticleRequestType.GENERAL, anonymous: false };
+      const user = {
+        id: 'user1',
+        name: 'Test User',
+        role: Role.USER,
+        email: 'test@test.com',
+        gender: Gender.MALE,
+      };
+      const articleData = {
+        title: '테스트 제목',
+        content: '테스트 내용',
+        type: ArticleRequestType.GENERAL,
+        anonymous: false,
+      };
 
       // 최근 게시글이 동일한 내용으로 존재
       mockArticleRepository.getRecentArticleByUser.mockResolvedValue({
@@ -73,14 +84,25 @@ describe('중복 요청 방지 테스트', () => {
         createdAt: new Date(),
       });
 
-      await expect(articleService.createArticle(user, articleData))
-        .rejects
-        .toThrow(BadRequestException);
+      await expect(
+        articleService.createArticle(user, articleData),
+      ).rejects.toThrow(BadRequestException);
     });
 
     test('10초 이내 다른 내용의 게시글 작성 시 정상 처리', async () => {
-      const user = { id: 'user1', name: 'Test User', role: Role.USER, email: 'test@test.com', gender: Gender.MALE };
-      const articleData = { title: '새로운 제목', content: '새로운 내용', type: ArticleRequestType.GENERAL, anonymous: false };
+      const user = {
+        id: 'user1',
+        name: 'Test User',
+        role: Role.USER,
+        email: 'test@test.com',
+        gender: Gender.MALE,
+      };
+      const articleData = {
+        title: '새로운 제목',
+        content: '새로운 내용',
+        type: ArticleRequestType.GENERAL,
+        anonymous: false,
+      };
 
       // 최근 게시글이 다른 내용
       mockArticleRepository.getRecentArticleByUser.mockResolvedValue({
@@ -92,45 +114,63 @@ describe('중복 요청 방지 테스트', () => {
       mockAnonymousNameService.generateAnonymousName.mockResolvedValue(null);
       mockArticleRepository.createArticle.mockResolvedValue({ id: 'article1' });
 
-      await expect(articleService.createArticle(user, articleData))
-        .resolves
-        .not.toThrow();
+      await expect(
+        articleService.createArticle(user, articleData),
+      ).resolves.not.toThrow();
     });
   });
 
   describe('댓글 중복 방지', () => {
     test('5초 이내 동일한 댓글 작성 시 에러 발생', async () => {
-      const user = { id: 'user1', name: 'Test User', role: Role.USER, email: 'test@test.com', gender: Gender.MALE };
+      const user = {
+        id: 'user1',
+        name: 'Test User',
+        role: Role.USER,
+        email: 'test@test.com',
+        gender: Gender.MALE,
+      };
       const commentData = { content: '테스트 댓글', anonymous: false };
 
-      mockArticleRepository.getArticleById.mockResolvedValue({ id: 'article1' });
+      mockArticleRepository.getArticleById.mockResolvedValue({
+        id: 'article1',
+      });
       mockCommentRepository.getRecentCommentByUser.mockResolvedValue({
         content: '테스트 댓글',
         createdAt: new Date(),
       });
 
-      await expect(commentService.createComment('article1', user, commentData))
-        .rejects
-        .toThrow(BadRequestException);
+      await expect(
+        commentService.createComment('article1', user, commentData),
+      ).rejects.toThrow(BadRequestException);
     });
 
     test('5초 이내 다른 내용의 댓글 작성 시 정상 처리', async () => {
-      const user = { id: 'user1', name: 'Test User', role: Role.USER, email: 'test@test.com', gender: Gender.MALE };
+      const user = {
+        id: 'user1',
+        name: 'Test User',
+        role: Role.USER,
+        email: 'test@test.com',
+        gender: Gender.MALE,
+      };
       const commentData = { content: '새로운 댓글', anonymous: false };
 
-      mockArticleRepository.getArticleById.mockResolvedValue({ id: 'article1' });
+      mockArticleRepository.getArticleById.mockResolvedValue({
+        id: 'article1',
+      });
       mockCommentRepository.getRecentCommentByUser.mockResolvedValue({
         content: '이전 댓글',
         createdAt: new Date(),
       });
 
-      mockProfileRepository.getProfileSummary.mockResolvedValue({ name: 'Test User' });
+      mockProfileRepository.getProfileSummary.mockResolvedValue({
+        name: 'Test User',
+      });
       mockAnonymousNameService.generateAnonymousName.mockResolvedValue(null);
       mockCommentRepository.createComment.mockResolvedValue({ id: 'comment1' });
 
-      await expect(commentService.createComment('article1', user, commentData))
-        .resolves
-        .not.toThrow();
+      await expect(
+        commentService.createComment('article1', user, commentData),
+      ).resolves.not.toThrow();
     });
   });
 });

@@ -49,7 +49,9 @@ export class AiTokenService {
         secret: this.configService.get<string>('JWT_SECRET'),
       });
 
-      return payload.role === Role.USER && payload.type === 'permanent_ai_token';
+      return (
+        payload.role === Role.USER && payload.type === 'permanent_ai_token'
+      );
     } catch (error) {
       this.logger.error('AI 토큰 검증 실패:', error);
       return false;

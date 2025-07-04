@@ -20,12 +20,16 @@ export class AiContentService {
    */
   async createAiArticle(
     aiUser: AuthenticationUser,
-    articleData: ArticleUpload & { anonymous?: boolean }
+    articleData: ArticleUpload & { anonymous?: boolean },
   ) {
-    this.logger.log(`AI 게시글 생성 시작 - 사용자: ${aiUser.id}, 익명: ${articleData.anonymous}`);
+    this.logger.log(
+      `AI 게시글 생성 시작 - 사용자: ${aiUser.id}, 익명: ${articleData.anonymous}`,
+    );
 
     // AI 작성자 정보 생성
-    const authorInfo = this.aiProfileService.generateAiAuthorInfo(articleData.anonymous);
+    const authorInfo = this.aiProfileService.generateAiAuthorInfo(
+      articleData.anonymous,
+    );
     this.logger.log(`AI 작성자 정보 생성 완료: ${JSON.stringify(authorInfo)}`);
 
     // 익명 처리
@@ -38,7 +42,7 @@ export class AiContentService {
         ...articleData,
         anonymous: articleData.anonymous || false,
       },
-      anonymousName
+      anonymousName,
     );
 
     this.logger.log(`AI 게시글 생성 완료 - ID: ${result.id}`);
@@ -56,7 +60,7 @@ export class AiContentService {
   async createAiComment(
     aiUser: AuthenticationUser,
     articleId: string,
-    commentData: CommentUpload & { anonymous?: boolean }
+    commentData: CommentUpload & { anonymous?: boolean },
   ) {
     // 게시글 존재 확인
     const article = await this.articleRepository.getArticleById(articleId);
@@ -65,11 +69,13 @@ export class AiContentService {
     }
 
     // AI 작성자 정보 생성
-    const authorInfo = this.aiProfileService.generateAiAuthorInfo(commentData.anonymous);
-    
+    const authorInfo = this.aiProfileService.generateAiAuthorInfo(
+      commentData.anonymous,
+    );
+
     // 익명 처리
     const anonymousName = commentData.anonymous ? authorInfo.displayName : null;
-    
+
     // 댓글 생성 (AI 전용 로직)
     const result = await this.commentRepository.createComment(
       articleId,
@@ -79,7 +85,7 @@ export class AiContentService {
         ...commentData,
         anonymous: commentData.anonymous || false,
       },
-      anonymousName
+      anonymousName,
     );
 
     return {

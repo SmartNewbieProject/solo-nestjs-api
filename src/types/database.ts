@@ -21,7 +21,7 @@ import {
   smsAuthorization,
   articleCategory,
   hotArticles,
-  withdrawalReasons
+  withdrawalReasons,
 } from '@/database/schema';
 
 // 사용자 관련 모델
@@ -34,8 +34,12 @@ export type ProfileImageModel = InferSelectModel<typeof profileImages>;
 export type PreferenceTypeModel = InferSelectModel<typeof preferenceTypes>;
 export type PreferenceOptionModel = InferSelectModel<typeof preferenceOptions>;
 export type UserPreferenceModel = InferSelectModel<typeof userPreferences>;
-export type UserPreferenceOptionModel = InferSelectModel<typeof userPreferenceOptions>;
-export type UserRangePreferenceModel = InferSelectModel<typeof userRangePreferences>;
+export type UserPreferenceOptionModel = InferSelectModel<
+  typeof userPreferenceOptions
+>;
+export type UserRangePreferenceModel = InferSelectModel<
+  typeof userRangePreferences
+>;
 
 // 매칭 관련 모델
 export type MatchModel = InferSelectModel<typeof matches>;

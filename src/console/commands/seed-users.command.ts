@@ -24,13 +24,17 @@ export class SeedUsersCommand extends CommandRunner {
     const batchSize = options?.batchSize ? parseInt(options.batchSize) : 20;
     const clear = options?.clear || false;
 
-    console.log(`사용되는 값 - count: ${count}, batchSize: ${batchSize}, clear: ${clear}`);
+    console.log(
+      `사용되는 값 - count: ${count}, batchSize: ${batchSize}, clear: ${clear}`,
+    );
 
     if (clear) {
       await this.userSeeder.clear();
     }
 
-    console.log(`${count}명의 사용자 데이터 시드를 생성합니다... (배치 크기: ${batchSize})`);
+    console.log(
+      `${count}명의 사용자 데이터 시드를 생성합니다... (배치 크기: ${batchSize})`,
+    );
     await this.userSeeder.seed(count, batchSize);
   }
 

@@ -81,9 +81,7 @@ describe('인증 컨트롤러 (e2e)', () => {
     });
 
     it('인증되지 않은 사용자는 정보를 조회할 수 없어야 함', async () => {
-      await request(app.getHttpServer())
-        .get('/api/user')
-        .expect(401);
+      await request(app.getHttpServer()).get('/api/user').expect(401);
     });
   });
 });

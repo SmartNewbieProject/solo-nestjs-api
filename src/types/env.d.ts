@@ -3,13 +3,13 @@ declare namespace NodeJS {
     NODE_ENV: 'development' | 'production' | 'test';
     PORT: string;
     JWT_SECRET: string;
-  
-    DATABASE_URL: string;    
+
+    DATABASE_URL: string;
     DATABASE_USER: string;
     DATABASE_HOST: string;
     DATABASE_PORT: string;
     DATABASE_NAME: string;
-    
+
     QDRANT_HOST: string;
     QDRANT_PORT: string;
     QDRANT_API_KEY: string;

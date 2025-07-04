@@ -21,7 +21,7 @@ export class MatchingAlertCronService {
     const { default: pLimit } = await import('p-limit');
     const limit = pLimit(15);
     const batchEnable = await this.cacheManager.get('mailBatchStatus');
-    if (!!batchEnable) {
+    if (batchEnable) {
       return;
     }
 
@@ -39,4 +39,4 @@ export class MatchingAlertCronService {
     await Promise.all(tasks);
     this.logger.log(`매칭 알림 이메일 발송 완료: ${users.length}명`);
   }
-} 
+}

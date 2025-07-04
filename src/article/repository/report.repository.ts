@@ -13,17 +13,25 @@ export class ReportRepository {
     @InjectDrizzle() private readonly db: NodePgDatabase<typeof schema>,
   ) {}
 
-  async createReport(postId: string, reporterId: string, reportedId: string, data: ReportUpload) {
+  async createReport(
+    postId: string,
+    reporterId: string,
+    reportedId: string,
+    data: ReportUpload,
+  ) {
     const id = generateUuidV7();
 
-    const result = await this.db.insert(reports).values({
-      id,
-      postId,
-      reporterId,
-      reportedId,
-      reason: data.reason,
-      status: ReportStatus.PENDING,
-    }).returning();
+    const result = await this.db
+      .insert(reports)
+      .values({
+        id,
+        postId,
+        reporterId,
+        reportedId,
+        reason: data.reason,
+        status: ReportStatus.PENDING,
+      })
+      .returning();
 
     return result[0];
   }

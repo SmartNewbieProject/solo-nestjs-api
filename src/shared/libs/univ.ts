@@ -28,28 +28,29 @@ export enum UniversityName {
 
 // 대학교별 로고 파일명 매핑
 export const UniversityImage: { [key in UniversityName]?: string } = {
-  [UniversityName.공주대학교]: "kgu.png",
-  [UniversityName.공주교육대학교]: "keu.png",
-  [UniversityName.충북대학교]: "cbu.png",
-  [UniversityName.청주교육대학교]: "ceu.png",
-  [UniversityName.배재대학교]: "bju.png",
-  [UniversityName.충남대학교]: "cnu.png",
-  [UniversityName.대전보건대학교]: "dbu.png",
-  [UniversityName.대전대학교]: "ddu.png",
-  [UniversityName.한밭대학교]: "hbu.png",
-  [UniversityName.한남대학교]: "hnu.png",
-  [UniversityName.건양대학교메디컬캠퍼스]: "kyu.png",
-  [UniversityName.건양대학교창의융합캠퍼스]: "kyu.png",
-  [UniversityName.목원대학교]: "mwu.png",
-  [UniversityName.우송대학교]: "wsu.png",
-  [UniversityName.을지대학교]: "uju.png", // 실제 파일명에 맞게 수정
-  [UniversityName.고려대학교세종캠퍼스]: "kau.png",
-  [UniversityName.홍익대학교세종캠퍼스]: "hiu.png",
-  [UniversityName.한국교원대학교]: "knu.png",
+  [UniversityName.공주대학교]: 'kgu.png',
+  [UniversityName.공주교육대학교]: 'keu.png',
+  [UniversityName.충북대학교]: 'cbu.png',
+  [UniversityName.청주교육대학교]: 'ceu.png',
+  [UniversityName.배재대학교]: 'bju.png',
+  [UniversityName.충남대학교]: 'cnu.png',
+  [UniversityName.대전보건대학교]: 'dbu.png',
+  [UniversityName.대전대학교]: 'ddu.png',
+  [UniversityName.한밭대학교]: 'hbu.png',
+  [UniversityName.한남대학교]: 'hnu.png',
+  [UniversityName.건양대학교메디컬캠퍼스]: 'kyu.png',
+  [UniversityName.건양대학교창의융합캠퍼스]: 'kyu.png',
+  [UniversityName.목원대학교]: 'mwu.png',
+  [UniversityName.우송대학교]: 'wsu.png',
+  [UniversityName.을지대학교]: 'uju.png', // 실제 파일명에 맞게 수정
+  [UniversityName.고려대학교세종캠퍼스]: 'kau.png',
+  [UniversityName.홍익대학교세종캠퍼스]: 'hiu.png',
+  [UniversityName.한국교원대학교]: 'knu.png',
   // KAIST는 로고 파일이 없음
 };
 
-const baseUrl = 'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/univ/';
+const baseUrl =
+  'https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/univ/';
 
 /**
  * 대학교 이름으로 로고 URL 생성
@@ -69,26 +70,32 @@ export const getUnivLogo = (univ: UniversityName): string | null => {
 /**
  * 문자열 대학교 이름을 UniversityName enum으로 변환
  */
-export const getUniversityNameEnum = (universityString: string): UniversityName | null => {
+export const getUniversityNameEnum = (
+  universityString: string,
+): UniversityName | null => {
   // 정확한 매칭 시도
-  const exactMatch = Object.values(UniversityName).find(name => name === universityString);
+  const exactMatch = Object.values(UniversityName).find(
+    (name) => name === universityString,
+  );
   if (exactMatch) {
     return exactMatch as UniversityName;
   }
 
   // 부분 매칭 시도 (공백 제거 등)
   const normalizedInput = universityString.replace(/\s+/g, '');
-  const partialMatch = Object.values(UniversityName).find(name => 
-    name.replace(/\s+/g, '') === normalizedInput
+  const partialMatch = Object.values(UniversityName).find(
+    (name) => name.replace(/\s+/g, '') === normalizedInput,
   );
-  
-  return partialMatch as UniversityName || null;
+
+  return (partialMatch as UniversityName) || null;
 };
 
 /**
  * 문자열 대학교 이름으로 직접 로고 URL 가져오기
  */
-export const getUnivLogoByString = (universityString: string): string | null => {
+export const getUnivLogoByString = (
+  universityString: string,
+): string | null => {
   const universityEnum = getUniversityNameEnum(universityString);
   return universityEnum ? getUnivLogo(universityEnum) : null;
 };
@@ -98,10 +105,10 @@ export const getUnivLogoByString = (universityString: string): string | null => 
  */
 export const getAllUniversityLogos = (): { [key: string]: string | null } => {
   const result: { [key: string]: string | null } = {};
-  
-  Object.values(UniversityName).forEach(univ => {
+
+  Object.values(UniversityName).forEach((univ) => {
     result[univ] = getUnivLogo(univ);
   });
-  
+
   return result;
 };
