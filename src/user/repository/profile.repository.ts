@@ -3,9 +3,17 @@ import { InjectDrizzle } from '@common/decorators';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import * as schema from '@database/schema';
 import { and, eq, ExtractTablesWithRelations, isNull } from 'drizzle-orm';
-import { PreferenceSave, SelfPreferenceSave } from '../dto/profile.dto';
+import {
+  PreferenceData,
+  PreferenceSave,
+  SelfPreferencesSave,
+} from '../dto/profile.dto';
 import { generateUuidV7 } from '@database/schema/helper';
-import { ProfileRawDetails, ProfileSummary } from '@/types/user';
+import {
+  MbtiPreferences,
+  ProfileRawDetails,
+  ProfileSummary,
+} from '@/types/user';
 import { UserRank } from '@/database/schema/profiles';
 import { PreferenceTarget } from '@/database/schema/enums';
 import { PgQueryResultHKT, PgTransaction } from 'drizzle-orm/pg-core';
@@ -113,7 +121,7 @@ export default class ProfileRepository {
     });
   }
 
-  async getUserPreferenceOptions(userId: string) {
+  async getUserPreferenceOptions(userId: string, who: PreferenceTarget) {
     return await this.db.transaction(async (tx) => {
       const userPreference = await tx.query.userPreferences.findFirst({
         where: eq(schema.userPreferences.userId, userId),
@@ -150,10 +158,7 @@ export default class ProfileRepository {
               schema.userPreferenceOptions.userPreferenceId,
               userPreference.id,
             ),
-            eq(
-              schema.userPreferenceOptions.preferenceTarget,
-              PreferenceTarget.SELF,
-            ),
+            eq(schema.userPreferenceOptions.preferenceTarget, who),
           ),
         );
     });
@@ -387,14 +392,20 @@ export default class ProfileRepository {
 
   async updateSelfPreferences(
     userId: string,
-    data: SelfPreferenceSave['data'],
+    profileId: string,
+    data: SelfPreferencesSave,
   ) {
     return await this.db.transaction(async (tx) => {
       const userPreferenceId = await this.getUserPreferenceId(tx, userId);
       await this.deleteExistingSelfOptions(tx, userPreferenceId);
 
-      if (data.length === 0) return;
-      await this.insertSelfPreferenceOptions(tx, userPreferenceId, data);
+      if (data.preferences.length === 0) return;
+      await this.insertSelfPreferenceOptions(
+        tx,
+        userPreferenceId,
+        data.preferences,
+      );
+      await this.insertAdditionalSelfOptions(tx, profileId, data.additional);
     });
   }
 
@@ -415,10 +426,24 @@ export default class ProfileRepository {
       );
   }
 
+  private async insertAdditionalSelfOptions(
+    tx: Transaction,
+    profileId: string,
+    additionalPreferences: MbtiPreferences,
+  ) {
+    await tx.insert(schema.additionalPreferences).values({
+      id: generateUuidV7(),
+      profileId,
+      ...additionalPreferences,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+
   private async insertSelfPreferenceOptions(
     tx: Transaction,
     userPreferenceId: string,
-    data: SelfPreferenceSave['data'],
+    data: PreferenceData[],
   ): Promise<void> {
     const preferencePromises = data.map(async (preference) => {
       const preferenceType = await tx.query.preferenceTypes.findFirst({

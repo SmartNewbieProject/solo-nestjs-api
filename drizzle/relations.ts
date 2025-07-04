@@ -1,27 +1,37 @@
 import { relations } from "drizzle-orm/relations";
-import { users, articles, matches, profiles, comments, likes, payHistories, reports, universityDetails, userPreferences, tickets, profileImages, images } from "./schema";
+import { users, comments, articles, likes, matchingFailureLogs, hotArticles, profiles, matches, additionalPreferences, articleCategories, payHistories, reports, tickets, universityDetails, userPreferences, profileImages, images } from "./schema";
 
-export const articlesRelations = relations(articles, ({one, many}) => ({
+export const commentsRelations = relations(comments, ({one, many}) => ({
 	user: one(users, {
-		fields: [articles.authorId],
+		fields: [comments.authorId],
 		references: [users.id]
 	}),
-	comments: many(comments),
-	likes: many(likes),
-	reports: many(reports),
+	comment: one(comments, {
+		fields: [comments.parentId],
+		references: [comments.id],
+		relationName: "comments_parentId_comments_id"
+	}),
+	comments: many(comments, {
+		relationName: "comments_parentId_comments_id"
+	}),
+	article: one(articles, {
+		fields: [comments.articleId],
+		references: [articles.id]
+	}),
 }));
 
 export const usersRelations = relations(users, ({many}) => ({
-	articles: many(articles),
+	comments: many(comments),
+	likes: many(likes),
+	matchingFailureLogs: many(matchingFailureLogs),
+	profiles: many(profiles),
 	matches_myId: many(matches, {
 		relationName: "matches_myId_users_id"
 	}),
 	matches_matcherId: many(matches, {
 		relationName: "matches_matcherId_users_id"
 	}),
-	profiles: many(profiles),
-	comments: many(comments),
-	likes: many(likes),
+	articles: many(articles),
 	payHistories: many(payHistories),
 	reports_reporterId: many(reports, {
 		relationName: "reports_reporterId_users_id"
@@ -29,9 +39,58 @@ export const usersRelations = relations(users, ({many}) => ({
 	reports_reportedId: many(reports, {
 		relationName: "reports_reportedId_users_id"
 	}),
+	tickets: many(tickets),
 	universityDetails: many(universityDetails),
 	userPreferences: many(userPreferences),
-	tickets: many(tickets),
+}));
+
+export const articlesRelations = relations(articles, ({one, many}) => ({
+	comments: many(comments),
+	likes: many(likes),
+	hotArticles: many(hotArticles),
+	user: one(users, {
+		fields: [articles.authorId],
+		references: [users.id]
+	}),
+	articleCategory: one(articleCategories, {
+		fields: [articles.categoryId],
+		references: [articleCategories.id]
+	}),
+	reports: many(reports),
+}));
+
+export const likesRelations = relations(likes, ({one}) => ({
+	user: one(users, {
+		fields: [likes.userId],
+		references: [users.id]
+	}),
+	article: one(articles, {
+		fields: [likes.articleId],
+		references: [articles.id]
+	}),
+}));
+
+export const matchingFailureLogsRelations = relations(matchingFailureLogs, ({one}) => ({
+	user: one(users, {
+		fields: [matchingFailureLogs.userId],
+		references: [users.id]
+	}),
+}));
+
+export const hotArticlesRelations = relations(hotArticles, ({one}) => ({
+	article: one(articles, {
+		fields: [hotArticles.articleId],
+		references: [articles.id]
+	}),
+}));
+
+export const profilesRelations = relations(profiles, ({one, many}) => ({
+	user: one(users, {
+		fields: [profiles.userId],
+		references: [users.id]
+	}),
+	additionalPreferences: many(additionalPreferences),
+	profileImages: many(profileImages),
 }));
 
 export const matchesRelations = relations(matches, ({one}) => ({
@@ -47,34 +106,15 @@ export const matchesRelations = relations(matches, ({one}) => ({
 	}),
 }));
 
-export const profilesRelations = relations(profiles, ({one, many}) => ({
-	user: one(users, {
-		fields: [profiles.userId],
-		references: [users.id]
-	}),
-	profileImages: many(profileImages),
-}));
-
-export const commentsRelations = relations(comments, ({one}) => ({
-	user: one(users, {
-		fields: [comments.authorId],
-		references: [users.id]
-	}),
-	article: one(articles, {
-		fields: [comments.postId],
-		references: [articles.id]
+export const additionalPreferencesRelations = relations(additionalPreferences, ({one}) => ({
+	profile: one(profiles, {
+		fields: [additionalPreferences.profileId],
+		references: [profiles.id]
 	}),
 }));
 
-export const likesRelations = relations(likes, ({one}) => ({
-	user: one(users, {
-		fields: [likes.userId],
-		references: [users.id]
-	}),
-	article: one(articles, {
-		fields: [likes.articleId],
-		references: [articles.id]
-	}),
+export const articleCategoriesRelations = relations(articleCategories, ({many}) => ({
+	articles: many(articles),
 }));
 
 export const payHistoriesRelations = relations(payHistories, ({one}) => ({
@@ -101,6 +141,13 @@ export const reportsRelations = relations(reports, ({one}) => ({
 	}),
 }));
 
+export const ticketsRelations = relations(tickets, ({one}) => ({
+	user: one(users, {
+		fields: [tickets.userId],
+		references: [users.id]
+	}),
+}));
+
 export const universityDetailsRelations = relations(universityDetails, ({one}) => ({
 	user: one(users, {
 		fields: [universityDetails.userId],
@@ -111,13 +158,6 @@ export const universityDetailsRelations = relations(universityDetails, ({one}) =
 export const userPreferencesRelations = relations(userPreferences, ({one}) => ({
 	user: one(users, {
 		fields: [userPreferences.userId],
-		references: [users.id]
-	}),
-}));
-
-export const ticketsRelations = relations(tickets, ({one}) => ({
-	user: one(users, {
-		fields: [tickets.userId],
 		references: [users.id]
 	}),
 }));
