@@ -17,7 +17,7 @@ export type WeekDates = {
   end: Date;
   thursday: Date;
   sunday: Date;
-}
+};
 
 const createDayjs = (config?: dayjs.Dayjs | Date) => {
   return dayjs(config).tz('Asia/Seoul');
@@ -27,7 +27,8 @@ const getWeekDates = (): WeekDates => {
   const date = createDayjs();
 
   // 월요일부터 시작하는 주의 시작일
-  const start = date.startOf('week')
+  const start = date
+    .startOf('week')
     .set('hour', 0)
     .set('minute', 0)
     .set('second', 0)
@@ -37,15 +38,17 @@ const getWeekDates = (): WeekDates => {
   const end = date.endOf('week');
 
   // 목요일 (0시 0분 0초)
-  const thursday = start.add(3, 'day')
+  const thursday = start
+    .add(3, 'day')
     .set('hour', 0)
     .set('minute', 0)
     .set('second', 0)
     .set('millisecond', 0);
 
   // 일요일 (0시 0분 0초)
-  
-  const sunday = end.clone()
+
+  const sunday = end
+    .clone()
     .set('hour', 0)
     .set('minute', 0)
     .set('second', 0)
@@ -115,7 +118,7 @@ const createPublishDate = (date: dayjs.Dayjs) => {
     .set('second', 0)
     .set('millisecond', 0);
   return d.toDate();
-}
+};
 
 const setDeadline = (d: Date) => {
   const dayjsDate = createDayjs(d)
@@ -125,7 +128,7 @@ const setDeadline = (d: Date) => {
     .set('millisecond', 0);
 
   return dayjsDate.toDate();
-}
+};
 
 const getNextMatchingDate = () => {
   const { thursday, sunday } = getWeekDates();
@@ -145,7 +148,7 @@ const getNextMatchingDate = () => {
   const result = createDayjs(setDeadline(sunday));
   console.log(`다음 매칭일: 일요일 ${result.format('YYYY-MM-DD HH:mm:ss')}`);
   return result;
-}
+};
 
 const test30seconds = () => {
   const now = createDayjs();
@@ -174,7 +177,8 @@ const calculateRematchExpiredAt = (publishedAt: Date): Date => {
 
   if (isThursdayAdjustmentPeriod) {
     const daysUntilThursday = (4 - dayOfWeek + 7) % 7;
-    return published.startOf('day')
+    return published
+      .startOf('day')
       .add(daysUntilThursday, 'day')
       .set('hour', 20)
       .set('minute', 0)
@@ -183,8 +187,9 @@ const calculateRematchExpiredAt = (publishedAt: Date): Date => {
   }
 
   if (isSundayAdjustmentPeriod) {
-    const daysUntilSunday = dayOfWeek === 0 ? 0 : (7 - dayOfWeek);
-    return published.startOf('day')
+    const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
+    return published
+      .startOf('day')
       .add(daysUntilSunday, 'day')
       .set('hour', 20)
       .set('minute', 0)

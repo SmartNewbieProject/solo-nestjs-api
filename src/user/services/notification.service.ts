@@ -1,7 +1,7 @@
-import { NotificationRepository } from "../repository/notification.repository";
-import { Injectable } from "@nestjs/common";
-import ProfileRepository from "../repository/profile.repository";
-import { Notification } from "@/types/notification";
+import { NotificationRepository } from '../repository/notification.repository';
+import { Injectable } from '@nestjs/common';
+import ProfileRepository from '../repository/profile.repository';
+import { Notification } from '@/types/notification';
 @Injectable()
 export class NotificationService {
   constructor(
@@ -17,9 +17,11 @@ export class NotificationService {
     return notifications.filter(Boolean) as Notification[];
   }
 
-
-  private async getIdealTypeNotification(userId: string): Promise<Notification | null> {
-    const isMemberHasIdealTypes = await this.notificationRepository.isMemberHasIdealTypes(userId);
+  private async getIdealTypeNotification(
+    userId: string,
+  ): Promise<Notification | null> {
+    const isMemberHasIdealTypes =
+      await this.notificationRepository.isMemberHasIdealTypes(userId);
     if (isMemberHasIdealTypes) return null;
     return {
       announcement: '매칭을 위해 이상형을 등록해주세요',
@@ -30,7 +32,9 @@ export class NotificationService {
     };
   }
 
-  private async getMbtiNotification(userId: string): Promise<Notification | null> {
+  private async getMbtiNotification(
+    userId: string,
+  ): Promise<Notification | null> {
     const mbti = await this.profileRepository.getMbti(userId);
     if (mbti) return null;
     return {
@@ -39,7 +43,6 @@ export class NotificationService {
       content: '마이페이지에서 MBTI를 등록해주세요.',
       okMessage: '네 등록할게요.',
       redirectUrl: '/my',
-    }
+    };
   }
-
 }

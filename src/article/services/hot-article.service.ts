@@ -1,12 +1,12 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { InjectDrizzle } from "@common/decorators";
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
-import * as schema from "@database/schema";
-import { articles, hotArticles, likes, comments } from "@database/schema";
-import { HotArticleCalculator } from "../domain/hot-article-calculator";
-import { eq, and, isNull, gte, sql, count } from "drizzle-orm";
-import { generateUuidV7 } from "@database/schema/helper";
-import { Cron } from "@nestjs/schedule";
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectDrizzle } from '@common/decorators';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import * as schema from '@database/schema';
+import { articles, hotArticles, likes, comments } from '@database/schema';
+import { HotArticleCalculator } from '../domain/hot-article-calculator';
+import { eq, and, isNull, gte, sql, count } from 'drizzle-orm';
+import { generateUuidV7 } from '@database/schema/helper';
+import { Cron } from '@nestjs/schedule';
 
 // TODO: 리팩터링 및 이해 필요
 @Injectable()
@@ -15,7 +15,7 @@ export class HotArticleService {
 
   constructor(
     @InjectDrizzle() private readonly db: NodePgDatabase<typeof schema>,
-  ) { }
+  ) {}
 
   @Cron('0 */1 * * *')
   async checkHotArticles() {
@@ -43,8 +43,9 @@ export class HotArticleService {
             and(
               gte(articles.createdAt, sql`NOW() - INTERVAL '24 hours'`),
               isNull(articles.deletedAt),
-            )
-          ).execute();
+            ),
+          )
+          .execute();
 
         // this.logger.log(`최근 24시간 내 게시글 ${recentArticleIds.length}개 조회 완료`);
 
@@ -61,9 +62,10 @@ export class HotArticleService {
                 and(
                   eq(likes.articleId, article.id),
                   eq(likes.up, true),
-                  isNull(likes.deletedAt)
-                )
-              ).execute();
+                  isNull(likes.deletedAt),
+                ),
+              )
+              .execute();
 
             const commentCountResult = await tx
               .select({ count: count() })
@@ -71,9 +73,10 @@ export class HotArticleService {
               .where(
                 and(
                   eq(comments.articleId, article.id),
-                  isNull(comments.deletedAt)
-                )
-              ).execute();
+                  isNull(comments.deletedAt),
+                ),
+              )
+              .execute();
 
             return {
               id: article.id,
@@ -81,7 +84,7 @@ export class HotArticleService {
               likeCount: Number(likeCountResult[0].count),
               commentCount: Number(commentCountResult[0].count),
             };
-          })
+          }),
         );
 
         // this.logger.log(`${recentArticles.length}개 게시글의 좋아요 및 댓글 수 집계 완료`);
@@ -91,14 +94,12 @@ export class HotArticleService {
             const score = HotArticleCalculator.calculateScore(
               article.viewCount,
               Number(article.likeCount),
-              Number(article.commentCount)
+              Number(article.commentCount),
             );
 
-            const existingHot = await tx
-              .query
-              .hotArticles.findFirst({
-                where: eq(hotArticles.articleId, article.id),
-              });
+            const existingHot = await tx.query.hotArticles.findFirst({
+              where: eq(hotArticles.articleId, article.id),
+            });
 
             if (HotArticleCalculator.isHot(score) && !existingHot) {
               await tx.insert(hotArticles).values({
@@ -118,16 +119,21 @@ export class HotArticleService {
 
         const results = await Promise.allSettled(processPromises);
 
-        const stats = results.reduce((acc, result) => {
-          if (result.status === 'fulfilled') {
-            acc[result.value.status] = (acc[result.value.status] || 0) + 1;
-          } else {
-            acc.rejected = (acc.rejected || 0) + 1;
-          }
-          return acc;
-        }, {} as Record<string, number>);
+        const stats = results.reduce(
+          (acc, result) => {
+            if (result.status === 'fulfilled') {
+              acc[result.value.status] = (acc[result.value.status] || 0) + 1;
+            } else {
+              acc.rejected = (acc.rejected || 0) + 1;
+            }
+            return acc;
+          },
+          {} as Record<string, number>,
+        );
 
-        this.logger.log(`인기 게시글 처리 완료 - 통계: ${JSON.stringify(stats)}`);
+        this.logger.log(
+          `인기 게시글 처리 완료 - 통계: ${JSON.stringify(stats)}`,
+        );
         return stats;
       });
     } catch (error) {

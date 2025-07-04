@@ -10,10 +10,13 @@ dayjs.locale('ko');
 dayjs.tz.setDefault('Asia/Seoul');
 
 export const dayUtils = {
-  create: (config?: dayjs.Dayjs | Date | string | number | undefined) => {
+  create: (config?: dayjs.Dayjs | Date | string | number) => {
     return config ? dayjs(config).tz('Asia/Seoul') : dayjs().tz('Asia/Seoul');
   },
-  format: (date: dayjs.Dayjs | Date | string | number, format: string = 'YYYY-MM-DD HH:mm:ss') => {
+  format: (
+    date: dayjs.Dayjs | Date | string | number,
+    format: string = 'YYYY-MM-DD HH:mm:ss',
+  ) => {
     return dayjs(date).tz('Asia/Seoul').format(format);
-  }
+  },
 };

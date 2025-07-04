@@ -20,7 +20,12 @@ import { AiUserSetupService } from './services/ai-user-setup.service';
 
 @Module({
   imports: [SmsModule],
-  controllers: [SignupController, AuthController, UniversityController, AiTokenController],
+  controllers: [
+    SignupController,
+    AuthController,
+    UniversityController,
+    AiTokenController,
+  ],
   providers: [
     SignupService,
     SignupRepository,
@@ -35,4 +40,4 @@ import { AiUserSetupService } from './services/ai-user-setup.service';
   ],
   exports: [SignupService, AuthService, UniversityService, AiTokenService],
 })
-export class AuthModule { }
+export class AuthModule {}

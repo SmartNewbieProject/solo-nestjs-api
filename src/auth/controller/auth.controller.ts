@@ -25,7 +25,7 @@ import { RefreshToken } from '../dto/token';
 export class AuthController {
   private readonly logger = new Logger(AuthController.name);
 
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   private setRefreshTokenCookie(
     response: Response,
@@ -35,7 +35,7 @@ export class AuthController {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
-      maxAge: 7 * 24 * 60 * 60 * 1000,  // 7일을 밀리초로 표현
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7일을 밀리초로 표현
     });
   }
 
@@ -73,8 +73,12 @@ export class AuthController {
 
     // 토큰 값 상세 로깅
     this.logger.debug(`토큰 길이: ${token.refreshToken?.length}`);
-    this.logger.debug(`토큰 처음 10자: ${token.refreshToken?.substring(0, 10)}`);
-    this.logger.debug(`토큰 마지막 10자: ${token.refreshToken?.substring(token.refreshToken.length - 10)}`);
+    this.logger.debug(
+      `토큰 처음 10자: ${token.refreshToken?.substring(0, 10)}`,
+    );
+    this.logger.debug(
+      `토큰 마지막 10자: ${token.refreshToken?.substring(token.refreshToken.length - 10)}`,
+    );
 
     // 토큰에 이상한 문자가 있는지 확인
     const hasSpecialChars = /[\s\n\r\t]/g.test(token.refreshToken);
@@ -111,10 +115,6 @@ export class AuthController {
     @CurrentUser() user: AuthenticationUser,
     @Body() withdrawRequest: WithdrawRequest,
   ) {
-    return await this.authService.withdraw(
-      user.id,
-      withdrawRequest.password,
-    );
+    return await this.authService.withdraw(user.id, withdrawRequest.password);
   }
-
 }

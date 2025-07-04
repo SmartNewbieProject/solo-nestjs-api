@@ -1,6 +1,10 @@
 import { UniversityDetail } from '@/types/user';
 import { Gender } from '@/types/enum';
-import { ArticleModel, UniversityDetailModel, UserModel } from '@/types/database';
+import {
+  ArticleModel,
+  UniversityDetailModel,
+  UserModel,
+} from '@/types/database';
 import { CommentDetails, CommentWithRelations } from './comment.type';
 
 export interface ArticleWithRelations extends ArticleModel {
@@ -11,8 +15,8 @@ export interface ArticleWithRelations extends ArticleModel {
       universityDetail: UniversityDetailModel;
       gender: Gender;
       age: number;
-      user: UserModel,
-    },
+      user: UserModel;
+    };
   };
   articleCategory: {
     code: string;

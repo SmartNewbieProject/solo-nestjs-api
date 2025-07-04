@@ -3,25 +3,24 @@ export type PayBeforeHistory = {
   orderId: string;
   orderName: string;
   amount: number;
-}
+};
 
 export enum Product {
   REMATCHING = '연인 재매칭권',
 }
-
 
 export type PortOneCustomData = {
   amount: number;
   orderName: string;
   productType: string;
   productCount: number;
-}
+};
 
 export type CustomData = {
   orderName: string;
   amount: number;
   productType: string;
-}
+};
 
 export type PaymentDetails = {
   amount: number;

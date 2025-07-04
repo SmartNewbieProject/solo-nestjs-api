@@ -11,7 +11,10 @@ interface SeedArticlesCommandOptions {
 }
 
 @Injectable()
-@Command({ name: 'seed:articles', description: '게시글, 댓글, 좋아요 데이터 시드 생성' })
+@Command({
+  name: 'seed:articles',
+  description: '게시글, 댓글, 좋아요 데이터 시드 생성',
+})
 export class SeedArticlesCommand extends CommandRunner {
   constructor(private readonly articleSeeder: ArticleSeeder) {
     super();
@@ -23,18 +26,24 @@ export class SeedArticlesCommand extends CommandRunner {
   ): Promise<void> {
     // nest-commander의 옵션 파싱 결과 사용
     const count = options?.count ? parseInt(options.count) : 100;
-    const commentCount = options?.commentCount ? parseInt(options.commentCount) : 5;
+    const commentCount = options?.commentCount
+      ? parseInt(options.commentCount)
+      : 5;
     const likeCount = options?.likeCount ? parseInt(options.likeCount) : 10;
     const batchSize = options?.batchSize ? parseInt(options.batchSize) : 20;
     const clear = options?.clear || false;
 
-    console.log(`사용되는 값 - count: ${count}, commentCount: ${commentCount}, likeCount: ${likeCount}, batchSize: ${batchSize}, clear: ${clear}`);
+    console.log(
+      `사용되는 값 - count: ${count}, commentCount: ${commentCount}, likeCount: ${likeCount}, batchSize: ${batchSize}, clear: ${clear}`,
+    );
 
     if (clear) {
       await this.articleSeeder.clear();
     }
 
-    console.log(`${count}개의 게시글 데이터 시드를 생성합니다... (배치 크기: ${batchSize})`);
+    console.log(
+      `${count}개의 게시글 데이터 시드를 생성합니다... (배치 크기: ${batchSize})`,
+    );
     await this.articleSeeder.seed(count, commentCount, likeCount, batchSize);
   }
 

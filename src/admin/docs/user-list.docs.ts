@@ -22,9 +22,9 @@ export const getUsersListApiResponse: ApiResponseOptions = {
                   id: { type: 'string' },
                   order: { type: 'number' },
                   isMain: { type: 'boolean' },
-                  url: { type: 'string' }
-                }
-              }
+                  url: { type: 'string' },
+                },
+              },
             },
             universityDetails: {
               type: 'object',
@@ -32,8 +32,8 @@ export const getUsersListApiResponse: ApiResponseOptions = {
               properties: {
                 name: { type: 'string' },
                 authentication: { type: 'boolean' },
-                department: { type: 'string' }
-              }
+                department: { type: 'string' },
+              },
             },
             preferences: {
               type: 'array',
@@ -47,15 +47,15 @@ export const getUsersListApiResponse: ApiResponseOptions = {
                       type: 'object',
                       properties: {
                         id: { type: 'string' },
-                        displayName: { type: 'string' }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
+                        displayName: { type: 'string' },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
       meta: {
         type: 'object',
@@ -65,9 +65,9 @@ export const getUsersListApiResponse: ApiResponseOptions = {
           totalItems: { type: 'number', example: 100 },
           totalPages: { type: 'number', example: 10 },
           hasNextPage: { type: 'boolean', example: true },
-          hasPreviousPage: { type: 'boolean', example: false }
-        }
-      }
-    }
-  }
+          hasPreviousPage: { type: 'boolean', example: false },
+        },
+      },
+    },
+  },
 };

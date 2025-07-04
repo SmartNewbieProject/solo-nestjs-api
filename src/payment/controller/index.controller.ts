@@ -1,5 +1,18 @@
-import { Body, Controller, HttpCode, Post, Headers, UnauthorizedException, Req } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiHeader } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  Post,
+  Headers,
+  UnauthorizedException,
+  Req,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiHeader,
+} from '@nestjs/swagger';
 import { PaymentBeforeHistory, PaymentConfirm } from '../dto';
 import { PortoneWebhookDto } from '../dto/webhook.dto';
 import { Roles } from '@/auth/decorators/roles.decorator';
@@ -28,10 +41,13 @@ export class PaymentController {
   @Post('history')
   @ApiBearerAuth('access-token')
   @Roles(Role.USER, Role.ADMIN)
-  async history(@CurrentUser() user: AuthenticationUser, @Body() payBeforeHistory: PaymentBeforeHistory) {
+  async history(
+    @CurrentUser() user: AuthenticationUser,
+    @Body() payBeforeHistory: PaymentBeforeHistory,
+  ) {
     return this.payService.createHistory({
       userId: user.id,
-      ...payBeforeHistory
+      ...payBeforeHistory,
     });
   }
 
@@ -40,7 +56,10 @@ export class PaymentController {
   @Post('confirm')
   @ApiBearerAuth('access-token')
   @Roles(Role.USER, Role.ADMIN)
-  async confirmPayment(@CurrentUser() user: AuthenticationUser, @Body() paymentData: PaymentConfirm) {
+  async confirmPayment(
+    @CurrentUser() user: AuthenticationUser,
+    @Body() paymentData: PaymentConfirm,
+  ) {
     return this.payService.confirmClientPayment(user.id, paymentData);
   }
 
@@ -56,7 +75,12 @@ export class PaymentController {
     @Body() webhookData: PortoneWebhookDto,
     @Req() req: Request,
   ) {
-    await this.verifyPortoneWebhook(req, webhookId, webhookSignature, webhookTimestamp);
+    await this.verifyPortoneWebhook(
+      req,
+      webhookId,
+      webhookSignature,
+      webhookTimestamp,
+    );
     try {
       return await this.payService.handlePaymentWebhook(webhookData);
     } catch (error) {
@@ -81,7 +105,9 @@ export class PaymentController {
     const payload = JSON.stringify(req.body);
     const verified = await Webhook.verify(this.secretKey, payload, headers);
     if (!verified) {
-      throw new UnauthorizedException('유효하지 않은 포트원 Webhook 요청입니다.');
+      throw new UnauthorizedException(
+        '유효하지 않은 포트원 Webhook 요청입니다.',
+      );
     }
   }
 }

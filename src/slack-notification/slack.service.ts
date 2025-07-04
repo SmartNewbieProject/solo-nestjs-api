@@ -34,24 +34,34 @@ export class SlackService {
     this.slack = new WebClient(this.token);
   }
 
-  async sendNotification(message: string, channel: string = '매칭-테스트-로그') {
+  async sendNotification(
+    message: string,
+    channel: string = '매칭-테스트-로그',
+  ) {
     try {
       this.logger.debug(`슬랙 메시지 전송 시도 - 채널: ${channel}`);
 
       // 채널 이름에서 # 기호 제거 (슬랙 API는 # 없이 채널 이름만 필요)
-      const cleanChannel = channel.startsWith('#') ? channel.substring(1) : channel;
+      const cleanChannel = channel.startsWith('#')
+        ? channel.substring(1)
+        : channel;
 
       const result = await this.slack.chat.postMessage({
         channel: cleanChannel,
         text: message,
         username: '썸타임 봇',
-        icon_url: 'https://i.pinimg.com/736x/03/78/fe/0378febd3b192bd1a8dd10335fd1f718.jpg',
+        icon_url:
+          'https://i.pinimg.com/736x/03/78/fe/0378febd3b192bd1a8dd10335fd1f718.jpg',
       });
 
-      this.logger.debug(`슬랙 메시지 전송 성공 - 채널: ${cleanChannel}, ts: ${result.ts}`);
+      this.logger.debug(
+        `슬랙 메시지 전송 성공 - 채널: ${cleanChannel}, ts: ${result.ts}`,
+      );
       return result;
     } catch (error) {
-      this.logger.error(`슬랙 메시지 전송 실패 - 채널: ${channel}, 오류: ${error.message}`);
+      this.logger.error(
+        `슬랙 메시지 전송 실패 - 채널: ${channel}, 오류: ${error.message}`,
+      );
       throw error;
     }
   }
@@ -64,43 +74,43 @@ export class SlackService {
       timestamp: string;
       error: string;
       exception?: unknown;
-      user?: { id: string; email: string; };
-    }
+      user?: { id: string; email: string };
+    },
   ) {
     const environment = this.configService.get('NODE_ENV', 'development');
 
     // 메인 메시지용 간단한 블록
     const blocks: SlackBlock[] = [
       {
-        type: "header",
+        type: 'header',
         text: {
-          type: "plain_text",
+          type: 'plain_text',
           text: `🚨 예상치 못한 서버 오류 발생`,
-          emoji: true
-        }
+          emoji: true,
+        },
       },
       {
-        type: "section",
+        type: 'section',
         fields: [
           {
-            type: "mrkdwn",
-            text: "*HTTP Method:*\n" + `\`${errorContext.method}\``
+            type: 'mrkdwn',
+            text: '*HTTP Method:*\n' + `\`${errorContext.method}\``,
           },
           {
-            type: "mrkdwn",
-            text: "*Endpoint:*\n" + `\`${errorContext.path}\``
-          }
-        ]
-      }
+            type: 'mrkdwn',
+            text: '*Endpoint:*\n' + `\`${errorContext.path}\``,
+          },
+        ],
+      },
     ];
 
     if (environment === 'development') {
       blocks.push({
-        type: "section",
+        type: 'section',
         text: {
-          type: "mrkdwn",
-          text: "ℹ️ *해당 오류는 개발 테스트간 발생한 오류이므로 안전합니다.*"
-        }
+          type: 'mrkdwn',
+          text: 'ℹ️ *해당 오류는 개발 테스트간 발생한 오류이므로 안전합니다.*',
+        },
       });
     }
 
@@ -110,40 +120,41 @@ export class SlackService {
       blocks,
       text: `🚨 Error: ${error.message}`,
       username: '썸타임 긴급 오류 알리미',
-      icon_url: 'https://i.pinimg.com/736x/03/78/fe/0378febd3b192bd1a8dd10335fd1f718.jpg',
+      icon_url:
+        'https://i.pinimg.com/736x/03/78/fe/0378febd3b192bd1a8dd10335fd1f718.jpg',
     });
 
     // 상세 정보를 스레드로 전송
     if (result.ts) {
       const detailBlocks: SlackBlock[] = [
         {
-          type: "section",
+          type: 'section',
           fields: [
             {
-              type: "mrkdwn",
-              text: "*시간:*\n" + `\`${errorContext.timestamp}\``
+              type: 'mrkdwn',
+              text: '*시간:*\n' + `\`${errorContext.timestamp}\``,
             },
             {
-              type: "mrkdwn",
-              text: "*환경:*\n" + `\`${environment}\``
-            }
-          ]
-        }
+              type: 'mrkdwn',
+              text: '*환경:*\n' + `\`${environment}\``,
+            },
+          ],
+        },
       ];
 
       if (errorContext.user) {
         detailBlocks.push({
-          type: "section",
+          type: 'section',
           fields: [
             {
-              type: "mrkdwn",
-              text: "*사용자 ID:*\n" + `\`${errorContext.user.id}\``
+              type: 'mrkdwn',
+              text: '*사용자 ID:*\n' + `\`${errorContext.user.id}\``,
             },
             {
-              type: "mrkdwn",
-              text: "*사용자 이메일:*\n" + `\`${errorContext.user.email}\``
-            }
-          ]
+              type: 'mrkdwn',
+              text: '*사용자 이메일:*\n' + `\`${errorContext.user.email}\``,
+            },
+          ],
         });
       }
 
@@ -151,29 +162,35 @@ export class SlackService {
         message: error.message,
         name: error.name,
         stack: error.stack,
-        exception: errorContext.exception
+        exception: errorContext.exception,
       };
 
       detailBlocks.push({
-        type: "section",
+        type: 'section',
         text: {
-          type: "mrkdwn",
-          text: "*에러 상세:*\n```" + JSON.stringify(errorJson, null, 2) + "```"
-        }
+          type: 'mrkdwn',
+          text:
+            '*에러 상세:*\n```' + JSON.stringify(errorJson, null, 2) + '```',
+        },
       });
 
       await this.slack.chat.postMessage({
         channel: '#emergency',
         thread_ts: result.ts,
         blocks: detailBlocks,
-        text: "에러 상세 정보",
+        text: '에러 상세 정보',
         username: '썸타임 긴급 오류 알리미',
-        icon_url: 'https://i.pinimg.com/736x/03/78/fe/0378febd3b192bd1a8dd10335fd1f718.jpg',
+        icon_url:
+          'https://i.pinimg.com/736x/03/78/fe/0378febd3b192bd1a8dd10335fd1f718.jpg',
       });
     }
   }
 
-  async sendMatchingNotification(userId: string, partnerId: string, similarity: number) {
+  async sendMatchingNotification(
+    userId: string,
+    partnerId: string,
+    similarity: number,
+  ) {
     const message = `✨ New Match Created!\nUser: ${userId}\nPartner: ${partnerId}\nSimilarity: ${similarity.toFixed(2)}`;
     await this.sendNotification(message, 'matching');
   }
@@ -184,7 +201,7 @@ export class SlackService {
     orderName: string,
     amount: number,
     method: string = '알 수 없음',
-    paidAt?: Date
+    paidAt?: Date,
   ) {
     const paymentDate = paidAt || new Date();
     const formattedDate = `${paymentDate.getFullYear()}-${String(paymentDate.getMonth() + 1).padStart(2, '0')}-${String(paymentDate.getDate()).padStart(2, '0')} ${String(paymentDate.getHours()).padStart(2, '0')}:${String(paymentDate.getMinutes()).padStart(2, '0')}`;
@@ -198,73 +215,84 @@ export class SlackService {
     requester: UserProfile,
     matcher: UserProfile,
     similarity: number,
-    type: string = 'admin'
+    type: string = 'admin',
   ) {
-
     const getSimpleStringPreferences = (groups: PreferenceTypeGroup[]) => {
       const data = groups.map(({ typeName, selectedOptions }) => ({
         typeName,
-        options: selectedOptions.map(option => `\`${option.displayName}\``).join(', '),
-      }))
+        options: selectedOptions
+          .map((option) => `\`${option.displayName}\``)
+          .join(', '),
+      }));
 
       return data.reduce((acc, cur) => {
         acc += `*[${cur.typeName}]*\n`;
         acc += cur.options + '\n';
         return acc;
       }, '');
-    }
+    };
 
-    const getGenderKor = (gender: string) => gender === Gender.FEMALE ? "여성" : "남성";
+    const getGenderKor = (gender: string) =>
+      gender === Gender.FEMALE ? '여성' : '남성';
 
-    const requesterPreferences = getSimpleStringPreferences(requester.preferences);
+    const requesterPreferences = getSimpleStringPreferences(
+      requester.preferences,
+    );
     const matcherPreferences = getSimpleStringPreferences(matcher.preferences);
 
     const blocks = [
       {
-        type: "header",
+        type: 'header',
         text: {
-          type: "plain_text",
-          text: "✨ 새로운 매칭이 생성되었습니다",
-          emoji: true
-        }
+          type: 'plain_text',
+          text: '✨ 새로운 매칭이 생성되었습니다',
+          emoji: true,
+        },
       },
       {
-        type: "section",
+        type: 'section',
         fields: [
           {
-            type: "mrkdwn",
-            text: "*매칭 유형:*\n" + (type === 'admin' ? '관리자 매칭' : '자동 매칭')
+            type: 'mrkdwn',
+            text:
+              '*매칭 유형:*\n' +
+              (type === 'admin' ? '관리자 매칭' : '자동 매칭'),
           },
           {
-            type: "mrkdwn",
-            text: "*매칭 점수:*\n" + `*\`${(similarity * 100).toFixed(2)}%\`*`
-          }
-        ]
+            type: 'mrkdwn',
+            text: '*매칭 점수:*\n' + `*\`${(similarity * 100).toFixed(2)}%\`*`,
+          },
+        ],
       },
       {
-        type: "divider"
+        type: 'divider',
       },
       {
-        type: "section",
+        type: 'section',
         fields: [
           {
-            type: "mrkdwn",
-            text: "*매칭 요청자:*\n" + `${requester.name} (랭크: *${requester.rank}*)\n${requester.age}세 ${getGenderKor(requester.gender)}\n ${requesterPreferences}`
+            type: 'mrkdwn',
+            text:
+              '*매칭 요청자:*\n' +
+              `${requester.name} (랭크: *${requester.rank}*)\n${requester.age}세 ${getGenderKor(requester.gender)}\n ${requesterPreferences}`,
           },
           {
-            type: "mrkdwn",
-            text: "*매칭 대상:*\n" + `${matcher.name} (랭크: *${matcher.rank}*)\n${matcher.age}세 ${getGenderKor(matcher.gender)}\n ${matcherPreferences}`
-          }
-        ]
-      }
+            type: 'mrkdwn',
+            text:
+              '*매칭 대상:*\n' +
+              `${matcher.name} (랭크: *${matcher.rank}*)\n${matcher.age}세 ${getGenderKor(matcher.gender)}\n ${matcherPreferences}`,
+          },
+        ],
+      },
     ];
 
     await this.slack.chat.postMessage({
       channel: '매칭-테스트-로그',
       blocks,
-      text: "새로운 매칭이 생성되었습니다", // 알림이 꺼져있을 때 보이는 텍스트
+      text: '새로운 매칭이 생성되었습니다', // 알림이 꺼져있을 때 보이는 텍스트
       username: '썸타임 봇',
-      icon_url: 'https://i.pinimg.com/736x/03/78/fe/0378febd3b192bd1a8dd10335fd1f718.jpg',
+      icon_url:
+        'https://i.pinimg.com/736x/03/78/fe/0378febd3b192bd1a8dd10335fd1f718.jpg',
     });
   }
 
@@ -276,7 +304,8 @@ export class SlackService {
     this.logger.debug(`Sending signup notification for ${signupData.name}`);
 
     // 성별 한글 변환 함수
-    const getGenderKor = (gender: Gender) => gender === Gender.FEMALE ? "여성" : "남성";
+    const getGenderKor = (gender: Gender) =>
+      gender === Gender.FEMALE ? '여성' : '남성';
 
     // 날짜 포맷팅
     const now = new Date();
@@ -285,110 +314,110 @@ export class SlackService {
     // 슬랙 블록 구성
     const blocks = [
       {
-        type: "header",
+        type: 'header',
         text: {
-          type: "plain_text",
-          text: "🎉 새로운 회원이 가입했습니다!",
-          emoji: true
-        }
+          type: 'plain_text',
+          text: '🎉 새로운 회원이 가입했습니다!',
+          emoji: true,
+        },
       },
       {
-        type: "section",
+        type: 'section',
         fields: [
           {
-            type: "mrkdwn",
-            text: "*가입 시간:*\n" + formattedDate
+            type: 'mrkdwn',
+            text: '*가입 시간:*\n' + formattedDate,
           },
           {
-            type: "mrkdwn",
-            text: "*이름:*\n" + signupData.name
-          }
-        ]
+            type: 'mrkdwn',
+            text: '*이름:*\n' + signupData.name,
+          },
+        ],
       },
       {
-        type: "divider"
+        type: 'divider',
       },
       {
-        type: "section",
+        type: 'section',
         fields: [
           {
-            type: "mrkdwn",
-            text: "*이메일:*\n" + signupData.email
+            type: 'mrkdwn',
+            text: '*이메일:*\n' + signupData.email,
           },
           {
-            type: "mrkdwn",
-            text: "*전화번호:*\n" + signupData.phoneNumber
-          }
-        ]
+            type: 'mrkdwn',
+            text: '*전화번호:*\n' + signupData.phoneNumber,
+          },
+        ],
       },
       {
-        type: "section",
+        type: 'section',
         fields: [
           {
-            type: "mrkdwn",
-            text: "*나이:*\n" + `${signupData.age}세`
+            type: 'mrkdwn',
+            text: '*나이:*\n' + `${signupData.age}세`,
           },
           {
-            type: "mrkdwn",
-            text: "*성별:*\n" + getGenderKor(signupData.gender)
-          }
-        ]
+            type: 'mrkdwn',
+            text: '*성별:*\n' + getGenderKor(signupData.gender),
+          },
+        ],
       },
       {
-        type: "section",
+        type: 'section',
         fields: [
           {
-            type: "mrkdwn",
-            text: "*대학교:*\n" + signupData.universityName
+            type: 'mrkdwn',
+            text: '*대학교:*\n' + signupData.universityName,
           },
           {
-            type: "mrkdwn",
-            text: "*학과:*\n" + signupData.departmentName
-          }
-        ]
+            type: 'mrkdwn',
+            text: '*학과:*\n' + signupData.departmentName,
+          },
+        ],
       },
       {
-        type: "section",
+        type: 'section',
         fields: [
           {
-            type: "mrkdwn",
-            text: "*학년:*\n" + signupData.grade
+            type: 'mrkdwn',
+            text: '*학년:*\n' + signupData.grade,
           },
           {
-            type: "mrkdwn",
-            text: "*학번:*\n" + signupData.studentNumber
-          }
-        ]
-      }
+            type: 'mrkdwn',
+            text: '*학번:*\n' + signupData.studentNumber,
+          },
+        ],
+      },
     ];
 
     // MBTI가 있는 경우 추가
     if (signupData.mbti) {
       blocks.push({
-        type: "section",
+        type: 'section',
         fields: [
           {
-            type: "mrkdwn",
-            text: "*MBTI:*\n" + signupData.mbti
+            type: 'mrkdwn',
+            text: '*MBTI:*\n' + signupData.mbti,
           },
           {
-            type: "mrkdwn",
-            text: "*인스타그램:*\n" + (signupData.instagramId || "없음")
-          }
-        ]
+            type: 'mrkdwn',
+            text: '*인스타그램:*\n' + (signupData.instagramId || '없음'),
+          },
+        ],
       });
     }
 
     // 프로필 이미지 수 추가
     if (signupData.profileImages && signupData.profileImages.length > 0) {
       blocks.push({
-        type: "section",
+        type: 'section',
         fields: [
           {
-            type: "mrkdwn",
-            text: `*프로필 이미지:*\n${signupData.profileImages.length}개 업로드됨`
-          }
-        ]
+            type: 'mrkdwn',
+            text: `*프로필 이미지:*\n${signupData.profileImages.length}개 업로드됨`,
+          },
+        ],
       });
     }
 
@@ -398,7 +427,8 @@ export class SlackService {
       blocks,
       text: `${signupData.name}님이 회원가입했습니다.`, // 알림이 꺼져있을 때 보이는 텍스트
       username: '썸타임 봇',
-      icon_url: 'https://i.pinimg.com/736x/03/78/fe/0378febd3b192bd1a8dd10335fd1f718.jpg',
+      icon_url:
+        'https://i.pinimg.com/736x/03/78/fe/0378febd3b192bd1a8dd10335fd1f718.jpg',
     });
   }
 }

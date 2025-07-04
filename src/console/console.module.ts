@@ -21,7 +21,7 @@ import { DatabaseModule } from '@/database/database.module';
     GenerateEmbeddingsCommand,
     GenerateProfileEmbeddingsCommand,
     ProfileService,
-    ProfileRepository
+    ProfileRepository,
   ],
 })
-export class ConsoleModule { }
+export class ConsoleModule {}

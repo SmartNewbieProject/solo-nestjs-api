@@ -1,9 +1,23 @@
-import { IsNotEmpty, IsString, Validate, ValidatorConstraint, ValidatorConstraintInterface, ValidationArguments } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  Validate,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
+  ValidationArguments,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { getUniversities, getDepartmentsByUniversity, getStudentIds, getGrades } from '../domain/university';
+import {
+  getUniversities,
+  getDepartmentsByUniversity,
+  getStudentIds,
+  getGrades,
+} from '../domain/university';
 
 @ValidatorConstraint({ name: 'isValidUniversity', async: false })
-export class IsValidUniversityConstraint implements ValidatorConstraintInterface {
+export class IsValidUniversityConstraint
+  implements ValidatorConstraintInterface
+{
   validate(universityName: string, args: ValidationArguments) {
     const universities = getUniversities();
     return universities.includes(universityName);
@@ -15,13 +29,15 @@ export class IsValidUniversityConstraint implements ValidatorConstraintInterface
 }
 
 @ValidatorConstraint({ name: 'isValidDepartment', async: false })
-export class IsValidDepartmentConstraint implements ValidatorConstraintInterface {
+export class IsValidDepartmentConstraint
+  implements ValidatorConstraintInterface
+{
   validate(department: string, args: ValidationArguments) {
     const object = args.object as UniversityRegister;
     const universityName = object.universityName;
-    
+
     if (!universityName) return false;
-    
+
     const departments = getDepartmentsByUniversity(universityName);
     return departments.includes(department);
   }
@@ -30,19 +46,21 @@ export class IsValidDepartmentConstraint implements ValidatorConstraintInterface
     const object = args.object as UniversityRegister;
     const universityName = object.universityName;
     const departments = getDepartmentsByUniversity(universityName);
-    
+
     return `학과가 유효하지 않습니다. ${universityName}의 유효한 학과: ${departments.join(', ')}`;
   }
 }
 
 @ValidatorConstraint({ name: 'isValidStudentNumber', async: false })
-export class IsValidStudentNumberConstraint implements ValidatorConstraintInterface {
+export class IsValidStudentNumberConstraint
+  implements ValidatorConstraintInterface
+{
   validate(studentNumber: string, args: ValidationArguments) {
     const object = args.object as UniversityRegister;
     const universityName = object.universityName;
-    
+
     if (!universityName) return false;
-    
+
     const studentNumbers = getStudentIds();
     return studentNumbers.includes(studentNumber);
   }
@@ -51,7 +69,7 @@ export class IsValidStudentNumberConstraint implements ValidatorConstraintInterf
     const object = args.object as UniversityRegister;
     const universityName = object.universityName;
     const studentNumbers = getStudentIds();
-    
+
     return `학번이 유효하지 않습니다. ${universityName}의 유효한 학번: ${studentNumbers.join(', ')}`;
   }
 }
@@ -61,9 +79,9 @@ export class IsValidGradeConstraint implements ValidatorConstraintInterface {
   validate(grade: string, args: ValidationArguments) {
     const object = args.object as UniversityRegister;
     const universityName = object.universityName;
-    
+
     if (!universityName) return false;
-    
+
     const grades = getGrades();
     return grades.includes(grade);
   }
@@ -72,7 +90,7 @@ export class IsValidGradeConstraint implements ValidatorConstraintInterface {
     const object = args.object as UniversityRegister;
     const universityName = object.universityName;
     const grades = getGrades();
-    
+
     return `학년이 유효하지 않습니다. ${universityName}의 유효한 학년: ${grades.join(', ')}`;
   }
 }
@@ -80,7 +98,7 @@ export class IsValidGradeConstraint implements ValidatorConstraintInterface {
 export class UniversityRegister {
   @ApiProperty({
     description: '대학 이름',
-    example: '한밭대학교'
+    example: '한밭대학교',
   })
   @IsString()
   @IsNotEmpty()
@@ -89,7 +107,7 @@ export class UniversityRegister {
 
   @ApiProperty({
     description: '학과 이름',
-    example: '컴퓨터공학과'
+    example: '컴퓨터공학과',
   })
   @IsString()
   @IsNotEmpty()
@@ -98,7 +116,7 @@ export class UniversityRegister {
 
   @ApiProperty({
     description: '학번',
-    example: '19학번'
+    example: '19학번',
   })
   @IsString()
   @IsNotEmpty()
@@ -107,9 +125,9 @@ export class UniversityRegister {
 
   @ApiProperty({
     description: '학년',
-    example: '4학년'
+    example: '4학년',
   })
-  @IsString()       
+  @IsString()
   @IsNotEmpty()
   @Validate(IsValidGradeConstraint)
   grade: string;

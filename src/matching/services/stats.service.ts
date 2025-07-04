@@ -20,13 +20,19 @@ export class MatchingStatsService {
     return Number(await this.cacheManager.get(key)) || 0;
   }
 
-  async createWeightedPartners(partners: Similarity[]): Promise<WeightedPartner[]> {
-    return Promise.all(partners.map(async (partner) => {
-      const matchCount = Number(await this.cacheManager.get(`user:${partner.userId}:match_count`)) || 0;
-      const diversityScore = Math.pow(0.8, matchCount);
-      const finalWeight = partner.similarity * 0.5 + diversityScore * 0.5;
-      return { ...partner, matchCount, diversityScore, finalWeight };
-    }));
+  async createWeightedPartners(
+    partners: Similarity[],
+  ): Promise<WeightedPartner[]> {
+    return Promise.all(
+      partners.map(async (partner) => {
+        const matchCount =
+          Number(
+            await this.cacheManager.get(`user:${partner.userId}:match_count`),
+          ) || 0;
+        const diversityScore = Math.pow(0.8, matchCount);
+        const finalWeight = partner.similarity * 0.5 + diversityScore * 0.5;
+        return { ...partner, matchCount, diversityScore, finalWeight };
+      }),
+    );
   }
-
 }

@@ -10,7 +10,7 @@ async function bootstrap() {
     serviceErrorHandler: (error) => {
       console.error('Error:', error);
       process.exit(1);
-    }
+    },
   });
 }
 

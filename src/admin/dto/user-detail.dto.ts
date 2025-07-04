@@ -1,7 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUUID } from 'class-validator';
+import {
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 import { Gender } from '@/types/enum';
-import { ProfileImage, UniversityDetail, PreferenceTypeGroup } from '@/types/user';
+import {
+  ProfileImage,
+  UniversityDetail,
+  PreferenceTypeGroup,
+} from '@/types/user';
 
 /**
  * 계정 상태 enum
@@ -9,7 +19,7 @@ import { ProfileImage, UniversityDetail, PreferenceTypeGroup } from '@/types/use
 export enum AccountStatus {
   ACTIVE = 'ACTIVE',
   INACTIVE = 'INACTIVE',
-  SUSPENDED = 'SUSPENDED'
+  SUSPENDED = 'SUSPENDED',
 }
 
 /**
@@ -68,8 +78,8 @@ export class UserDetailResponse {
         id: '01HFGXS6YWVXDKB8RZT2VMBCHM',
         order: 1,
         isMain: true,
-        url: 'https://example.com/images/profile.jpg'
-      }
+        url: 'https://example.com/images/profile.jpg',
+      },
     ],
   })
   profileImages: ProfileImage[];
@@ -89,7 +99,7 @@ export class UserDetailResponse {
       authentication: true,
       department: '컴퓨터공학과',
       grade: '3학년',
-      studentNumber: '20201234'
+      studentNumber: '20201234',
     },
     nullable: true,
   })
@@ -104,10 +114,10 @@ export class UserDetailResponse {
         selectedOptions: [
           {
             id: '01HFGXS6YW1111111111AAAAA',
-            displayName: '활발함'
-          }
-        ]
-      }
+            displayName: '활발함',
+          },
+        ],
+      },
     ],
   })
   preferences: PreferenceTypeGroup[];
@@ -141,7 +151,8 @@ export class UserDetailResponse {
 
   @ApiProperty({
     description: '프로필 소개 내용',
-    example: '저는 컴퓨터공학을 전공하고 있는 대학생입니다. 취미는 독서와 여행입니다.',
+    example:
+      '저는 컴퓨터공학을 전공하고 있는 대학생입니다. 취미는 독서와 여행입니다.',
     nullable: true,
   })
   introduction: string | null;
@@ -222,7 +233,8 @@ export class SendWarningMessageRequest {
 
   @ApiProperty({
     description: '경고 메시지 내용',
-    example: '귀하의 계정에서 서비스 이용 규정을 위반하는 활동이 감지되었습니다. 자세한 내용은 본문을 참고해주세요.',
+    example:
+      '귀하의 계정에서 서비스 이용 규정을 위반하는 활동이 감지되었습니다. 자세한 내용은 본문을 참고해주세요.',
   })
   @IsString()
   @IsNotEmpty()
@@ -273,7 +285,8 @@ export class SendProfileUpdateRequestRequest {
 
   @ApiProperty({
     description: '수정 요청 내용',
-    example: '귀하의 프로필 정보 중 일부가 부적절하여 수정이 필요합니다. 자세한 내용은 본문을 참고해주세요.',
+    example:
+      '귀하의 프로필 정보 중 일부가 부적절하여 수정이 필요합니다. 자세한 내용은 본문을 참고해주세요.',
   })
   @IsString()
   @IsNotEmpty()

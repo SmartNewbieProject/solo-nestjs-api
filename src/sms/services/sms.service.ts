@@ -1,5 +1,5 @@
-import { Injectable } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
+import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import coolSms from 'coolsms-node-sdk';
 
 // CoolSMS SDK 타입 정의
@@ -23,12 +23,13 @@ type MessageService = {
 export default class SmsService {
   private smsClient: MessageService;
 
-  constructor(
-    private readonly configService: ConfigService,
-  ) {
+  constructor(private readonly configService: ConfigService) {
     const apiKey = configService.get('COOL_SMS_API_KEY');
     const secretKey = configService.get('COOL_SMS_SECRET_KEY');
-    this.smsClient = new coolSms(apiKey, secretKey) as unknown as MessageService;
+    this.smsClient = new coolSms(
+      apiKey,
+      secretKey,
+    ) as unknown as MessageService;
   }
 
   async sendSms(to: string, text: string) {
@@ -37,13 +38,12 @@ export default class SmsService {
         to,
         from: this.configService.get('SMS_SENDER_NUMBER')!,
         text,
-        type: 'SMS'
+        type: 'SMS',
       });
-      
+
       return result;
     } catch (error) {
       throw new Error(`SMS 발송 실패: ${error.message}`);
     }
   }
-
 }

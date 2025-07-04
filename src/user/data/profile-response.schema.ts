@@ -9,7 +9,7 @@ export const profileImageExample = {
   id: '01HFGXS6YWVXDKB8RZT2VMBCHM',
   order: 1,
   isMain: true,
-  url: 'https://example.com/images/profile.jpg'
+  url: 'https://example.com/images/profile.jpg',
 };
 
 /**
@@ -18,7 +18,7 @@ export const profileImageExample = {
 export const universityDetailExample = {
   name: '한밭대학교',
   authentication: true,
-  department: '컴퓨터공학과'
+  department: '컴퓨터공학과',
 };
 
 /**
@@ -26,7 +26,7 @@ export const universityDetailExample = {
  */
 export const preferenceOptionExample = {
   id: '01HFGXS6YW1111111111AAAAA',
-  displayName: '활발함'
+  displayName: '활발함',
 };
 
 /**
@@ -38,9 +38,9 @@ export const preferenceTypeGroupExample = {
     preferenceOptionExample,
     {
       id: '01HFGXS6YW2222222222BBBBB',
-      displayName: '배려심'
-    }
-  ]
+      displayName: '배려심',
+    },
+  ],
 };
 
 /**
@@ -56,8 +56,8 @@ export const profileResponseExample = {
       id: '01HFGXS6YW9876543210ZYXWV',
       order: 2,
       isMain: false,
-      url: 'https://example.com/images/profile2.jpg'
-    }
+      url: 'https://example.com/images/profile2.jpg',
+    },
   ],
   universityDetails: universityDetailExample,
   preferences: [
@@ -67,23 +67,23 @@ export const profileResponseExample = {
       selectedOptions: [
         {
           id: '01HFGXS6YW3333333333CCCCC',
-          displayName: '다정다감'
-        }
-      ]
-    }
-  ]
+          displayName: '다정다감',
+        },
+      ],
+    },
+  ],
 };
 
 /**
  * 인증 실패 응답 예시
  */
 export const unauthorizedResponseExample = {
-  error: "Unauthorized"
+  error: 'Unauthorized',
 };
 
 /**
  * 프로필 찾을 수 없음 응답 예시
  */
 export const notFoundResponseExample = {
-  error: "사용자 프로필을 찾을 수 없습니다."
+  error: '사용자 프로필을 찾을 수 없습니다.',
 };

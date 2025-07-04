@@ -11,7 +11,7 @@ export class LoggerMiddleware implements NestMiddleware {
   use(request: Request, response: Response, next: NextFunction): void {
     const { ip, method, originalUrl } = request;
     const userAgent = request.get('user-agent') || '';
-    
+
     // 요청 시작 시간 기록
     const startTime = Date.now();
 
@@ -22,7 +22,7 @@ export class LoggerMiddleware implements NestMiddleware {
       const responseTime = Date.now() - startTime;
 
       this.logger.log(
-        `${method} ${originalUrl} ${statusCode} ${contentLength} - ${responseTime}ms - ${userAgent} ${ip}`
+        `${method} ${originalUrl} ${statusCode} ${contentLength} - ${responseTime}ms - ${userAgent} ${ip}`,
       );
     });
 

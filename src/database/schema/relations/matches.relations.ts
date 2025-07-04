@@ -8,7 +8,7 @@ export const matchesRelations = relations(matches, ({ one }) => ({
     references: [profiles.userId],
     relationName: 'maleMatches',
   }),
-  
+
   matcher: one(profiles, {
     fields: [matches.matcherId],
     references: [profiles.userId],

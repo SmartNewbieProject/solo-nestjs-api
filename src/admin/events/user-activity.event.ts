@@ -7,7 +7,7 @@ export class UserActivityEvent {
      * 사용자 ID
      */
     public readonly userId: string,
-    
+
     /**
      * 활동 유형
      * - login: 로그인
@@ -18,7 +18,7 @@ export class UserActivityEvent {
      * - api_request: API 요청
      */
     public readonly activityType: string,
-    
+
     /**
      * 타임스탬프
      */

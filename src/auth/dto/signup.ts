@@ -1,4 +1,17 @@
-import { IsEmail, IsNotEmpty, IsNumber, IsString, Matches, Max, MaxLength, Min, MinLength, IsOptional, ValidateNested, ArrayMaxSize } from 'class-validator';
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  Matches,
+  Max,
+  MaxLength,
+  Min,
+  MinLength,
+  IsOptional,
+  ValidateNested,
+  ArrayMaxSize,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { Gender } from '@/types/enum';
@@ -20,7 +33,8 @@ export class SignupRequest {
   @IsString()
   @MinLength(8, { message: '비밀번호는 최소 8자 이상이어야 합니다.' })
   @Matches(/^(?=.*[A-Za-z])(?=.*\d)(?=.*\W)[A-Za-z\d\W_]{8,}$/, {
-    message: '비밀번호는 최소 8자 이상이며, 문자와 숫자, 특수문자를 포함해야 합니다.',
+    message:
+      '비밀번호는 최소 8자 이상이며, 문자와 숫자, 특수문자를 포함해야 합니다.',
   })
   password: string;
 
@@ -62,8 +76,10 @@ export class SignupRequest {
   })
   @IsString()
   @IsNotEmpty({ message: '성별은 필수 입력 항목입니다.' })
-  @Matches(/^(MALE|FEMALE)$/, { message: '성별은 MALE 또는 FEMALE이어야 합니다.' })
-  @Transform(({ value }) => value === 'MALE' ? Gender.MALE : Gender.FEMALE)
+  @Matches(/^(MALE|FEMALE)$/, {
+    message: '성별은 MALE 또는 FEMALE이어야 합니다.',
+  })
+  @Transform(({ value }) => (value === 'MALE' ? Gender.MALE : Gender.FEMALE))
   gender: Gender;
 
   @ApiProperty({

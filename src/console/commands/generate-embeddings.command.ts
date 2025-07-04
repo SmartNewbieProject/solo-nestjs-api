@@ -14,7 +14,9 @@ interface GenerateEmbeddingsCommandOptions {
   description: '관심사 임베딩을 생성합니다',
 })
 export class GenerateEmbeddingsCommand extends CommandRunner {
-  constructor(private readonly interestEmbeddingService: InterestEmbeddingService) {
+  constructor(
+    private readonly interestEmbeddingService: InterestEmbeddingService,
+  ) {
     super();
   }
 
@@ -23,17 +25,24 @@ export class GenerateEmbeddingsCommand extends CommandRunner {
     options?: GenerateEmbeddingsCommandOptions,
   ): Promise<void> {
     console.log('전달받은 인수:', passedParams);
-    
+
     try {
       if (options?.optionId) {
         console.log(`옵션 ID ${options.optionId}에 대한 임베딩을 생성합니다.`);
-        await this.interestEmbeddingService.generateInterestEmbedding(options.optionId);
+        await this.interestEmbeddingService.generateInterestEmbedding(
+          options.optionId,
+        );
         console.log('임베딩 생성이 완료되었습니다.');
       } else if (options?.userId && options?.interests) {
-        const interestList = options.interests.split(',').map(i => i.trim());
-        console.log(`사용자 ID ${options.userId}의 관심사 임베딩을 생성합니다.`);
+        const interestList = options.interests.split(',').map((i) => i.trim());
+        console.log(
+          `사용자 ID ${options.userId}의 관심사 임베딩을 생성합니다.`,
+        );
         console.log(`관심사: ${interestList.join(', ')}`);
-        await this.interestEmbeddingService.generateUserInterestEmbedding(options.userId, interestList);
+        await this.interestEmbeddingService.generateUserInterestEmbedding(
+          options.userId,
+          interestList,
+        );
         console.log('사용자 관심사 임베딩 생성이 완료되었습니다.');
       } else {
         console.log('모든 관심사에 대한 임베딩을 생성합니다.');

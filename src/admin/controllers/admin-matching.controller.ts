@@ -62,7 +62,7 @@ export class AdminMatchingController {
         message: { type: 'string', description: '시뮬레이션 결과 메시지' },
         requester: {
           type: 'object',
-          description: '매칭을 요청한 사용자 정보'
+          description: '매칭을 요청한 사용자 정보',
         },
         potentialPartners: {
           type: 'array',
@@ -71,20 +71,20 @@ export class AdminMatchingController {
             type: 'object',
             properties: {
               profile: { type: 'object', description: '파트너 프로필 정보' },
-              similarity: { type: 'number', description: '유사도 점수' }
-            }
-          }
+              similarity: { type: 'number', description: '유사도 점수' },
+            },
+          },
         },
         selectedPartner: {
           type: 'object',
           description: '선택된 파트너 (실제 매칭 시 선택될 파트너)',
           properties: {
             profile: { type: 'object', description: '파트너 프로필 정보' },
-            similarity: { type: 'number', description: '유사도 점수' }
-          }
-        }
-      }
-    }
+            similarity: { type: 'number', description: '유사도 점수' },
+          },
+        },
+      },
+    },
   })
   async findMatches(@Body() matchingRequest: AdminMatchRequest) {
     return this.adminMatchService.simulateMatching(matchingRequest);
@@ -128,9 +128,9 @@ export class AdminMatchingController {
     description: '배치 매칭 처리가 시작되었습니다.',
     schema: {
       properties: {
-        message: { type: 'string', description: '배치 매칭 처리 시작 메시지' }
-      }
-    }
+        message: { type: 'string', description: '배치 매칭 처리 시작 메시지' },
+      },
+    },
   })
   async processMatchingBatch() {
     await this.matchingCreationService.processMatchCentral();
@@ -151,8 +151,8 @@ export class AdminMatchingController {
             id: { type: 'string' },
             name: { type: 'string' },
             gender: { type: 'string' },
-            age: { type: 'number' }
-          }
+            age: { type: 'number' },
+          },
         },
         partner: {
           type: 'object',
@@ -161,8 +161,8 @@ export class AdminMatchingController {
             id: { type: 'string' },
             name: { type: 'string' },
             gender: { type: 'string' },
-            age: { type: 'number' }
-          }
+            age: { type: 'number' },
+          },
         },
         similarity: {
           type: 'object',
@@ -178,13 +178,13 @@ export class AdminMatchingController {
                 personalitiesScore: { type: 'number' },
                 lifestylesScore: { type: 'number' },
                 mbtiScore: { type: 'number' },
-                embeddingScore: { type: 'number' }
-              }
-            }
-          }
-        }
-      }
-    }
+                embeddingScore: { type: 'number' },
+              },
+            },
+          },
+        },
+      },
+    },
   })
   @Post('user')
   @Roles(Role.ADMIN)

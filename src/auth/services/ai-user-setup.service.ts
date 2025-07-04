@@ -25,12 +25,10 @@ export class AiUserSetupService {
    * AI 사용자 계정이 존재하는지 확인
    */
   async checkAiUserExists(): Promise<boolean> {
-    const user = await this.db.select()
+    const user = await this.db
+      .select()
       .from(users)
-      .where(and(
-        eq(users.id, this.AI_USER_ID),
-        isNull(users.deletedAt)
-      ))
+      .where(and(eq(users.id, this.AI_USER_ID), isNull(users.deletedAt)))
       .limit(1);
 
     return user.length > 0;
@@ -48,7 +46,10 @@ export class AiUserSetupService {
 
     await this.db.transaction(async (tx) => {
       const profileId = generateUuidV7();
-      const hashedPassword = await bcrypt.hash('ai-bot-secure-password-2024', 10);
+      const hashedPassword = await bcrypt.hash(
+        'ai-bot-secure-password-2024',
+        10,
+      );
 
       // AI 사용자 생성
       await tx.insert(users).values({
@@ -86,12 +87,10 @@ export class AiUserSetupService {
    * AI 사용자 정보 조회
    */
   async getAiUser() {
-    const user = await this.db.select()
+    const user = await this.db
+      .select()
       .from(users)
-      .where(and(
-        eq(users.id, this.AI_USER_ID),
-        isNull(users.deletedAt)
-      ))
+      .where(and(eq(users.id, this.AI_USER_ID), isNull(users.deletedAt)))
       .limit(1);
 
     return user.length > 0 ? user[0] : null;

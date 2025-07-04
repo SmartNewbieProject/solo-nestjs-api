@@ -12,13 +12,11 @@ import { SignupService } from '@/auth/services/signup.service';
 @Roles(Role.ADMIN)
 @ApiBearerAuth('access-token')
 export class AdminMailController {
-  constructor(private readonly signService: SignupService) {
-  }
+  constructor(private readonly signService: SignupService) {}
 
   @ApiOperation({ summary: '어드민 - 사전가입 인증 메일 전송' })
   @Post('/pre-signup')
-  async sendPreSignupEmail(@Body() { email, name }: PreSignUp) {    
+  async sendPreSignupEmail(@Body() { email, name }: PreSignUp) {
     this.signService.sendPreWelcomeEmail(email, name, {} as SignupRequest);
   }
-
 }
