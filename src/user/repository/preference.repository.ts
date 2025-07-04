@@ -1,29 +1,42 @@
-
-import { Injectable } from "@nestjs/common";
-import * as schema from "@/database/schema";
+import { Injectable } from '@nestjs/common';
+import * as schema from '@/database/schema';
 import { InjectDrizzle } from '@common/decorators';
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { eq, count } from 'drizzle-orm';
 
 @Injectable()
 export class PreferenceRepository {
   constructor(
     @InjectDrizzle() private readonly db: NodePgDatabase<typeof schema>,
-  ) { }
+  ) {}
 
-  async getPreferencesByName(typeName: string) {
-    return await this.db.select()
+  getPreferencesByName(typeName: string) {
+    return this.db
+      .select()
       .from(schema.preferenceTypes)
-      .leftJoin(schema.preferenceOptions, eq(schema.preferenceTypes.id, schema.preferenceOptions.preferenceTypeId))
+      .leftJoin(
+        schema.preferenceOptions,
+        eq(
+          schema.preferenceTypes.id,
+          schema.preferenceOptions.preferenceTypeId,
+        ),
+      )
       .where(eq(schema.preferenceTypes.name, typeName));
   }
 
   async getUserPreferenceCount(userId: string) {
-    const results = await this.db.select({
-      count: count(),
-    })
+    const results = await this.db
+      .select({
+        count: count(),
+      })
       .from(schema.userPreferenceOptions)
-      .leftJoin(schema.userPreferences, eq(schema.userPreferenceOptions.userPreferenceId, schema.userPreferences.id))
+      .leftJoin(
+        schema.userPreferences,
+        eq(
+          schema.userPreferenceOptions.userPreferenceId,
+          schema.userPreferences.id,
+        ),
+      )
       .where(eq(schema.userPreferences.userId, userId))
       .execute();
 
@@ -34,4 +47,3 @@ export class PreferenceRepository {
     return Number(results[0].count);
   }
 }
-

@@ -3,17 +3,16 @@ import { PreferenceService } from '../services/preference.service';
 import { ProfileService } from '../services/profile.service';
 import { CurrentUser, Roles } from '@/auth/decorators';
 import { Role } from '@/auth/domain/user-role.enum';
-import {
-  ApiBearerAuth,
-  ApiOperation,
-  ApiResponse,
-  ApiTags,
-} from '@nestjs/swagger';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthenticationUser } from '@/types';
-import { PreferenceSave, SelfPreferencesSave } from '../dto/profile.dto';
+import {
+  SelfPreferencesSave,
+  PartnerPreferencesSave,
+} from '../dto/profile.dto';
 import { ProfileDocs } from '@/user/docs';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProfileUpdatedEvent } from '@/events/profile-updated.event';
+import { PreferenceTarget } from '@database/schema';
 
 @ApiTags('이상형')
 @Controller('preferences')
@@ -26,77 +25,44 @@ export class PreferenceController {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  @ApiOperation({ summary: '선호도 옵션 조회' })
+  @ProfileDocs.getPreferenceOptions()
   @Get('/options')
   async getOptions(@Query('name') typeName: string) {
     return await this.preferenceService.getPreferencesByName(typeName);
   }
 
-  @ApiOperation({ summary: '선호도 입력 여부 확인' })
+  @ProfileDocs.checkPreferenceFill()
   @Get('/check/fill')
   async checkFill(@CurrentUser() user: AuthenticationUser) {
     return await this.preferenceService.checkFill(user.id);
   }
 
-  @Get()
-  @ProfileDocs.getPreferences()
-  async getPreferences(@CurrentUser() user: AuthenticationUser) {
-    return await this.profileService.getAllPreferences(user.gender);
+  @Get('/self/options')
+  @ProfileDocs.getPreferenceSelf()
+  async getSelfPreferenceOptions(@CurrentUser() user: AuthenticationUser) {
+    return await this.profileService.getPreferences(
+      user.gender,
+      PreferenceTarget.SELF,
+    );
   }
 
-  @Patch()
-  @ProfileDocs.updatePreferences()
-  async updatePreferences(
-    @CurrentUser() user: AuthenticationUser,
-    @Body() data: PreferenceSave,
-  ) {
-    return await this.profileService.updatePreferences(user.id, data);
+  @Get('/partner/options')
+  @ProfileDocs.getPreferencePartner()
+  async getPartnerPreferenceOptions(@CurrentUser() user: AuthenticationUser) {
+    return await this.profileService.getPreferences(
+      user.gender,
+      PreferenceTarget.PARTNER,
+    );
   }
 
-  @Get('self')
-  @ApiOperation({
-    summary: '본인 성향 조회',
-    description: '현재 로그인한 사용자의 본인 성향 정보를 조회합니다.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: '본인 성향 조회 성공',
-    schema: {
-      example: [
-        {
-          typeName: '성격 유형',
-          selectedOptions: [
-            { id: 'option-id-1', displayName: '외향적' },
-            { id: 'option-id-2', displayName: '유머러스' },
-          ],
-        },
-      ],
-    },
-  })
+  @Get('/self')
+  @ProfileDocs.getSelfPreferences()
   async getSelfPreferences(@CurrentUser() user: AuthenticationUser) {
     return await this.profileService.getSelfPreferences(user.id);
   }
 
   @Patch('self')
-  @ApiOperation({
-    summary: '본인 성향 수정',
-    description: '현재 로그인한 사용자의 본인 성향 정보를 수정합니다.',
-  })
-  @ApiResponse({
-    status: 200,
-    description: '본인 성향 수정 성공',
-    schema: {
-      example: {
-        id: 'user-id',
-        preferences: [
-          {
-            typeName: '성격 유형',
-            selectedOptions: [{ id: 'option-id-1', displayName: '외향적' }],
-          },
-        ],
-      },
-    },
-  })
+  @ProfileDocs.updateSelfPreferences()
   async updateSelfPreferences(
     @CurrentUser() user: AuthenticationUser,
     @Body() data: SelfPreferencesSave,
@@ -112,5 +78,14 @@ export class PreferenceController {
     );
 
     return updatedProfile;
+  }
+
+  @Patch('/partner')
+  @ProfileDocs.updatePartnerPreferences()
+  async updatePartnerPreferences(
+    @CurrentUser() user: AuthenticationUser,
+    @Body() data: PartnerPreferencesSave,
+  ) {
+    return await this.profileService.updatePartnerPreferences(user.id, data);
   }
 }
