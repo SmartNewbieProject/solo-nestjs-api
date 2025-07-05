@@ -5,6 +5,6 @@ import { users } from '../users';
 export const userGemsRelations = relations(userGems, ({ one }) => ({
   user: one(users, {
     fields: [userGems.userId],
-    references: [users.userId],
+    references: [users.id],
   }),
 }));

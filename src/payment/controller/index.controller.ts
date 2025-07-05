@@ -84,7 +84,7 @@ export class PaymentController {
     try {
       return await this.payService.handlePaymentWebhook(webhookData);
     } catch (error) {
-      return { success: false, error: error.message };
+      return { success: false };
     }
   }
 

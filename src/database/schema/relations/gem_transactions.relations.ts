@@ -7,7 +7,7 @@ export const gemTransactionsRelations = relations(
   ({ one }) => ({
     user: one(users, {
       fields: [gemTransactions.userId],
-      references: [users.userId],
+      references: [users.id],
     }),
   }),
 );
