@@ -27,10 +27,10 @@ export const paymentStatusEnum = pgEnum('payment_status', [
 export const gemPayments = pgTable('gem_payments', {
   paymentId: uuid(),
   userId: varchar('user_id', { length: 128 })
-    .references(() => users.userId)
+    .references(() => users.id)
     .notNull(),
   productId: varchar('product_id', { length: 128 })
-    .references(() => gemProducts.productId)
+    .references(() => gemProducts.id)
     .notNull(),
   paymentMethod: paymentMethodEnum('payment_method').notNull(),
   paymentAmount: integer('payment_amount').notNull(),

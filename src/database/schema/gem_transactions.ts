@@ -6,7 +6,7 @@ import {
   timestamp,
   varchar,
 } from 'drizzle-orm/pg-core';
-import { timestamps, uuid } from './helper';
+import { uuid } from './helper';
 import { users } from './users';
 
 export const gemTransactionTypeEnum = pgEnum('gem_transaction_type', [
@@ -25,7 +25,7 @@ export const gemReferenceTypeEnum = pgEnum('gem_reference_type', [
 export const gemTransactions = pgTable('gem_transactions', {
   transactionId: uuid(),
   userId: varchar('user_id', { length: 128 })
-    .references(() => users.userId)
+    .references(() => users.id)
     .notNull(),
   transactionType: gemTransactionTypeEnum('transaction_type').notNull(),
   gemAmount: integer('gem_amount').notNull(),

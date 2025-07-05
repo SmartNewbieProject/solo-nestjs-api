@@ -6,10 +6,10 @@ import { gemProducts } from '../gem_products';
 export const gemPaymentsRelations = relations(gemPayments, ({ one }) => ({
   user: one(users, {
     fields: [gemPayments.userId],
-    references: [users.userId],
+    references: [users.id],
   }),
   product: one(gemProducts, {
     fields: [gemPayments.productId],
-    references: [gemProducts.productId],
+    references: [gemProducts.id],
   }),
 }));
