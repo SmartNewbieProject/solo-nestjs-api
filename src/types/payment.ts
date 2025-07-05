@@ -7,6 +7,7 @@ export type PayBeforeHistory = {
 
 export enum Product {
   REMATCHING = '연인 재매칭권',
+  GEM_CHARGE = 'GEM_CHARGE',
 }
 
 export type PortOneCustomData = {
