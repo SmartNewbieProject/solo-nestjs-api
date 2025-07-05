@@ -41,7 +41,7 @@ export default class PayService {
     private readonly slackService: SlackService,
     private readonly userRepository: UserRepository,
   ) {
-    const secretKey = configService.get('PORTONE_V2_SECRET_KEY') as string;
+    const secretKey = configService.get('PORTONE_SECRET_KEY') as string;
     this.client = PortOneClient({ secret: secretKey });
     this.secretKey = secretKey;
     this.storeId = configService.get('PORTONE_STORE_ID') as string;

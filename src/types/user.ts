@@ -72,11 +72,11 @@ export interface PreferenceList extends PreferenceTypeGroup {
 }
 
 export interface UniversityDetail {
-  name: string;
+  name: string | null;
   authentication: boolean;
-  department: string;
-  grade: string;
-  studentNumber: string;
+  department: string | null;
+  grade: string | null;
+  studentNumber: string | null;
 }
 
 export interface UserProfile {
@@ -100,7 +100,7 @@ export interface UserDetails {
   name: string;
   age: number;
   gender: Gender;
-  email: string;
+  email: string | null;
   profileImages: ProfileImage[];
   phoneNumber: string;
   instagramId: string | null;

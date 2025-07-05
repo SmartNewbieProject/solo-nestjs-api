@@ -11,6 +11,7 @@ import {
 import { Response } from 'express';
 import { AuthService } from '../services/auth.service';
 import { LoginRequest, TokenResponse, WithdrawRequest } from '../dto';
+import { PassLoginRequest, PassLoginResponse } from '../dto/pass-login.dto';
 import { CurrentUser, Public, Roles } from '@auth/decorators';
 import { AuthenticationUser } from '@/types';
 import { AuthDocs } from '@auth/docs';
@@ -58,6 +59,22 @@ export class AuthController {
     const result = await this.authService.login(loginRequest);
 
     this.setRefreshTokenCookie(response, result.refreshToken);
+    return result;
+  }
+
+  @Post('pass-login')
+  @HttpCode(HttpStatus.OK)
+  @Public()
+  async passLogin(
+    @Body() passLoginRequest: PassLoginRequest,
+    @Res({ passthrough: true }) response: Response,
+  ): Promise<PassLoginResponse> {
+    const result = await this.authService.passLogin(passLoginRequest);
+
+    if (result.refreshToken) {
+      this.setRefreshTokenCookie(response, result.refreshToken);
+    }
+
     return result;
   }
 

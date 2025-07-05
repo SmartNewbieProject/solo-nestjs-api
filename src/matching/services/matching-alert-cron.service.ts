@@ -25,15 +25,14 @@ export class MatchingAlertCronService {
       return;
     }
 
-    const tasks = users.map((user) =>
-      limit(() =>
-        this.mailService
-          .sendMatchingAlertEmail(user.email, user.name)
-          .catch((e) =>
-            this.logger.error(`Failed to send to ${user.email}: ${e.message}`),
-          ),
-      ),
-    );
+    const tasks = users
+      .filter(user => user.email) // email이 있는 사용자만 필터링
+      .map(user =>
+        limit(() =>
+          this.mailService.sendMatchingAlertEmail(user.email!, user.name)
+            .catch(e => this.logger.error(`Failed to send to ${user.email}: ${e.message}`))
+        )
+      );
 
     await this.cacheManager.set('mailBatchStatus', true, 1000 * 60 * 60 * 3);
 

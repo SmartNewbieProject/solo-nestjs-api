@@ -54,12 +54,12 @@ export type PartnerDetails = {
   name: string;
   age: number;
   gender: Gender;
-  instagramId: string;
+  instagramId: string | null;
   university: {
-    department: string;
-    name: string;
-    grade: string;
-    studentNumber: string;
+    department: string | null;
+    name: string | null;
+    grade: string | null;
+    studentNumber: string | null;
   } | null;
   preferences: PreferenceTypeGroup[];
 };

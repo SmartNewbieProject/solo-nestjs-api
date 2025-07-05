@@ -341,14 +341,14 @@ export class SlackService {
         type: 'section',
         fields: [
           {
-            type: 'mrkdwn',
-            text: '*이메일:*\n' + signupData.email,
+            type: "mrkdwn",
+            text: "*전화번호:*\n" + signupData.phoneNumber
           },
           {
-            type: 'mrkdwn',
-            text: '*전화번호:*\n' + signupData.phoneNumber,
-          },
-        ],
+            type: "mrkdwn",
+            text: "*이름:*\n" + signupData.name
+          }
+        ]
       },
       {
         type: 'section',
@@ -391,22 +391,16 @@ export class SlackService {
       },
     ];
 
-    // MBTI가 있는 경우 추가
-    if (signupData.mbti) {
-      blocks.push({
-        type: 'section',
-        fields: [
-          {
-            type: 'mrkdwn',
-            text: '*MBTI:*\n' + signupData.mbti,
-          },
-          {
-            type: 'mrkdwn',
-            text: '*인스타그램:*\n' + (signupData.instagramId || '없음'),
-          },
-        ],
-      });
-    }
+    // 인스타그램 정보 추가
+    blocks.push({
+      type: "section",
+      fields: [
+        {
+          type: "mrkdwn",
+          text: "*인스타그램:*\n" + (signupData.instagramId || "없음")
+        }
+      ]
+    });
 
     // 프로필 이미지 수 추가
     if (signupData.profileImages && signupData.profileImages.length > 0) {
