@@ -1,4 +1,3 @@
-// 성격 유형 enum
 export enum PersonalityType {
   OUTGOING = 'OUTGOING', // 활발한 성격
   QUIET = 'QUIET', // 조용한 성격
@@ -11,7 +10,6 @@ export enum PersonalityType {
   SPONTANEOUS = 'SPONTANEOUS', // 즉흥적인 스타일
 }
 
-// 연애 스타일 enum
 export enum DatingStyle {
   PROACTIVE = 'PROACTIVE', // 적극적인 스타일
   AFFECTIONATE = 'AFFECTIONATE', // 다정다감한 스타일
@@ -23,7 +21,6 @@ export enum DatingStyle {
   FREQUENT_CONTACT = 'FREQUENT_CONTACT', // 자주 연락하는 걸 선호하는 스타일
 }
 
-// 라이프스타일 enum
 export enum LifestyleType {
   MORNING_PERSON = 'MORNING_PERSON', // 아침형 인간
   NIGHT_PERSON = 'NIGHT_PERSON', // 밤형 인간
@@ -35,7 +32,6 @@ export enum LifestyleType {
   ACTIVITY_LOVER = 'ACTIVITY_LOVER', // 액티비티 활동을 좋아함
 }
 
-// 음주 선호도 enum
 export enum DrinkingPreference {
   FREQUENTLY_OK = 'FREQUENTLY_OK', // 자주 마셔도 괴찮음
   OCCASIONALLY_OK = 'OCCASIONALLY_OK', // 가끔 마시는 정도면 좋음
@@ -44,7 +40,6 @@ export enum DrinkingPreference {
   NO_PREFERENCE = 'NO_PREFERENCE', // 상관없음
 }
 
-// 흡연 선호도 enum
 export enum SmokingPreference {
   SMOKER_OK = 'SMOKER_OK', // 흡연자도 괴찮음
   NON_SMOKER_PREFERRED = 'NON_SMOKER_PREFERRED', // 비흡연자였으면 좋겠음
@@ -52,7 +47,6 @@ export enum SmokingPreference {
   NO_PREFERENCE = 'NO_PREFERENCE', // 상관없음
 }
 
-// 문신 선호도 enum
 export enum TattooPreference {
   TATTOO_OK = 'TATTOO_OK', // 문신 있어도 괴찮음
   SMALL_TATTOO_OK = 'SMALL_TATTOO_OK', // 작은 문신 정도는 괴찮음
@@ -60,7 +54,6 @@ export enum TattooPreference {
   NO_PREFERENCE = 'NO_PREFERENCE', // 상관없음
 }
 
-// 관심사 enum
 export enum InterestType {
   MOVIES = 'MOVIES', // 영화
   MUSIC = 'MUSIC', // 음악
@@ -79,7 +72,6 @@ export enum InterestType {
   CYCLING = 'CYCLING', // 자전거
 }
 
-// MBTI 유형 enum
 export enum MbtiType {
   INTJ = 'INTJ',
   INTP = 'INTP',
@@ -99,13 +91,12 @@ export enum MbtiType {
   ESFP = 'ESFP',
 }
 
-// 성별 enum
 export enum Gender {
   MALE = 'MALE',
   FEMALE = 'FEMALE',
 }
 
-// 선호 나이대 enum
+// 선호 나이대
 export enum AgePreference {
   OLDER = 'OLDER', // 연상
   YOUNGER = 'YOUNGER', // 연하
@@ -113,16 +104,34 @@ export enum AgePreference {
   NO_PREFERENCE = 'NO_PREFERENCE', // 상관없음
 }
 
-// 사용자 역할 enum
 export enum Role {
   USER = 'user',
   ADMIN = 'admin',
 }
 
-// 신고 상태 enum
 export enum ReportStatus {
   PENDING = 'pending',
   ACCEPTED = 'accepted',
   REJECTED = 'rejected',
   RESOLVED = 'resolved',
+}
+
+export enum GemTransactionType {
+  CHARGE = 'CHARGE',
+  CONSUME = 'CONSUME',
+}
+
+export enum GemReferenceType {
+  PAYMENT = 'PAYMENT',
+  PROFILE_OPEN = 'PROFILE_OPEN',
+  LIKE_MESSAGE = 'LIKE_MESSAGE',
+  CHAT = 'CHAT',
+  FILTER = 'FILTER',
+}
+
+export enum FeatureType {
+  PROFILE_OPEN = 'PROFILE_OPEN',
+  LIKE_MESSAGE = 'LIKE_MESSAGE',
+  CHAT_START = 'CHAT_START',
+  PREMIUM_FILTER = 'PREMIUM_FILTER',
 }
