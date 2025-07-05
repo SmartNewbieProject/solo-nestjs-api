@@ -8,10 +8,13 @@ import { TicketService } from './services/ticket.service';
 import { TicketRepository } from './repository/ticket.repository';
 import { DrizzleService } from '@/database/drizzle.service';
 import UserRepository from '@/user/repository/user.repository';
+import { GemController } from '@/payment/controller/v1/gem.controller';
+import { GemProductViewer } from '@/payment/services/product-viewer.service';
+import { GemRepository } from '@/payment/repository/gem.repository';
 
 @Module({
   imports: [ConfigModule],
-  controllers: [PaymentController, TicketController],
+  controllers: [PaymentController, TicketController, GemController],
   providers: [
     PayService,
     DrizzleService,
@@ -19,6 +22,8 @@ import UserRepository from '@/user/repository/user.repository';
     TicketService,
     TicketRepository,
     UserRepository,
+    GemProductViewer,
+    GemRepository,
   ],
   exports: [PayService, TicketService, TicketRepository],
 })
