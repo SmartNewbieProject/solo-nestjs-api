@@ -1,0 +1,222 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+## 📋 문서 정보
+- **프로젝트**: Sometimes - 대전 11개 대학생 신뢰 기반 AI 소개팅 플랫폼
+- **작성일**: 2025년 5월 23일
+- **버전**: v1.0
+- **담당자**: 개발팀
+
+---
+## 🎯 개요
+### 현재 상황
+Sometimes 플랫폼의 AI 매칭 시스템에서 **특정 사용자들에게 매칭이 편향되는 문제**가 발생하고 있습니다. 이는 사용자 경험 저하와 플랫폼 신뢰도 감소로 이어질 수 있는 중요한 이슈입니다.
+
+### 개선 목표
+- 매칭 다양성 증진 (편향성 해소)
+- 유사도 점수 기반 품질 향상
+- 사용자 만족도 개선
+
+---
+
+## 🔍 현재 시스템 분석
+### 매칭 프로세스
+
+```
+1. 사용자 프로필 → 텍스트 변환 → OpenAI 임베딩 생성
+2. Qdrant 벡터 검색으로 유사한 사용자 10-30명 후보 추출
+3. Redis 매칭 이력 확인하여 이전 매칭 사용자 제외
+4. 남은 후보 중 완전 랜덤 선택 (choiceRandom)
+5. 매칭 생성 및 알림 발송
+```
+
+### 기술 스택
+- **임베딩**: OpenAI text-embedding-3-small
+- **벡터 DB**: Qdrant
+- **캐시**: Redis (매칭 이력 관리)
+- **백엔드**: NestJS + TypeScript
+
+---
+
+## 🚨 문제점 분석
+### 1. 파트너 선택 알고리즘의 한계
+
+```typescript
+// 현재 구현
+private getOnePartner(partners: Similarity[]) {
+  return choiceRandom(partners); // 완전 랜덤 선택
+}
+```
+
+**문제점:**
+- 유사도 점수 무시: 벡터 검색으로 계산된 유사도를 활용하지 않음
+- 매칭 이력 미고려: 개별 사용자의 매칭 빈도나 최근 매칭 이력 무시
+- 다양성 부족: 항상 상위권에 있는 사용자들만 매칭될 가능성
+### 2. 임베딩 생성 방식의 한계
+```
+현재: "나이: 24세 성별: MALE MBTI: ISFP 음주 선호도: 상관없음 관심사: 사진, 자전거, 반려동물..."
+```
+
+**문제점:**
+- 속성별 가중치 부족: 모든 속성이 동일한 영향력
+- 의미적 구조 손실: 중요한 속성과 부차적 속성 구분 불가
+- 텍스트 순서 의존성: 앞쪽 텍스트에 더 큰 영향력
+### 3. 매칭 다양성 관리 부족
+- 매칭 횟수 추적 시스템 부재
+- 매칭 빈도 균등화 메커니즘 없음
+- 사용자별 매칭 성공률 데이터 부족
+---
+## 💡 개선 방안
+### Phase 1: 파트너 선택 알고리즘 개선 (즉시 적용)
+#### 1.1 가중치 기반 선택 시스템
+```typescript
+// 개선된 파트너 선택 로직
+private async getOnePartner(partners: Similarity[], userId: string) {
+  const weightedPartners = await this.calculatePartnerWeights(partners, userId);
+  return this.selectPartnerByWeight(weightedPartners);
+}
+
+private async calculatePartnerWeights(partners: Similarity[], userId: string) {
+  const weights = await Promise.all(partners.map(async (partner) => {
+    // 1. 유사도 점수 정규화 (0.4 가중치)
+    const similarityScore = partner.similarity * 0.4;
+    
+    // 2. 매칭 다양성 점수 (0.6 가중치)
+    const diversityScore = await this.calculateDiversityScore(partner.userId) * 0.6;
+    
+    return {
+      ...partner,
+      finalWeight: similarityScore + diversityScore
+    };
+  }));
+  
+  return weights;
+}
+```
+
+#### 1.2 매칭 다양성 점수 계산
+
+```typescript
+private async calculateDiversityScore(userId: string): Promise<number> {
+  // 매칭 횟수 조회 (낮을수록 높은 점수)
+  const matchCount = await this.cacheManager.get(`user:${userId}:match_count`) || 0;
+  const countScore = Math.max(0, 1 - (matchCount * 0.1));
+  
+  // 최근 매칭 시간 확인 (오래될수록 높은 점수)
+  const lastMatch = await this.cacheManager.get(`user:${userId}:last_match`);
+  const timeScore = this.calculateTimeScore(lastMatch);
+  
+  return (countScore * 0.7) + (timeScore * 0.3);
+}
+```
+
+#### 1.3 매칭 통계 추적 시스템
+
+```typescript
+// 매칭 생성 시 통계 업데이트
+private async updateMatchingStats(userId: string, partnerId: string) {
+  const currentTime = new Date().toISOString();
+  
+  // 매칭 횟수 증가
+  const currentCount = await this.cacheManager.get(`user:${partnerId}:match_count`) || 0;
+  await this.cacheManager.set(`user:${partnerId}:match_count`, currentCount + 1, 30 * 24 * 60 * 60); // 30일
+  
+  // 최근 매칭 시간 업데이트
+  await this.cacheManager.set(`user:${partnerId}:last_match`, currentTime, 30 * 24 * 60 * 60);
+}
+```
+
+### Phase 2: 임베딩 품질 개선 (중기)
+#### 2.1 구조화된 텍스트 포맷
+
+```typescript
+private formatProfileTextWithWeights(profile: UserProfile): string {
+  const interests = this.extractInterests(profile);
+  const personality = this.extractPersonality(profile);
+  
+  return `
+핵심 관심사: ${interests}
+주요 성격 및 연애스타일: ${personality}
+중요 관심사 재강조: ${interests}
+MBTI 성향: ${profile.mbti}
+나이 및 성별: ${profile.age}세 ${profile.gender}
+생활 선호도: ${this.extractLifestyle(profile)}
+관심사 최종 강조: ${interests}
+  `.trim();
+}
+```
+#### 2.2 다중 벡터 임베딩 시스템
+
+```typescript
+// 각 속성별 별도 임베딩 생성
+async createWeightedEmbedding(profile: UserProfile): Promise<number[]> {
+  const embeddings = {
+    interests: await this.createEmbedding(this.extractInterests(profile)),
+    personality: await this.createEmbedding(this.extractPersonality(profile)),
+    lifestyle: await this.createEmbedding(this.extractLifestyle(profile)),
+    demographics: await this.createEmbedding(this.extractDemographics(profile))
+  };
+  
+  // 속성별 가중치 적용
+  const weights = { interests: 0.35, personality: 0.30, lifestyle: 0.20, demographics: 0.15 };
+  return this.calculateWeightedSum(embeddings, weights);
+}
+```
+
+### Phase 3: 고급 매칭 시스템 (장기)
+
+#### 3.1 매칭 성공률 피드백 시스템
+- 사용자 피드백 기반 매칭 품질 평가
+- 매칭 후 상호작용 데이터 수집
+- 학습 기반 가중치 자동 조정
+
+#### 3.2 A/B 테스트 프레임워크
+- 다양한 매칭 알고리즘 동시 테스트
+- 실시간 성능 비교 및 최적화
+
+---
+
+## 📅 구현 일정
+풀타임 근무로 이정도 걸린다 참고만
+### Week 1: Phase 1 구현
+- **Day 1-2**: 가중치 기반 선택 로직 구현
+- **Day 3-4**: 매칭 통계 추적 시스템 구축
+- **Day 5-7**: 테스트 및 성능 모니터링
+### Week 2-3: Phase 2 구현
+- **Week 2**: 구조화된 텍스트 포맷 적용
+- **Week 3**: 다중 벡터 임베딩 시스템 개발
+### Week 4-8: Phase 3 연구 및 개발
+- 매칭 성공률 피드백 시스템 설계
+- A/B 테스트 프레임워크 구축
+---
+### 정량적 효과
+- **매칭 다양성 지수 30% 향상**: 특정 사용자 매칭 편중 감소
+- **유사도 활용률 100% 증가**: 랜덤 선택 → 점수 기반 선택
+- **매칭 만족도 20% 향상**: 더 적합한 파트너 매칭
+### 정성적 효과
+- 사용자 경험 개선
+- 플랫폼 신뢰도 증가
+- 매칭 품질의 일관성 확보
+---
+## ⚠️ 리스크 및 대응방안
+### 기술적 리스크
+**리스크**: 새로운 알고리즘의 성능 저하  
+**대응**: 단계적 적용 및 A/B 테스트를 통한 검증
+
+**리스크**: Redis 메모리 사용량 증가  
+**대응**: TTL 설정 및 데이터 정리 배치 작업
+### 비즈니스 리스크
+**리스크**: 기존 사용자 매칭 패턴 변화  
+**대응**: 점진적 적용 및 사용자 피드백 모니터링
+
+**리스크**: 매칭 시간 지연  
+**대응**: 성능 최적화 및 캐싱 전략 적용
+
+---
+## 📝 결론
+
+현재 매칭 알고리즘의 편향성 문제를 해결하기 위해 3단계 개선 계획을 수립했습니다. Phase 1의 가중치 기반 선택 시스템을 우선 구현하여 즉시 효과를 확인하고, 단계적으로 임베딩 품질과 고급 매칭 시스템을 개선해 나갈 예정입니다.
+
+이러한 개선을 통해 사용자들에게 더 공정하고 품질 높은 매칭 서비스를 제공할 수 있을 것으로 기대됩니다.
