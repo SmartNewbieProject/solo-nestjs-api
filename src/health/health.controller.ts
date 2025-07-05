@@ -5,7 +5,7 @@ import { Public } from '@/auth/decorators/public.decorator';
 @ApiTags('Health Check')
 @Controller('health')
 export class HealthController {
-  constructor() { }
+  constructor() {}
 
   @Get()
   @Public()

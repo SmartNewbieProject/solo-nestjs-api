@@ -33,8 +33,7 @@ async function runMigrations() {
   await pool.end();
 }
 
-runMigrations()
-  .catch((err) => {
-    console.error('마이그레이션 중 오류 발생:', err);
-    process.exit(1);
-  });
+runMigrations().catch((err) => {
+  console.error('마이그레이션 중 오류 발생:', err);
+  process.exit(1);
+});

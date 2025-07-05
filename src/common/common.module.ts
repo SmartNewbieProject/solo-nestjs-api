@@ -29,7 +29,10 @@ import { join } from 'path';
         }
 
         if (!file.mimetype.includes('image')) {
-          return callback(new Error('이미지 파일만 업로드할 수 있습니다.'), false);
+          return callback(
+            new Error('이미지 파일만 업로드할 수 있습니다.'),
+            false,
+          );
         }
         callback(null, true);
       },
@@ -72,7 +75,7 @@ import { join } from 'path';
           options: {
             strict: true,
           },
-        }
+        },
       }),
       inject: [ConfigService],
     }),
@@ -98,4 +101,4 @@ import { join } from 'path';
   ],
   exports: [S3Service, MailService, CustomCacheInterceptor, 'SLACK'],
 })
-export class CommonModule { }
+export class CommonModule {}

@@ -1,4 +1,4 @@
-import { Dayjs } from "dayjs";
+import { Dayjs } from 'dayjs';
 
 export interface PaginationMeta {
   currentPage: number;
@@ -16,6 +16,6 @@ export interface PaginatedResponse<T> {
 export type Pagination = {
   page: number;
   limit: number;
-}
+};
 
 export type ElasticDate = Date | string | Dayjs | null;

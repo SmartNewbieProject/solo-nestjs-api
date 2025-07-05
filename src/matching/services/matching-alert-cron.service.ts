@@ -21,20 +21,22 @@ export class MatchingAlertCronService {
     const { default: pLimit } = await import('p-limit');
     const limit = pLimit(15);
     const batchEnable = await this.cacheManager.get('mailBatchStatus');
-    if (!!batchEnable) {
+    if (batchEnable) {
       return;
     }
 
-    const tasks = users.map(user =>
-      limit(() =>
-        this.mailService.sendMatchingAlertEmail(user.email, user.name)
-          .catch(e => this.logger.error(`Failed to send to ${user.email}: ${e.message}`))
-      )
-    );
+    const tasks = users
+      .filter(user => user.email) // email이 있는 사용자만 필터링
+      .map(user =>
+        limit(() =>
+          this.mailService.sendMatchingAlertEmail(user.email!, user.name)
+            .catch(e => this.logger.error(`Failed to send to ${user.email}: ${e.message}`))
+        )
+      );
 
     await this.cacheManager.set('mailBatchStatus', true, 1000 * 60 * 60 * 3);
 
     await Promise.all(tasks);
     this.logger.log(`매칭 알림 이메일 발송 완료: ${users.length}명`);
   }
-} 
+}

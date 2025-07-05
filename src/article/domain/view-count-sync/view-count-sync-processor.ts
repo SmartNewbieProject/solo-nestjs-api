@@ -4,7 +4,12 @@ import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { articles } from '@database/schema';
 import { eq, sql } from 'drizzle-orm';
 import { ViewCountKeyManager } from './view-count-key-manager';
-import { BatchProcessResult, ViewCountUpdate, createEmptyBatchResult, updateBatchResult } from './view-count-batch-result';
+import {
+  BatchProcessResult,
+  ViewCountUpdate,
+  createEmptyBatchResult,
+  updateBatchResult,
+} from './view-count-batch-result';
 
 export class ViewCountSyncProcessor {
   private readonly logger = new Logger(ViewCountSyncProcessor.name);
@@ -14,7 +19,7 @@ export class ViewCountSyncProcessor {
     private readonly redisService: RedisService,
     private readonly db: NodePgDatabase<any>,
     private readonly batchSize: number,
-    prefix: string
+    prefix: string,
   ) {
     this.keyManager = new ViewCountKeyManager(prefix);
   }
@@ -32,26 +37,33 @@ export class ViewCountSyncProcessor {
       batches.push(batch);
     }
 
-    const batchPromises = batches.map(batch => this.processBatch(batch));
+    const batchPromises = batches.map((batch) => this.processBatch(batch));
     const results = await Promise.allSettled(batchPromises);
 
     const totalResult = results.reduce((acc, result, index) => {
       if (result.status === 'fulfilled') {
         const batchResult = result.value;
-        this.logger.log(`배치 처리 완료: ${batches[index].length}개 키 (성공: ${batchResult.successCount}, 실패: ${batchResult.failedCount})`);
+        this.logger.log(
+          `배치 처리 완료: ${batches[index].length}개 키 (성공: ${batchResult.successCount}, 실패: ${batchResult.failedCount})`,
+        );
 
         return {
           processedCount: acc.processedCount + batchResult.processedCount,
           successCount: acc.successCount + batchResult.successCount,
           failedCount: acc.failedCount + batchResult.failedCount,
-          errors: [...acc.errors, ...batchResult.errors]
+          errors: [...acc.errors, ...batchResult.errors],
         };
       } else {
         this.logger.error(`배치 처리 실패:`, result.reason);
         return {
           ...acc,
           failedCount: acc.failedCount + batches[index].length,
-          errors: [...acc.errors, result.reason instanceof Error ? result.reason : new Error(String(result.reason))]
+          errors: [
+            ...acc.errors,
+            result.reason instanceof Error
+              ? result.reason
+              : new Error(String(result.reason)),
+          ],
         };
       }
     }, createEmptyBatchResult());
@@ -65,7 +77,7 @@ export class ViewCountSyncProcessor {
     try {
       const pipeline = this.redisService.pipeline();
 
-      batch.forEach(key => {
+      batch.forEach((key) => {
         pipeline.get(key);
       });
 
@@ -90,28 +102,43 @@ export class ViewCountSyncProcessor {
             return { success: true };
           }
         } catch (error) {
-          this.logger.error(`게시글 ID ${update.articleId} 조회수 업데이트 실패:`, error);
+          this.logger.error(
+            `게시글 ID ${update.articleId} 조회수 업데이트 실패:`,
+            error,
+          );
           return {
             success: false,
-            error: error instanceof Error ? error : new Error(String(error))
+            error: error instanceof Error ? error : new Error(String(error)),
           };
         }
       });
 
       const updateResults = await Promise.allSettled(updatePromises);
 
-      updateResults.forEach(updateResult => {
+      updateResults.forEach((updateResult) => {
         if (updateResult.status === 'fulfilled') {
-          result = updateBatchResult(result, updateResult.value.success,
-            updateResult.value.success ? undefined : updateResult.value.error);
+          result = updateBatchResult(
+            result,
+            updateResult.value.success,
+            updateResult.value.success ? undefined : updateResult.value.error,
+          );
         } else {
-          result = updateBatchResult(result, false,
-            updateResult.reason instanceof Error ? updateResult.reason : new Error(String(updateResult.reason)));
+          result = updateBatchResult(
+            result,
+            false,
+            updateResult.reason instanceof Error
+              ? updateResult.reason
+              : new Error(String(updateResult.reason)),
+          );
         }
       });
     } catch (error) {
       this.logger.error('배치 처리 중 오류 발생:', error);
-      result = updateBatchResult(result, false, error instanceof Error ? error : new Error(String(error)));
+      result = updateBatchResult(
+        result,
+        false,
+        error instanceof Error ? error : new Error(String(error)),
+      );
     }
 
     return result;

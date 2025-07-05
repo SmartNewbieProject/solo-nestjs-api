@@ -4,7 +4,7 @@ import { EmbeddingService } from './embedding.service';
 import { QdrantService } from '@/config/qdrant/qdrant.service';
 import { DrizzleService } from '@/database/drizzle.service';
 import { ProfileUpdatedEvent } from '@/events/profile-updated.event';
-import {  UserProfile } from '@/types/user';
+import { UserProfile } from '@/types/user';
 import { Gender } from '@/types/enum';
 import compabilities from '@/matching/domain/compability';
 import { ProfileService } from '@/user/services/profile.service';
@@ -24,19 +24,27 @@ export class ProfileEmbeddingService {
     private readonly embeddingService: EmbeddingService,
     private readonly qdrantService: QdrantService,
     private readonly profileService: ProfileService,
-  ) { }
+  ) {}
 
   async initializeCollection(): Promise<void> {
     try {
-      const exists = await this.qdrantService.collectionExists(this.COLLECTION_NAME);
+      const exists = await this.qdrantService.collectionExists(
+        this.COLLECTION_NAME,
+      );
       if (!exists) {
-        await this.qdrantService.createCollection(this.COLLECTION_NAME, this.VECTOR_SIZE);
+        await this.qdrantService.createCollection(
+          this.COLLECTION_NAME,
+          this.VECTOR_SIZE,
+        );
         this.logger.log(`'${this.COLLECTION_NAME}' 컬렉션이 생성되었습니다.`);
       } else {
         this.logger.log(`'${this.COLLECTION_NAME}' 컬렉션이 이미 존재합니다.`);
       }
     } catch (error) {
-      this.logger.error(`컬렉션 초기화 중 오류 발생: ${error.message}`, error.stack);
+      this.logger.error(
+        `컬렉션 초기화 중 오류 발생: ${error.message}`,
+        error.stack,
+      );
       throw error;
     }
   }
@@ -46,18 +54,26 @@ export class ProfileEmbeddingService {
    * @param userId 사용자 ID
    * @param profile 프로필 정보
    */
-  async generateProfileEmbedding(userId: string, profile: UserProfile): Promise<void> {
+  async generateProfileEmbedding(
+    userId: string,
+    profile: UserProfile,
+  ): Promise<void> {
     try {
       this.logger.log(`사용자 ${userId}의 프로필 임베딩 생성을 시작합니다.`);
-      this.logger.log(`프로필 정보 - 이름: ${profile.name}, 나이: ${profile.age}, 성별: ${profile.gender}, 랭크: ${profile.rank}, MBTI: ${profile.mbti}`);
+      this.logger.log(
+        `프로필 정보 - 이름: ${profile.name}, 나이: ${profile.age}, 성별: ${profile.gender}, 랭크: ${profile.rank}, MBTI: ${profile.mbti}`,
+      );
 
       await this.initializeCollection();
-      const profilePrioritizer = new PreferencePrioritizer(EmbeddingWeightConfig.getDefaultWeights());
+      const profilePrioritizer = new PreferencePrioritizer(
+        EmbeddingWeightConfig.getDefaultWeights(),
+      );
       const profileText = profilePrioritizer.extract(profile);
       this.logger.debug('profileText');
       this.logger.debug(profileText);
 
-      const embedding = await this.embeddingService.createEmbedding(profileText);
+      const embedding =
+        await this.embeddingService.createEmbedding(profileText);
 
       const profileSummary = {
         name: profile.name,
@@ -65,9 +81,9 @@ export class ProfileEmbeddingService {
         gender: profile.gender,
         rank: profile.rank,
         mbti: profile.mbti,
-        preferences: profile.preferences.map(pref => ({
+        preferences: profile.preferences.map((pref) => ({
           type: pref.typeName,
-          options: pref.selectedOptions.map(opt => opt.displayName),
+          options: pref.selectedOptions.map((opt) => opt.displayName),
         })),
       };
 
@@ -89,17 +105,15 @@ export class ProfileEmbeddingService {
 
       this.logger.log(`사용자 ${userId}의 프로필 임베딩이 생성되었습니다.`);
     } catch (error) {
-      this.logger.error(`프로필 임베딩 생성 중 오류 발생: ${error.message}`, error.stack);
+      this.logger.error(`프로필 임베딩 생성 중 오류 발생: ${error}`);
     }
   }
 
-  /**
-   * 프로필 업데이트 이벤트 핸들러
-   * @param event 프로필 업데이트 이벤트
-   */
   @OnEvent('profile.updated')
   async handleProfileUpdatedEvent(event: ProfileUpdatedEvent): Promise<void> {
-    this.logger.log(`사용자 ${event.userId}의 프로필 업데이트 이벤트를 처리합니다.`);
+    this.logger.log(
+      `사용자 ${event.userId}의 프로필 업데이트 이벤트를 처리합니다.`,
+    );
     await this.generateProfileEmbedding(event.userId, event.profile);
   }
 
@@ -108,18 +122,22 @@ export class ProfileEmbeddingService {
     const result = await client.retrieve(this.COLLECTION_NAME, {
       ids: [userId],
       with_vector: true,
-      with_payload: true
+      with_payload: true,
     });
 
     if (result.length === 0) {
       this.logger.log(`사용자 ${userId}의 프로필 임베딩을 찾을 수 없습니다.`);
-      throw new NotFoundException(`사용자 ${userId}의 프로필 임베딩을 찾을 수 없습니다.`);
+      throw new NotFoundException(
+        `사용자 ${userId}의 프로필 임베딩을 찾을 수 없습니다.`,
+      );
     }
 
     const vector = result[0].vector;
     if (!vector || !Array.isArray(vector)) {
       this.logger.error(`사용자 ${userId}의 프로필 벡터가 유효하지 않습니다.`);
-      throw new NotFoundException(`사용자 ${userId}의 프로필 임베딩을 찾을 수 없습니다.`);
+      throw new NotFoundException(
+        `사용자 ${userId}의 프로필 임베딩을 찾을 수 없습니다.`,
+      );
     }
 
     const payload = result[0].payload as UserVectorPayload;
@@ -136,14 +154,23 @@ export class ProfileEmbeddingService {
    * @param limit 결과 제한 수
    * @param gender 성별 필터 (선택적)
    */
-  async findSimilarProfiles(userId: string, limit: number = 10, type: MatchType, exceptIds: string[]): Promise<Array<{ userId: string; similarity: number }>> {
+  async findSimilarProfiles(
+    userId: string,
+    limit: number = 10,
+    type: MatchType,
+    exceptIds: string[],
+  ): Promise<Array<{ userId: string; similarity: number }>> {
     const { payload, vector } = await this.getUserPoint(userId);
-    const targetGender = payload.profileSummary.gender === Gender.MALE ? Gender.FEMALE : Gender.MALE;
+    const targetGender =
+      payload.profileSummary.gender === Gender.MALE
+        ? Gender.FEMALE
+        : Gender.MALE;
     const profile = await this.profileService.getUserProfiles(userId, false);
     const mustNotIds = [userId, ...exceptIds];
     this.logger.debug(`[mustNotIds]: ${mustNotIds}`);
 
-    const { rankFilter, drinkFilter, smokingFilter, tattooFilter, ageFilter } = VectorFilter.getFilters(profile, type, targetGender);
+    const { rankFilter, drinkFilter, smokingFilter, tattooFilter, ageFilter } =
+      VectorFilter.getFilters(profile, type, targetGender);
     // this.logger.debug({ type }, { rankFilter }, smokingFilter, tattooFilter, { drinkFilter }, { ageFilter });
 
     if (!rankFilter) {
@@ -168,7 +195,7 @@ export class ProfileEmbeddingService {
           key: 'profileSummary.rank',
           match: {
             any: rankFilter,
-          }
+          },
         },
         // {
         //   key: 'profileSummary.preferences[].options',
@@ -191,12 +218,8 @@ export class ProfileEmbeddingService {
       filter.must.push(ageFilter);
     }
 
-    const strictFilter = [
-      drinkFilter,
-      smokingFilter,
-      tattooFilter,
-    ]
-      .filter(r => r !== null)
+    const strictFilter = [drinkFilter, smokingFilter, tattooFilter]
+      .filter((r) => r !== null)
       .flat();
 
     if (strictFilter.length > 0) {
@@ -212,30 +235,40 @@ export class ProfileEmbeddingService {
       this.COLLECTION_NAME,
       vector as number[],
       limit,
-      filter
+      filter,
     );
 
-    const results = await Promise.all(searchResults.map(async (result) => {
-      let similarity = result.score;
-      const targetUserId = result.payload?.userId as string;
-      const mbti = profile.mbti;
-      const targetMbti = (result.payload?.profileSummary as UserVectorPayload['profileSummary'])?.mbti;
+    const results = await Promise.all(
+      searchResults.map(async (result) => {
+        let similarity = result.score;
+        const targetUserId = result.payload?.userId as string;
+        const mbti = profile.mbti;
+        const targetMbti = (
+          result.payload?.profileSummary as UserVectorPayload['profileSummary']
+        )?.mbti;
 
-      if (mbti && targetMbti) {
-        const compatibilityBonus = this.calculateMbtiCompatibility(mbti, targetMbti);
-        similarity = similarity * compatibilityBonus;
-      }
+        if (mbti && targetMbti) {
+          const compatibilityBonus = this.calculateMbtiCompatibility(
+            mbti,
+            targetMbti,
+          );
+          similarity = similarity * compatibilityBonus;
+        }
 
-      return {
-        userId: targetUserId,
-        similarity: similarity,
-      };
-    }));
+        return {
+          userId: targetUserId,
+          similarity: similarity,
+        };
+      }),
+    );
 
     return results.sort((a, b) => b.similarity - a.similarity);
   }
 
-  private calculateMbtiCompatibility(userMbti: string, targetMbti: string): number {
+  private calculateMbtiCompatibility(
+    userMbti: string,
+    targetMbti: string,
+  ): number {
     if (userMbti === targetMbti) {
       return 1.0;
     }

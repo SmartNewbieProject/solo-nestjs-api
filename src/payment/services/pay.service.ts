@@ -1,17 +1,31 @@
-import { Injectable, HttpException, HttpStatus, BadGatewayException, Logger, UnauthorizedException, BadRequestException } from "@nestjs/common";
-import { ConfigService } from "@nestjs/config";
-import { PaymentConfirm } from "../dto";
-import { PayBeforeHistory, PaymentDetails, PortOneCustomData, PortOnePaymentV2, Product } from "@/types/payment";
-import { PortoneWebhookDto, PortonePaymentStatus } from "../dto/webhook.dto";
-import PayRepository from "../repository/pay.repository";
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  BadGatewayException,
+  Logger,
+  UnauthorizedException,
+  BadRequestException,
+} from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { PaymentConfirm } from '../dto';
+import {
+  PayBeforeHistory,
+  PaymentDetails,
+  PortOneCustomData,
+  PortOnePaymentV2,
+  Product,
+} from '@/types/payment';
+import { PortoneWebhookDto, PortonePaymentStatus } from '../dto/webhook.dto';
+import PayRepository from '../repository/pay.repository';
 import { Payment, PortOneClient } from '@portone/server-sdk';
-import { TicketService } from "./ticket.service";
-import { axiosHandler } from "@/common/helper";
+import { TicketService } from './ticket.service';
+import { axiosHandler } from '@/common/helper';
 import { createHmac } from 'crypto';
-import axios from "axios";
-import { SlackService } from "@/slack-notification/slack.service";
-import UserRepository from "@/user/repository/user.repository";
-import weekDateService from "@/matching/domain/date";
+import axios from 'axios';
+import { SlackService } from '@/slack-notification/slack.service';
+import UserRepository from '@/user/repository/user.repository';
+import weekDateService from '@/matching/domain/date';
 
 @Injectable()
 export default class PayService {
@@ -27,7 +41,7 @@ export default class PayService {
     private readonly slackService: SlackService,
     private readonly userRepository: UserRepository,
   ) {
-    const secretKey = configService.get('PORTONE_V2_SECRET_KEY') as string;
+    const secretKey = configService.get('PORTONE_SECRET_KEY') as string;
     this.client = PortOneClient({ secret: secretKey });
     this.secretKey = secretKey;
     this.storeId = configService.get('PORTONE_STORE_ID') as string;
@@ -47,7 +61,9 @@ export default class PayService {
     }
 
     try {
-      const { response: portOnePayment } = await this.getPayment(merchantUid) as { response: PaymentDetails };
+      const { response: portOnePayment } = (await this.getPayment(
+        merchantUid,
+      )) as { response: PaymentDetails };
       this.logger.debug(portOnePayment);
 
       if (['paid', 'PAID'].includes(portOnePayment.status)) {
@@ -63,7 +79,7 @@ export default class PayService {
           history.orderName,
           history.amount,
           portOnePayment.emb_pg_provider || '알 수 없음',
-          new Date(portOnePayment.paid_at)
+          new Date(portOnePayment.paid_at),
         );
       }
     } catch (error) {
@@ -79,7 +95,7 @@ export default class PayService {
     orderName: string,
     amount: number,
     method: string,
-    paidAt: Date
+    paidAt: Date,
   ) {
     try {
       const user = await this.userRepository.getUser(userId);
@@ -91,7 +107,7 @@ export default class PayService {
         orderName,
         amount,
         method,
-        paidAt
+        paidAt,
       );
       return true;
     } catch (error) {
@@ -115,7 +131,7 @@ export default class PayService {
         return { success: false, message: '결제 내역을 찾을 수 없음' };
       }
 
-      const payment = await this.getPayment(payment_id) as PortOnePaymentV2;
+      const payment = (await this.getPayment(payment_id)) as PortOnePaymentV2;
 
       this.logger.debug('결제 내역 조회');
       this.logger.debug(payment);
@@ -133,7 +149,11 @@ export default class PayService {
         txId: payment.pgTxId,
       });
 
-      await this.strategy(history.userId, payment.orderName as Product, customData);
+      await this.strategy(
+        history.userId,
+        payment.orderName as Product,
+        customData,
+      );
 
       const notificationSent = await this.sendPaymentSlackNotification(
         history.userId,
@@ -145,7 +165,7 @@ export default class PayService {
 
       return {
         success: true,
-        notificationSent
+        notificationSent,
       };
     } catch (error) {
       this.logger.error(`결제 웹훅 처리 중 오류 발생: `);
@@ -154,16 +174,22 @@ export default class PayService {
     }
   }
 
-  private strategy(userId: string, product: Product, customData: PortOneCustomData) {
+  private strategy(
+    userId: string,
+    product: Product,
+    customData: PortOneCustomData,
+  ) {
     if (product === Product.REMATCHING) {
-      return this.ticketService.createRematchingTickets(userId, customData.productCount);
+      return this.ticketService.createRematchingTickets(
+        userId,
+        customData.productCount,
+      );
     }
   }
   private async getPayment(paymentId: string) {
     return this.getPaymentByPaymentId(paymentId);
   }
 
-  // private async getPaymentByPaymentId(paymentId: string): Promise<Payment.Payment> {
   private async getPaymentByPaymentId(paymentId: string): Promise<any> {
     this.logger.debug(`[getPaymentByPaymentId] paymentId: ${paymentId}`);
     const storeId = this.configService.get('PORTONE_STORE_ID') as string;

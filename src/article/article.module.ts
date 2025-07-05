@@ -23,7 +23,12 @@ import { AiProfileService } from './services/ai-profile.service';
 
 @Module({
   imports: [ScheduleModule.forRoot(), UserModule, DatabaseModule],
-  controllers: [ArticleController, CommentController, ReportController, AiContentController],
+  controllers: [
+    ArticleController,
+    CommentController,
+    ReportController,
+    AiContentController,
+  ],
   providers: [
     RedisService,
     ArticleService,
@@ -40,6 +45,6 @@ import { AiProfileService } from './services/ai-profile.service';
     AiContentService,
     AiProfileService,
   ],
-  exports: [ArticleService, AnonymousNameService, AiContentService]
+  exports: [ArticleService, AnonymousNameService, AiContentService],
 })
-export class ArticleModule { }
+export class ArticleModule {}

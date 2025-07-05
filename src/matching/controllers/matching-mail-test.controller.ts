@@ -19,6 +19,9 @@ export class MatchingMailTestController {
 
   @Post('alert')
   async sendTestAlert(@Body() body: RequestBody) {
-    return this.matchingEmailService.sendMatchingAlertEmail(body.email, body.name);
+    return this.matchingEmailService.sendMatchingAlertEmail(
+      body.email,
+      body.name,
+    );
   }
-} 
+}

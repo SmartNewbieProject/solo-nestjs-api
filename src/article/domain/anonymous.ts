@@ -1,12 +1,15 @@
-import { AuthorDetails } from "@/types/community";
+import { AuthorDetails } from '@/types/community';
 
 export default class AnonymityHandler {
-  static comment(anonymousName: string | null, authorDetails: AuthorDetails): AuthorDetails {
+  static comment(
+    anonymousName: string | null,
+    authorDetails: AuthorDetails,
+  ): AuthorDetails {
     if (anonymousName) {
       return {
-        id:  authorDetails.id,
+        id: authorDetails.id,
         name: anonymousName,
-      }
+      };
     }
     return authorDetails;
   }

@@ -1,20 +1,18 @@
-import { Injectable, Logger } from "@nestjs/common";
-import { InjectDrizzle } from "@common/decorators";
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
-import * as schema from "@database/schema";
-import { generateUuidV7 } from "@database/schema/helper";
-import { MatchType } from "@database/schema/matches";
-import { eq, isNull, isNotNull, and, sql, count, ne } from "drizzle-orm";
-import { Gender } from "@/types/enum";
-import { PreferenceTypeGroup } from "@/types/user";
-import { RawMatch } from "@/types/match";
-import weekDateService from "../domain/date";
+import { Injectable, Logger } from '@nestjs/common';
+import { InjectDrizzle } from '@common/decorators';
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import * as schema from '@database/schema';
+import { generateUuidV7 } from '@database/schema/helper';
+import { MatchType } from '@database/schema/matches';
+import { eq, isNull, isNotNull, and, sql, count, ne } from 'drizzle-orm';
+import { Gender } from '@/types/enum';
+import { PreferenceTypeGroup } from '@/types/user';
+import { RawMatch } from '@/types/match';
+import weekDateService from '../domain/date';
 
 const formatDate = (date: Date) => {
   return weekDateService.createDayjs(date).format('YYYY-MM-DD HH:mm:ss.SSS');
-}
-
-
+};
 
 @Injectable()
 export default class MatchRepository {
@@ -23,52 +21,74 @@ export default class MatchRepository {
   constructor(
     @InjectDrizzle()
     private readonly db: NodePgDatabase<typeof schema>,
-  ) { }
+  ) {}
 
-  async createMatch(myId: string, matcherId: string, score: number, publishedAt: Date, type: MatchType) {
+  async createMatch(
+    myId: string,
+    matcherId: string,
+    score: number,
+    publishedAt: Date,
+    type: MatchType,
+  ) {
     this.logger.debug({
       rawDate: publishedAt,
       formattedDate: formatDate(publishedAt),
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     });
 
-    const expiredAt = type === 'rematching'
-      ? weekDateService.calculateRematchExpiredAt(publishedAt)
-      : new Date(publishedAt.getTime() + 48 * 60 * 60 * 1000);
+    const expiredAt =
+      type === 'rematching'
+        ? weekDateService.calculateRematchExpiredAt(publishedAt)
+        : new Date(publishedAt.getTime() + 48 * 60 * 60 * 1000);
 
     this.logger.debug({
       type,
       publishedAt: formatDate(publishedAt),
       expiredAt: formatDate(expiredAt),
-      isRematchAdjusted: type === 'rematching' && expiredAt.getTime() !== (publishedAt.getTime() + 48 * 60 * 60 * 1000)
+      isRematchAdjusted:
+        type === 'rematching' &&
+        expiredAt.getTime() !== publishedAt.getTime() + 48 * 60 * 60 * 1000,
     });
 
-    return await this.db.insert(schema.matches).values({
-      id: generateUuidV7(),
-      myId,
-      matcherId,
-      score: score.toString(),
-      publishedAt,
-      expiredAt,
-      type,
-    }).execute();
+    return await this.db
+      .insert(schema.matches)
+      .values({
+        id: generateUuidV7(),
+        myId,
+        matcherId,
+        score: score.toString(),
+        publishedAt,
+        expiredAt,
+        type,
+      })
+      .execute();
   }
 
   async findScheduledFemaleCandidates() {
-    const results = await this.db.select({
-      id: schema.users.id,
-    })
+    const results = await this.db
+      .select({
+        id: schema.users.id,
+      })
       .from(schema.users)
       .leftJoin(schema.profiles, eq(schema.users.id, schema.profiles.userId))
-      .leftJoin(schema.userPreferences, eq(schema.userPreferences.userId, schema.users.id))
-      .leftJoin(schema.userPreferenceOptions, eq(schema.userPreferenceOptions.userPreferenceId, schema.userPreferences.id))
+      .leftJoin(
+        schema.userPreferences,
+        eq(schema.userPreferences.userId, schema.users.id),
+      )
+      .leftJoin(
+        schema.userPreferenceOptions,
+        eq(
+          schema.userPreferenceOptions.userPreferenceId,
+          schema.userPreferences.id,
+        ),
+      )
       .where(
         and(
           isNull(schema.users.deletedAt),
           isNotNull(schema.profiles.age),
           isNotNull(schema.profiles.gender),
           eq(schema.profiles.gender, Gender.FEMALE),
-        )
+        ),
       )
       .groupBy(schema.users.id, schema.profiles.id)
       .having(sql`count(distinct ${schema.userPreferenceOptions.id}) >= 5`);
@@ -76,15 +96,24 @@ export default class MatchRepository {
     return results.map((result) => result.id);
   }
 
-
   async findAllMatchingUsers() {
-    const results = await this.db.select({
-      id: schema.users.id,
-    })
+    const results = await this.db
+      .select({
+        id: schema.users.id,
+      })
       .from(schema.users)
       .leftJoin(schema.profiles, eq(schema.users.id, schema.profiles.userId))
-      .leftJoin(schema.userPreferences, eq(schema.userPreferences.userId, schema.users.id))
-      .leftJoin(schema.userPreferenceOptions, eq(schema.userPreferenceOptions.userPreferenceId, schema.userPreferences.id))
+      .leftJoin(
+        schema.userPreferences,
+        eq(schema.userPreferences.userId, schema.users.id),
+      )
+      .leftJoin(
+        schema.userPreferenceOptions,
+        eq(
+          schema.userPreferenceOptions.userPreferenceId,
+          schema.userPreferences.id,
+        ),
+      )
       .where(
         and(
           isNull(schema.users.deletedAt),
@@ -100,13 +129,26 @@ export default class MatchRepository {
   }
 
   async findLatestPartner(userId: string) {
-    const results = await this.db.select()
+    const results = await this.db
+      .select()
       .from(schema.matches)
       .where(eq(schema.matches.myId, userId))
-      .leftJoin(schema.profiles, eq(schema.matches.matcherId, schema.profiles.userId))
-      .leftJoin(schema.universityDetails, eq(schema.profiles.universityDetailId, schema.universityDetails.id))
-      .leftJoin(schema.profileImages, eq(schema.profileImages.profileId, schema.profiles.id))
-      .leftJoin(schema.userPreferences, eq(schema.userPreferences.userId, schema.matches.matcherId))
+      .leftJoin(
+        schema.profiles,
+        eq(schema.matches.matcherId, schema.profiles.userId),
+      )
+      .leftJoin(
+        schema.universityDetails,
+        eq(schema.profiles.universityDetailId, schema.universityDetails.id),
+      )
+      .leftJoin(
+        schema.profileImages,
+        eq(schema.profileImages.profileId, schema.profiles.id),
+      )
+      .leftJoin(
+        schema.userPreferences,
+        eq(schema.userPreferences.userId, schema.matches.matcherId),
+      )
       .limit(1);
 
     if (results.length === 0) {
@@ -116,16 +158,29 @@ export default class MatchRepository {
     const target = results[0];
     const preferenceId = target.user_preferences?.id as string;
 
-    const preferenceResults = await this.db.select()
+    const preferenceResults = await this.db
+      .select()
       .from(schema.userPreferenceOptions)
-      .leftJoin(schema.preferenceOptions, eq(schema.userPreferenceOptions.preferenceOptionId, schema.preferenceOptions.id))
-      .leftJoin(schema.preferenceTypes, eq(schema.preferenceOptions.preferenceTypeId, schema.preferenceTypes.id))
+      .leftJoin(
+        schema.preferenceOptions,
+        eq(
+          schema.userPreferenceOptions.preferenceOptionId,
+          schema.preferenceOptions.id,
+        ),
+      )
+      .leftJoin(
+        schema.preferenceTypes,
+        eq(
+          schema.preferenceOptions.preferenceTypeId,
+          schema.preferenceTypes.id,
+        ),
+      )
       .where(eq(schema.userPreferenceOptions.userPreferenceId, preferenceId))
       .execute();
 
-    const preferenceMap = new Map<string, { id: string, name: string }[]>();
+    const preferenceMap = new Map<string, { id: string; name: string }[]>();
 
-    preferenceResults.map(result => {
+    preferenceResults.map((result) => {
       const typeName = result.preference_types?.name as string;
       const optionName = result.preference_options?.displayName as string;
       const optionId = result.preference_options?.id as string;
@@ -133,7 +188,9 @@ export default class MatchRepository {
       if (!preferenceMap.has(typeName)) {
         preferenceMap.set(typeName, []);
       }
-      const results = (preferenceMap.get(typeName) as { id: string, name: string }[]).concat({ id: optionId, name: optionName });
+      const results = (
+        preferenceMap.get(typeName) as { id: string; name: string }[]
+      ).concat({ id: optionId, name: optionName });
       preferenceMap.set(typeName, results);
     });
 
@@ -142,7 +199,7 @@ export default class MatchRepository {
       for (const [key, value] of preferenceMap.entries()) {
         results.push({
           typeName: key,
-          selectedOptions: value.map(v => ({
+          selectedOptions: value.map((v) => ({
             id: v.id,
             displayName: v.name,
           })),
@@ -162,17 +219,19 @@ export default class MatchRepository {
   }
 
   async findLatestMatch(userId: string): Promise<RawMatch | null> {
-    const now = weekDateService.createDayjs()
+    const now = weekDateService
+      .createDayjs()
       .subtract(48, 'hours')
       .format('YYYY-MM-DD HH:mm:ss');
 
-    const results = await this.db.select()
+    const results = await this.db
+      .select()
       .from(schema.matches)
       .where(
         and(
           eq(schema.matches.myId, userId),
-          sql`${schema.matches.createdAt} >= ${now}`
-        )
+          sql`${schema.matches.createdAt} >= ${now}`,
+        ),
       )
       .orderBy(sql`${schema.matches.createdAt} DESC`)
       .execute();
@@ -181,7 +240,8 @@ export default class MatchRepository {
   }
 
   async findLatestScheduledMatch(userId: string): Promise<RawMatch | null> {
-    const now = weekDateService.createDayjs()
+    const now = weekDateService
+      .createDayjs()
       .subtract(48, 'hours')
       .format('YYYY-MM-DD HH:mm:ss');
 
@@ -189,64 +249,69 @@ export default class MatchRepository {
     this.logger.debug(`사용자 ID: ${userId}`);
     this.logger.debug(`48시간 전 기준 시간: ${now}`);
 
-    const results = await this.db.select()
+    const results = await this.db
+      .select()
       .from(schema.matches)
       .where(
         and(
           eq(schema.matches.myId, userId),
           eq(schema.matches.type, 'scheduled'),
-          sql`${schema.matches.createdAt} >= ${now}`
-        )
+          sql`${schema.matches.createdAt} >= ${now}`,
+        ),
       )
       .orderBy(sql`${schema.matches.createdAt} DESC`)
       .execute();
 
     this.logger.debug(`조회된 자동매칭 결과 수: ${results.length}`);
     if (results.length > 0) {
-      this.logger.debug(`최신 자동매칭: ID=${results[0].id}, 생성일=${results[0].createdAt}, 공개일=${results[0].publishedAt}`);
+      this.logger.debug(
+        `최신 자동매칭: ID=${results[0].id}, 생성일=${results[0].createdAt}, 공개일=${results[0].publishedAt}`,
+      );
     }
 
     return results[0] || null;
   }
 
   async getTotalMatchingCount() {
-    const results = await this.db.select({
-      count: count()
-    }).from(schema.matches);
+    const results = await this.db
+      .select({
+        count: count(),
+      })
+      .from(schema.matches);
     return Number(results[0].count);
   }
 
   async findRestMembers() {
-    const date = weekDateService.createDayjs()
-      .format('YYYY-MM-DD');
+    const date = weekDateService.createDayjs().format('YYYY-MM-DD');
     const publishedAt = `${date} 11:59:00`;
     this.logger.log({ publishedAt });
 
-    const results = await this.db.select({
-      id: schema.users.id,
-      email: schema.users.email,
-      name: schema.users.name,
-    })
+    const results = await this.db
+      .select({
+        id: schema.users.id,
+        email: schema.users.email,
+        name: schema.users.name,
+      })
       .from(schema.users)
-      .leftJoin(
-        schema.profiles,
-        eq(schema.users.id, schema.profiles.userId)
-      )
+      .leftJoin(schema.profiles, eq(schema.users.id, schema.profiles.userId))
       .leftJoin(
         schema.userPreferences,
-        eq(schema.users.id, schema.userPreferences.userId)
+        eq(schema.users.id, schema.userPreferences.userId),
       )
       .leftJoin(
         schema.userPreferenceOptions,
-        eq(schema.userPreferences.id, schema.userPreferenceOptions.userPreferenceId)
+        eq(
+          schema.userPreferences.id,
+          schema.userPreferenceOptions.userPreferenceId,
+        ),
       )
       .leftJoin(
         schema.matches,
         and(
           eq(schema.users.id, schema.matches.myId),
           eq(schema.matches.type, 'scheduled'),
-          sql`${schema.matches.publishedAt} >= ${publishedAt}`
-        )
+          sql`${schema.matches.publishedAt} >= ${publishedAt}`,
+        ),
       )
       .where(
         and(
@@ -254,7 +319,7 @@ export default class MatchRepository {
           eq(schema.profiles.gender, Gender.FEMALE),
           isNull(schema.matches.id),
           ne(schema.profiles.rank, 'UNKNOWN'),
-        )
+        ),
       )
       .groupBy(schema.users.id, schema.users.email, schema.users.name)
       .having(sql`count(distinct ${schema.userPreferenceOptions.id}) > 5`)
@@ -262,5 +327,4 @@ export default class MatchRepository {
 
     return results;
   }
-
 }

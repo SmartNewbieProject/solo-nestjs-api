@@ -11,14 +11,19 @@ export class EmbeddingService {
   constructor(private readonly configService: ConfigService) {
     const apiKey = this.configService.get<string>('OPENAI_API_KEY');
     if (!apiKey) {
-      this.logger.warn('OpenAI API 키가 설정되지 않았습니다. 임베딩 기능이 작동하지 않을 수 있습니다.');
+      this.logger.warn(
+        'OpenAI API 키가 설정되지 않았습니다. 임베딩 기능이 작동하지 않을 수 있습니다.',
+      );
     }
 
     this.openai = new OpenAI({
       apiKey,
     });
-    
-    this.model = this.configService.get<string>('OPENAI_EMBEDDING_MODEL', 'text-embedding-3-small');
+
+    this.model = this.configService.get<string>(
+      'OPENAI_EMBEDDING_MODEL',
+      'text-embedding-3-small',
+    );
     this.logger.log(`임베딩 모델: ${this.model}`);
   }
 
@@ -36,7 +41,10 @@ export class EmbeddingService {
 
       return response.data[0].embedding;
     } catch (error) {
-      this.logger.error(`임베딩 생성 중 오류 발생: ${error.message}`, error.stack);
+      this.logger.error(
+        `임베딩 생성 중 오류 발생: ${error.message}`,
+        error.stack,
+      );
       throw new Error(`임베딩을 생성할 수 없습니다: ${error.message}`);
     }
   }
@@ -57,11 +65,13 @@ export class EmbeddingService {
         input: texts,
       });
 
-      return response.data.map(item => item.embedding);
+      return response.data.map((item) => item.embedding);
     } catch (error) {
-      this.logger.error(`배치 임베딩 생성 중 오류 발생: ${error.message}`, error.stack);
+      this.logger.error(
+        `배치 임베딩 생성 중 오류 발생: ${error.message}`,
+        error.stack,
+      );
       throw new Error(`배치 임베딩을 생성할 수 없습니다: ${error.message}`);
     }
   }
-
 }

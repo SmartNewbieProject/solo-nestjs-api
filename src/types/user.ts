@@ -1,5 +1,5 @@
-import { UserRank } from "@/database/schema/profiles";
-import { Gender } from "./enum";
+import { UserRank } from '@/database/schema/profiles';
+import { Gender } from './enum';
 
 export interface ProfileDetails {
   id: string;
@@ -15,9 +15,7 @@ export interface ProfileDetails {
 
 export type ProfileSummary = Omit<
   ProfileDetails,
-  'userId' |
-  'universityDetailId' |
-  'statusAt'
+  'userId' | 'universityDetailId' | 'statusAt'
 >;
 
 export interface ProfileImage {
@@ -61,7 +59,7 @@ export type Preference = {
   multiple: boolean;
   optionDisplayName: string;
   maximumChoiceCount: number;
-}
+};
 
 export interface PreferenceTypeGroup {
   typeName: string;
@@ -73,13 +71,12 @@ export interface PreferenceList extends PreferenceTypeGroup {
   maximumChoiceCount: number;
 }
 
-
 export interface UniversityDetail {
-  name: string;
+  name: string | null;
   authentication: boolean;
-  department: string;
-  grade: string;
-  studentNumber: string;
+  department: string | null;
+  grade: string | null;
+  studentNumber: string | null;
 }
 
 export interface UserProfile {
@@ -93,6 +90,7 @@ export interface UserProfile {
   instagramId: string | null;
   universityDetails: UniversityDetail | null;
   preferences: PreferenceTypeGroup[];
+  characteristics: PreferenceTypeGroup[];
 }
 
 export type CommonProfile = Omit<UserProfile, 'rank'>;
@@ -102,9 +100,14 @@ export interface UserDetails {
   name: string;
   age: number;
   gender: Gender;
-  email: string;
+  email: string | null;
   profileImages: ProfileImage[];
   phoneNumber: string;
   instagramId: string | null;
   universityDetails: UniversityDetail | null;
+}
+
+export interface MbtiPreferences {
+  goodMbti: string;
+  badMbti: string;
 }

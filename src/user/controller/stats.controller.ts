@@ -1,7 +1,7 @@
-import { Controller, Get } from "@nestjs/common";
-import { StatsService } from "../services/stats.service";
-import { ApiOperation, ApiResponse } from "@nestjs/swagger";
-import { Public } from "@/auth/decorators";
+import { Controller, Get } from '@nestjs/common';
+import { StatsService } from '../services/stats.service';
+import { ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Public } from '@/auth/decorators';
 
 @Controller('stats')
 export class StatsController {
@@ -14,5 +14,4 @@ export class StatsController {
   async getTotalUserCount(): Promise<number> {
     return this.statsService.getTotalUserCount();
   }
-
 }

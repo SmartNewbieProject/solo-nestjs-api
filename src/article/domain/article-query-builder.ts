@@ -1,11 +1,15 @@
-import { NodePgDatabase } from "drizzle-orm/node-postgres";
-import * as schema from "@database/schema";
-import { ArticleQueryOptions, ArticleRequestType } from "../types/article.types";
-import { eq, SQL, and, sql, desc, isNull, or, notInArray } from "drizzle-orm";
-import { PgSelect } from "drizzle-orm/pg-core";
-import { Gender } from "@/types/enum";
+import { NodePgDatabase } from 'drizzle-orm/node-postgres';
+import * as schema from '@database/schema';
+import {
+  ArticleQueryOptions,
+  ArticleRequestType,
+} from '../types/article.types';
+import { eq, SQL, and, sql, desc, isNull, or, notInArray } from 'drizzle-orm';
+import { PgSelect } from 'drizzle-orm/pg-core';
+import { Gender } from '@/types/enum';
 
-const { articles, users, profiles, universityDetails, comments, likes } = schema;
+const { articles, users, profiles, universityDetails, comments, likes } =
+  schema;
 
 export interface CommentResult {
   id: string;
@@ -73,15 +77,11 @@ export class ArticleQueryBuilder {
 
     if (o.categoryCode) {
       this.categoryCode = o.categoryCode;
-      conditions.push(
-        sql`${schema.articleCategory.code} = ${o.categoryCode}`,
-      );
+      conditions.push(sql`${schema.articleCategory.code} = ${o.categoryCode}`);
     }
 
     if (o.searchTerm) {
-      conditions.push(
-        sql`${articles.title} ILIKE ${`%${o.searchTerm}%`}`,
-      );
+      conditions.push(sql`${articles.title} ILIKE ${`%${o.searchTerm}%`}`);
     }
 
     if (!o.includedDeleted) {
@@ -105,39 +105,51 @@ export class ArticleQueryBuilder {
 
   private buildCommentsSubquery() {
     const o = this.options;
-    const commentLimit = o.comment?.limit !== undefined ? o.comment.limit : null;
+    const commentLimit =
+      o.comment?.limit !== undefined ? o.comment.limit : null;
     const includeReplies = o.comment?.reply || false;
 
     const parentCommentCondition = isNull(comments.parentId);
 
-    let commentsQuery = this.db.select({
-      id: sql`${comments.id}`.as('id'),
-      authorId: sql`${comments.authorId}`.as('authorId'),
-      articleId: sql`${comments.articleId}`.as('articleId'),
-      parentId: sql`${comments.parentId}`.as('parentId'),
-      content: sql`${comments.content}`.as('content'),
-      nickname: sql`${comments.nickname}`.as('nickname'),
-      createdAt: sql`${comments.createdAt}`.as('createdAt'),
-      updatedAt: sql`${comments.updatedAt}`.as('updatedAt'),
-      authorName: sql`${users.name}`.as('authorName'),
-      authorGender: sql`${profiles.gender}`.as('authorGender'),
-      authorAge: sql`${profiles.age}`.as('authorAge'),
-      universityName: sql`${universityDetails.universityName}`.as('universityName'),
-      universityAuthentication: sql`${universityDetails.authentication}`.as('universityAuthentication'),
-      universityDepartment: sql`${universityDetails.department}`.as('universityDepartment'),
-      universityGrade: sql`${universityDetails.grade}`.as('universityGrade'),
-      universityStudentNumber: sql`${universityDetails.studentNumber}`.as('universityStudentNumber'),
-    })
+    let commentsQuery = this.db
+      .select({
+        id: sql`${comments.id}`.as('id'),
+        authorId: sql`${comments.authorId}`.as('authorId'),
+        articleId: sql`${comments.articleId}`.as('articleId'),
+        parentId: sql`${comments.parentId}`.as('parentId'),
+        content: sql`${comments.content}`.as('content'),
+        nickname: sql`${comments.nickname}`.as('nickname'),
+        createdAt: sql`${comments.createdAt}`.as('createdAt'),
+        updatedAt: sql`${comments.updatedAt}`.as('updatedAt'),
+        authorName: sql`${users.name}`.as('authorName'),
+        authorGender: sql`${profiles.gender}`.as('authorGender'),
+        authorAge: sql`${profiles.age}`.as('authorAge'),
+        universityName: sql`${universityDetails.universityName}`.as(
+          'universityName',
+        ),
+        universityAuthentication: sql`${universityDetails.authentication}`.as(
+          'universityAuthentication',
+        ),
+        universityDepartment: sql`${universityDetails.department}`.as(
+          'universityDepartment',
+        ),
+        universityGrade: sql`${universityDetails.grade}`.as('universityGrade'),
+        universityStudentNumber: sql`${universityDetails.studentNumber}`.as(
+          'universityStudentNumber',
+        ),
+      })
       .from(comments)
       .leftJoin(users, eq(comments.authorId, users.id))
       .leftJoin(profiles, eq(users.id, profiles.userId))
       .leftJoin(universityDetails, eq(users.id, universityDetails.userId))
-      .where(and(
-        eq(comments.articleId, articles.id),
-        isNull(comments.deletedAt),
-        isNull(comments.blindedAt),
-        includeReplies ? sql`1=1` : parentCommentCondition
-      ))
+      .where(
+        and(
+          eq(comments.articleId, articles.id),
+          isNull(comments.deletedAt),
+          isNull(comments.blindedAt),
+          includeReplies ? sql`1=1` : parentCommentCondition,
+        ),
+      )
       .orderBy(desc(comments.createdAt))
       .$dynamic();
 
@@ -173,56 +185,60 @@ export class ArticleQueryBuilder {
     const commentsSubquery = this.buildCommentsSubquery();
     const isLikedSubquery = this.buildIsLikedSubquery();
 
-    this.query = this.db.select({
-      article: {
-        id: articles.id,
-        title: articles.title,
-        content: articles.content,
-        anonymous: articles.anonymous,
-        likeCount: articles.likeCount,
-        readCount: articles.readCount,
-        createdAt: articles.createdAt,
-        updatedAt: articles.updatedAt,
-      },
-      author: {
-        id: users.id,
-        name: users.name,
-        age: profiles.age,
-        gender: profiles.gender,
-        nickname: profiles.name,
-      },
-      universityName: universityDetails.universityName,
-      universityAuthentication: universityDetails.authentication,
-      universityDepartment: universityDetails.department,
-      universityGrade: universityDetails.grade,
-      universityStudentNumber: universityDetails.studentNumber,
-      commentCount: sql<number>`(
+    this.query = this.db
+      .select({
+        article: {
+          id: articles.id,
+          title: articles.title,
+          content: articles.content,
+          anonymous: articles.anonymous,
+          likeCount: articles.likeCount,
+          readCount: articles.readCount,
+          createdAt: articles.createdAt,
+          updatedAt: articles.updatedAt,
+        },
+        author: {
+          id: users.id,
+          name: users.name,
+          age: profiles.age,
+          gender: profiles.gender,
+          nickname: profiles.name,
+        },
+        universityName: universityDetails.universityName,
+        universityAuthentication: universityDetails.authentication,
+        universityDepartment: universityDetails.department,
+        universityGrade: universityDetails.grade,
+        universityStudentNumber: universityDetails.studentNumber,
+        commentCount: sql<number>`(
         SELECT COUNT(*)
         FROM ${schema.comments} c
         WHERE c.article_id = ${articles.id}
         AND c.deleted_at IS NULL
       )`.as('commentCount'),
-      comments: sql<any>`(
+        comments: sql<any>`(
         SELECT json_agg(c)
         FROM (${commentsSubquery}) c
       )`.as('comments'),
-      isLiked: isLikedSubquery,
-      likeCount: sql<number>`(
+        isLiked: isLikedSubquery,
+        likeCount: sql<number>`(
         SELECT COUNT(*)
         FROM ${schema.likes} l
         WHERE l.article_id = ${articles.id}
         AND l.up = true
         AND l.deleted_at IS NULL
       )`.as('likeCount'),
-    })
+      })
       .from(articles)
       .leftJoin(users, eq(articles.authorId, users.id))
       .leftJoin(profiles, eq(users.id, profiles.userId))
       .leftJoin(universityDetails, eq(users.id, universityDetails.userId))
-      .leftJoin(schema.articleCategory, and(
-        eq(articles.categoryId, schema.articleCategory.id),
-        eq(schema.articleCategory.code, this.categoryCode)
-      ))
+      .leftJoin(
+        schema.articleCategory,
+        and(
+          eq(articles.categoryId, schema.articleCategory.id),
+          eq(schema.articleCategory.code, this.categoryCode),
+        ),
+      )
       .where(and(...conditions))
       .orderBy(desc(articles.createdAt))
       .$dynamic();
@@ -242,7 +258,6 @@ export class ArticleQueryBuilder {
     return this.query.execute() as Promise<ArticleQueryResult[]>;
   }
 
-
   createMyLike(): PgSelect<any> {
     const o = this.options;
 
@@ -253,55 +268,62 @@ export class ArticleQueryBuilder {
     const conditions = this.buildConditions();
     const commentsSubquery = this.buildCommentsSubquery();
 
-    return this.db.select({
-      article: {
-        id: articles.id,
-        title: articles.title,
-        content: articles.content,
-        anonymous: articles.anonymous,
-        likeCount: articles.likeCount,
-        readCount: articles.readCount,
-        createdAt: articles.createdAt,
-        updatedAt: articles.updatedAt,
-      },
-      author: {
-        id: users.id,
-        name: users.name,
-        age: profiles.age,
-        gender: profiles.gender,
-        nickname: profiles.name,
-      },
-      universityName: universityDetails.universityName,
-      universityAuthentication: universityDetails.authentication,
-      universityDepartment: universityDetails.department,
-      universityGrade: universityDetails.grade,
-      universityStudentNumber: universityDetails.studentNumber,
-      commentCount: sql<number>`(
+    return this.db
+      .select({
+        article: {
+          id: articles.id,
+          title: articles.title,
+          content: articles.content,
+          anonymous: articles.anonymous,
+          likeCount: articles.likeCount,
+          readCount: articles.readCount,
+          createdAt: articles.createdAt,
+          updatedAt: articles.updatedAt,
+        },
+        author: {
+          id: users.id,
+          name: users.name,
+          age: profiles.age,
+          gender: profiles.gender,
+          nickname: profiles.name,
+        },
+        universityName: universityDetails.universityName,
+        universityAuthentication: universityDetails.authentication,
+        universityDepartment: universityDetails.department,
+        universityGrade: universityDetails.grade,
+        universityStudentNumber: universityDetails.studentNumber,
+        commentCount: sql<number>`(
         SELECT COUNT(*)
         FROM ${schema.comments} c
         WHERE c.article_id = ${articles.id}
         AND c.deleted_at IS NULL
       )`.as('commentCount'),
-      comments: sql<any>`(
+        comments: sql<any>`(
         SELECT json_agg(c)
         FROM (${commentsSubquery}) c
       )`.as('comments'),
-      isLiked: sql<boolean>`true`.as('is_liked'),
-    })
+        isLiked: sql<boolean>`true`.as('is_liked'),
+      })
       .from(articles)
       .leftJoin(users, eq(articles.authorId, users.id))
       .leftJoin(profiles, eq(users.id, profiles.userId))
       .leftJoin(universityDetails, eq(users.id, universityDetails.userId))
-      .leftJoin(schema.articleCategory, and(
-        eq(articles.categoryId, schema.articleCategory.id),
-        eq(schema.articleCategory.code, this.categoryCode)
-      ))
-      .innerJoin(likes, and(
-        eq(likes.articleId, articles.id),
-        eq(likes.userId, o.userId),
-        eq(likes.up, true),
-        isNull(likes.deletedAt)
-      ))
+      .leftJoin(
+        schema.articleCategory,
+        and(
+          eq(articles.categoryId, schema.articleCategory.id),
+          eq(schema.articleCategory.code, this.categoryCode),
+        ),
+      )
+      .innerJoin(
+        likes,
+        and(
+          eq(likes.articleId, articles.id),
+          eq(likes.userId, o.userId),
+          eq(likes.up, true),
+          isNull(likes.deletedAt),
+        ),
+      )
       .where(and(...conditions))
       .orderBy(desc(articles.createdAt))
       .$dynamic();

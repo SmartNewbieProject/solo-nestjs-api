@@ -12,20 +12,27 @@ export class TicketRepository {
   constructor(
     @InjectDrizzle()
     private readonly db: NodePgDatabase<typeof schema>,
-  ) { }
+  ) {}
 
   getRematchingTickets(userId: string) {
-    return this.db.query.tickets.findMany({
-      where: and(
-        eq(tickets.type, 'rematching'),
-        eq(tickets.userId, userId),
-        isNull(tickets.deletedAt),
-        eq(tickets.status, 'available'),
-      ),
-    }).execute();
+    return this.db.query.tickets
+      .findMany({
+        where: and(
+          eq(tickets.type, 'rematching'),
+          eq(tickets.userId, userId),
+          isNull(tickets.deletedAt),
+          eq(tickets.status, 'available'),
+        ),
+      })
+      .execute();
   }
 
-  async createTickets(userId: string, count: number, type: TicketType, name: string) {
+  async createTickets(
+    userId: string,
+    count: number,
+    type: TicketType,
+    name: string,
+  ) {
     // 배치 처리를 위한 티켓 데이터 생성
     const ticketValues = new Array(count).fill(null).map(() => ({
       id: generateUuidV7(),
@@ -58,9 +65,9 @@ export class TicketRepository {
   }
 
   async use(ticketId: string) {
-    return await this.db.update(tickets)
+    return await this.db
+      .update(tickets)
       .set({ status: 'used', usedAt: new Date() })
       .where(eq(tickets.id, ticketId));
   }
-
 }

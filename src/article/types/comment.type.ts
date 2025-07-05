@@ -18,7 +18,7 @@ export interface CommentWithRelations extends InferComment {
       age: number;
       user: UserModel;
       universityDetail: UniversityDetailModel;
-    },
+    };
   };
   createdAt: Date;
   updatedAt: Date;

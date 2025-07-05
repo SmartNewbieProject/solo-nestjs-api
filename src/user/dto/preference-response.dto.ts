@@ -6,13 +6,13 @@ import { ApiProperty } from '@nestjs/swagger';
 export class PreferenceOptionDto {
   @ApiProperty({
     description: '선호도 옵션 ID',
-    example: '01HFGXS6YW1111111111AAAAA'
+    example: '01HFGXS6YW1111111111AAAAA',
   })
   id: string;
 
   @ApiProperty({
     description: '선호도 옵션 표시 이름',
-    example: '활발함'
+    example: '활발함',
   })
   displayName: string;
 }
@@ -23,25 +23,25 @@ export class PreferenceOptionDto {
 export class PreferenceTypeDto {
   @ApiProperty({
     description: '선호도 타입 이름',
-    example: '성격'
+    example: '성격',
   })
   typeName: string;
 
   @ApiProperty({
     description: '선호도 옵션 목록',
-    type: [PreferenceOptionDto]
+    type: [PreferenceOptionDto],
   })
   options: PreferenceOptionDto[];
 
   @ApiProperty({
     description: '다중 선택 가능 여부',
-    example: true
+    example: true,
   })
   multiple: boolean;
 
   @ApiProperty({
     description: '최대 선택 가능 개수',
-    example: 3
+    example: 3,
   })
   maximumChoiceCount: number;
 }
@@ -52,14 +52,14 @@ export class PreferenceTypeDto {
 export class PreferenceSaveItemDto {
   @ApiProperty({
     description: '선호도 타입 ID',
-    example: '01HFGXS6YW1234567890ABCDE'
+    example: '01HFGXS6YW1234567890ABCDE',
   })
   preferenceTypeId: string;
 
   @ApiProperty({
     description: '선택한 선호도 옵션 ID 목록',
     example: ['01HFGXS6YW1111111111AAAAA', '01HFGXS6YW2222222222BBBBB'],
-    type: [String]
+    type: [String],
   })
   preferenceOptionIds: string[];
 }
@@ -70,7 +70,7 @@ export class PreferenceSaveItemDto {
 export class PreferenceSaveRequestDto {
   @ApiProperty({
     description: '선호도 저장 데이터',
-    type: [PreferenceSaveItemDto]
+    type: [PreferenceSaveItemDto],
   })
   data: PreferenceSaveItemDto[];
 }
@@ -81,13 +81,13 @@ export class PreferenceSaveRequestDto {
 export class PreferenceSaveResponseDto {
   @ApiProperty({
     description: '성공 여부',
-    example: true
+    example: true,
   })
   success: boolean;
 
   @ApiProperty({
     description: '응답 메시지',
-    example: '선호도가 성공적으로 저장되었습니다.'
+    example: '선호도가 성공적으로 저장되었습니다.',
   })
   message: string;
 }
@@ -98,20 +98,20 @@ export class PreferenceSaveResponseDto {
 export class BadRequestResponseDto {
   @ApiProperty({
     description: '상태 코드',
-    example: 400
+    example: 400,
   })
   statusCode: number;
 
   @ApiProperty({
     description: '오류 메시지 목록',
     example: ['data must be an array'],
-    type: [String]
+    type: [String],
   })
   message: string[];
 
   @ApiProperty({
     description: '오류 유형',
-    example: 'Bad Request'
+    example: 'Bad Request',
   })
   error: string;
 }

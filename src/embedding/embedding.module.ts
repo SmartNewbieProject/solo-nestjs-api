@@ -9,11 +9,7 @@ import { ProfileService } from '@/user/services/profile.service';
 import ProfileRepository from '@/user/repository/profile.repository';
 import { ProfileSimilarFinderService } from './services/profile-similar-finder.service';
 @Module({
-  imports: [
-    ConfigModule,
-    DrizzleModule,
-    QdrantModule,
-  ],
+  imports: [ConfigModule, DrizzleModule, QdrantModule],
   providers: [
     EmbeddingService,
     InterestEmbeddingService,

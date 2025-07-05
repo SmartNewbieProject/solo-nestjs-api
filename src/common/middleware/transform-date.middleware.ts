@@ -20,18 +20,24 @@ export class TransformDateMiddleware implements NestMiddleware {
             if (obj instanceof Date) {
               return createDayjs(obj).format('YYYY-MM-DD HH:mm:ss');
             }
-            if (typeof obj === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(obj)) {
+            if (
+              typeof obj === 'string' &&
+              /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(obj)
+            ) {
               return obj.replace('Z', '');
             }
             if (Array.isArray(obj)) {
               return obj.map(transformDates);
             }
             if (typeof obj === 'object') {
-              const transformed = Object.keys(obj).reduce((acc, key) => {
-                acc[key] = transformDates(obj[key]);
-                return acc;
-              }, {} as Record<string, unknown>);
-              
+              const transformed = Object.keys(obj).reduce(
+                (acc, key) => {
+                  acc[key] = transformDates(obj[key]);
+                  return acc;
+                },
+                {} as Record<string, unknown>,
+              );
+
               return transformed;
             }
             return obj;

@@ -1,13 +1,13 @@
-import { PreferenceTypeGroup } from "@/types/user";
-import { ArrayFilter } from "./types";
-import { getValue, Key } from "./common";
-import { Gender } from "@/types/enum";
+import { PreferenceTypeGroup } from '@/types/user';
+import { ArrayFilter } from './types';
+import { getValue, Key } from './common';
+import { Gender } from '@/types/enum';
 
 export const createAgeFilter = (
   age: number,
   options: PreferenceTypeGroup[],
   gender: Gender,
-  targetGender: Gender
+  targetGender: Gender,
 ): ArrayFilter | null => {
   const agePref = getValue(Key.AGE, options);
   if (!agePref) return null;
@@ -46,7 +46,9 @@ export const createAgeFilter = (
       maxAge = age + 5;
   }
 
-  const allowedAges = Array.from({ length: maxAge - minAge + 1 }, (_, i) => String(minAge + i));
+  const allowedAges = Array.from({ length: maxAge - minAge + 1 }, (_, i) =>
+    String(minAge + i),
+  );
 
   return {
     key: `profileSummary.age`,

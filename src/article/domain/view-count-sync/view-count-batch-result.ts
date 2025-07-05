@@ -15,20 +15,20 @@ export function createEmptyBatchResult(): BatchProcessResult {
     processedCount: 0,
     successCount: 0,
     failedCount: 0,
-    errors: []
+    errors: [],
   };
 }
 
 export function updateBatchResult(
-  result: BatchProcessResult, 
-  success: boolean, 
-  error?: Error
+  result: BatchProcessResult,
+  success: boolean,
+  error?: Error,
 ): BatchProcessResult {
   return {
     ...result,
     processedCount: result.processedCount + 1,
     successCount: success ? result.successCount + 1 : result.successCount,
     failedCount: !success ? result.failedCount + 1 : result.failedCount,
-    errors: error ? [...result.errors, error] : result.errors
+    errors: error ? [...result.errors, error] : result.errors,
   };
 }

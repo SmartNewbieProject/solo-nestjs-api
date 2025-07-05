@@ -1,7 +1,7 @@
-import type { Dayjs } from "dayjs";
-import { Gender } from "./enum";
-import { PreferenceTypeGroup, UserProfile } from "./user";
-import { ElasticDate } from "./common";
+import type { Dayjs } from 'dayjs';
+import { Gender } from './enum';
+import { PreferenceTypeGroup, UserProfile } from './user';
+import { ElasticDate } from './common';
 
 export type UserPreferenceSummary = {
   id: string;
@@ -14,7 +14,7 @@ export type UserPreferenceSummary = {
   tattoo: string | undefined;
   drinking: string | undefined;
   smoking: string | undefined;
-}
+};
 
 export type UserVectorPayload = {
   userId: string;
@@ -28,9 +28,8 @@ export type UserVectorPayload = {
       typeName: string;
       options: string[]; // Example) "거의 안 마셨으면 좋겠음, 자주 마셔도 괜찮음"
     }[];
-  }
-}
-
+  };
+};
 
 export type Similarity = {
   userId: string;
@@ -48,22 +47,22 @@ export type UnmatchedUser = {
   name: string;
   age: number;
   gender: Gender;
-}
+};
 
 export type PartnerDetails = {
   id: string;
   name: string;
   age: number;
   gender: Gender;
-  instagramId: string;
+  instagramId: string | null;
   university: {
-    department: string;
-    name: string;
-    grade: string;
-    studentNumber: string;
+    department: string | null;
+    name: string | null;
+    grade: string | null;
+    studentNumber: string | null;
   } | null;
   preferences: PreferenceTypeGroup[];
-}
+};
 
 export enum TicketStatus {
   AVAILABLE = 'available',
@@ -81,7 +80,7 @@ export type TicketSummary = {
   type: TicketType;
   expiredAt: Date | null;
   createdAt: Date;
-}
+};
 
 export enum MatchType {
   SCHEDULED = 'scheduled',

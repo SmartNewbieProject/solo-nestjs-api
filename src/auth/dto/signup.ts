@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsNumber, IsString, Matches, Max, MaxLength, Min, MinLength, IsOptional, ValidateNested, ArrayMaxSize } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsString, IsOptional, Matches } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { Gender } from '@/types/enum';
@@ -6,41 +6,17 @@ import * as multer from 'multer';
 
 export class SignupRequest {
   @ApiProperty({
-    example: 'user@example.com',
-    description: '사용자 이메일',
-  })
-  @IsEmail({}, { message: '유효한 이메일 주소를 입력해주세요.' })
-  @IsNotEmpty({ message: '이메일은 필수 입력 항목입니다.' })
-  email: string;
-
-  @ApiProperty({
-    example: 'password123!',
-    description: '비밀번호 (최소 8자, 문자와 숫자, 특수문자 포함)',
-  })
-  @IsString()
-  @MinLength(8, { message: '비밀번호는 최소 8자 이상이어야 합니다.' })
-  @Matches(/^(?=.*[A-Za-z])(?=.*\d)(?=.*\W)[A-Za-z\d\W_]{8,}$/, {
-    message: '비밀번호는 최소 8자 이상이며, 문자와 숫자, 특수문자를 포함해야 합니다.',
-  })
-  password: string;
-
-  @ApiProperty({
     example: '홍길동',
     description: '사용자 이름',
   })
   @IsString()
   @IsNotEmpty({ message: '이름은 필수 입력 항목입니다.' })
-  @MaxLength(15, { message: '이름은 최대 15자까지 입력 가능합니다.' })
   name: string;
 
   @ApiProperty({
-    example: '2000-06-27',
-    description: '생년월일',
+    example: '010-1234-1234',
+    description: '전화번호',
   })
-  @IsString()
-  @IsNotEmpty({ message: '생년월일은 필수 입력 항목입니다.' })
-  birthday: string;
-
   @IsString()
   @Matches(/^010-?\d{3,4}-?\d{4}$/, {
     message: '유효한 전화번호 형식이 아닙니다.',
@@ -48,12 +24,12 @@ export class SignupRequest {
   phoneNumber: string;
 
   @ApiProperty({
-    example: 20,
-    description: '나이',
+    example: '2001-10-12',
+    description: '생년월일',
   })
-  @IsNumber()
-  @IsNotEmpty({ message: '나이는 필수 입력 항목입니다.' })
-  age: number;
+  @IsString()
+  @IsNotEmpty({ message: '생년월일은 필수 입력 항목입니다.' })
+  birthday: string;
 
   @ApiProperty({
     example: 'MALE',
@@ -62,17 +38,19 @@ export class SignupRequest {
   })
   @IsString()
   @IsNotEmpty({ message: '성별은 필수 입력 항목입니다.' })
-  @Matches(/^(MALE|FEMALE)$/, { message: '성별은 MALE 또는 FEMALE이어야 합니다.' })
-  @Transform(({ value }) => value === 'MALE' ? Gender.MALE : Gender.FEMALE)
+  @Matches(/^(MALE|FEMALE)$/, {
+    message: '성별은 MALE 또는 FEMALE이어야 합니다.',
+  })
+  @Transform(({ value }) => (value === 'MALE' ? Gender.MALE : Gender.FEMALE))
   gender: Gender;
 
   @ApiProperty({
-    example: 'ENFJ',
-    description: 'MBTI',
+    example: 23,
+    description: '나이',
   })
-  @IsString()
-  @IsOptional()
-  mbti?: string;
+  @IsNumber()
+  @IsNotEmpty({ message: '나이는 필수 입력 항목입니다.' })
+  age: number;
 
   @ApiProperty({
     example: '서울대학교',
@@ -127,30 +105,4 @@ export class SignupRequest {
   profileImages: multer.File[];
 }
 
-export class SmsCodeCreation {
-  @ApiProperty({
-    example: '010-1234-5678',
-    description: '전화번호',
-  })
-  @IsString()
-  @Matches(/^010-?\d{3,4}-?\d{4}$/, {
-    message: '유효한 전화번호 형식이 아닙니다.',
-  })
-  phoneNumber: string;
-}
 
-export class AuthorizeSmsCode {
-  @ApiProperty({
-    example: 'sdjfdks-sdfsdfkl',
-    description: '인증 보안용 고유키',
-  })
-  @IsString()
-  uniqueKey: string;
-
-  @ApiProperty({
-    example: '123456',
-    description: '인증번호',
-  })
-  @IsString()
-  authorizationCode: string;
-}

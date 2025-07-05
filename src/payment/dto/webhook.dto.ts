@@ -22,4 +22,4 @@ export class PortoneWebhookDto {
   @ApiProperty({ description: '결제 상태', enum: PortonePaymentStatus })
   @IsEnum(PortonePaymentStatus)
   status: PortonePaymentStatus;
-} 
+}

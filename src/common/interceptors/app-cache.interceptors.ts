@@ -1,6 +1,15 @@
-import { Injectable, ExecutionContext, CallHandler, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  ExecutionContext,
+  CallHandler,
+  Logger,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { CacheInterceptor, CACHE_KEY_METADATA, CACHE_TTL_METADATA } from '@nestjs/cache-manager';
+import {
+  CacheInterceptor,
+  CACHE_KEY_METADATA,
+  CACHE_TTL_METADATA,
+} from '@nestjs/cache-manager';
 import { Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 
@@ -43,7 +52,10 @@ export class CustomCacheInterceptor extends CacheInterceptor {
     return cacheKey;
   }
 
-  async intercept(context: ExecutionContext, next: CallHandler): Promise<Observable<any>> {
+  async intercept(
+    context: ExecutionContext,
+    next: CallHandler,
+  ): Promise<Observable<any>> {
     const key = this.trackBy(context);
 
     if (!key) {
@@ -66,14 +78,14 @@ export class CustomCacheInterceptor extends CacheInterceptor {
       const ttl = this.reflector.get(CACHE_TTL_METADATA, handler);
 
       return next.handle().pipe(
-        tap(response => {
+        tap((response) => {
           this.logger.debug(`Caching response for key: ${key}`);
           if (ttl) {
             this.cacheManager.set(key, response, ttl);
           } else {
             this.cacheManager.set(key, response);
           }
-        })
+        }),
       );
     } catch (error) {
       this.logger.error(`Cache error for key ${key}:`, error);

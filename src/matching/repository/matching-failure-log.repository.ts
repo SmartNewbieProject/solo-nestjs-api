@@ -10,7 +10,7 @@ export default class MatchingFailureLogRepository {
   constructor(
     @InjectDrizzle()
     private readonly db: NodePgDatabase<typeof schema>,
-  ) { }
+  ) {}
 
   /**
    * 매칭 실패 로그를 저장합니다.
@@ -19,10 +19,13 @@ export default class MatchingFailureLogRepository {
    * @returns 저장된 로그 정보
    */
   async createFailureLog(userId: string, reason: string) {
-    return await this.db.insert(schema.matchingFailureLogs).values({
-      id: generateUuidV7(),
-      userId,
-      reason,
-    }).execute();
+    return await this.db
+      .insert(schema.matchingFailureLogs)
+      .values({
+        id: generateUuidV7(),
+        userId,
+        reason,
+      })
+      .execute();
   }
 }

@@ -30,8 +30,10 @@ export class UniversityController {
   @UniversityDocs.registerUniversity()
   @Post()
   @Roles(Role.USER)
-  async registerUniversity(@CurrentUser() user: AuthenticationUser, @Body() university: UniversityRegister) {
+  async registerUniversity(
+    @CurrentUser() user: AuthenticationUser,
+    @Body() university: UniversityRegister,
+  ) {
     return await this.universityService.registerUniversity(user.id, university);
   }
-
 }

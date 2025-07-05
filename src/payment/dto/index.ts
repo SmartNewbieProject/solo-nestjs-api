@@ -1,9 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsNumber, IsOptional } from 'class-validator';
 import { TicketStatus, TicketType } from '@/types/match';
+import { PaidPayment } from '@portone/server-sdk/dist/generated/payment';
 
 export class PaymentConfirm {
-  @ApiProperty({ description: '결제 트랜잭션 아이디', nullable: true })
+  @ApiProperty({
+    description: '결제 트랜잭션 아이디',
+    nullable: true,
+    example: '123asdasda',
+  })
   @IsOptional()
   txId: string | null;
 
@@ -45,3 +50,10 @@ export class TicketSummarySchema {
   @ApiProperty({ description: '티켓 생성일' })
   createdAt: Date;
 }
+
+export type GemPaymentCreation = {
+  productId: string;
+} & Pick<
+  PaidPayment,
+  'receiptUrl' | 'status' | 'amount' | 'method' | 'transactionId'
+>;

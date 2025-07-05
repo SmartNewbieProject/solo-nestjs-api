@@ -5,6 +5,6 @@ import SmsService from './services/sms.service';
 @Module({
   imports: [ConfigModule],
   providers: [SmsService],
-  exports: [SmsService]
+  exports: [SmsService],
 })
 export class SmsModule {}

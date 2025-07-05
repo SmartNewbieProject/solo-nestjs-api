@@ -1,11 +1,15 @@
-import { Injectable, ExecutionContext, Logger, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  ExecutionContext,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '@auth/decorators/public.decorator';
 import { AuthRepository } from '@auth/repository/auth.repository';
-import { Role } from '@auth/domain/user-role.enum';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -38,7 +42,10 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
           });
           request.user = payload;
         } catch (error) {
-          this.logger.debug('Token verification failed for public route:', error);
+          this.logger.debug(
+            'Token verification failed for public route:',
+            error,
+          );
         }
       }
       return true;
@@ -65,7 +72,9 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       const user = await this.authRepository.findUserById(payload.id);
       if (!user) {
         this.logger.warn(`User ${payload.id} not found or inactive`);
-        throw new UnauthorizedException('계정이 비활성화되었거나 삭제되었습니다.');
+        throw new UnauthorizedException(
+          '계정이 비활성화되었거나 삭제되었습니다.',
+        );
       }
 
       request.user = payload;

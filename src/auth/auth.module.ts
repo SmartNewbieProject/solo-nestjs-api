@@ -17,10 +17,16 @@ import { SmsModule } from '@/sms/sms.module';
 import { AiTokenController } from './controller/ai-token.controller';
 import { AiTokenService } from './services/ai-token.service';
 import { AiUserSetupService } from './services/ai-user-setup.service';
+import { IamportService } from './services/iamport.service';
 
 @Module({
   imports: [SmsModule],
-  controllers: [SignupController, AuthController, UniversityController, AiTokenController],
+  controllers: [
+    SignupController,
+    AuthController,
+    UniversityController,
+    AiTokenController,
+  ],
   providers: [
     SignupService,
     SignupRepository,
@@ -32,7 +38,8 @@ import { AiUserSetupService } from './services/ai-user-setup.service';
     S3Service,
     AiTokenService,
     AiUserSetupService,
+    IamportService,
   ],
   exports: [SignupService, AuthService, UniversityService, AiTokenService],
 })
-export class AuthModule { }
+export class AuthModule {}

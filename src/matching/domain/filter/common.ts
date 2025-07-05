@@ -1,4 +1,4 @@
-import { PreferenceTypeGroup } from "@/types/user";
+import { PreferenceTypeGroup } from '@/types/user';
 
 export enum Key {
   DRINKING = '음주 선호도',
@@ -8,7 +8,7 @@ export enum Key {
 }
 
 export const getValue = (key: Key, group: PreferenceTypeGroup[]) => {
-  const item = group.find(g => g.typeName === key)?.selectedOptions[0];
+  const item = group.find((g) => g.typeName === key)?.selectedOptions[0];
   if (!item) return null;
   return {
     id: item.id,

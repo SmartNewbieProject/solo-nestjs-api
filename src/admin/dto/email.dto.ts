@@ -10,7 +10,7 @@ export class PreSignUp {
   email: string;
 
   @ApiProperty({
-    example: "한은숙",
+    example: '한은숙',
     description: '이름',
   })
   @IsString()
