@@ -190,7 +190,6 @@ export default class PayService {
     return this.getPaymentByPaymentId(paymentId);
   }
 
-  // private async getPaymentByPaymentId(paymentId: string): Promise<Payment.Payment> {
   private async getPaymentByPaymentId(paymentId: string): Promise<any> {
     this.logger.debug(`[getPaymentByPaymentId] paymentId: ${paymentId}`);
     const storeId = this.configService.get('PORTONE_STORE_ID') as string;

@@ -11,6 +11,7 @@ import UserRepository from '@/user/repository/user.repository';
 import { GemController } from '@/payment/controller/v1/gem.controller';
 import { GemProductViewer } from '@/payment/services/product-viewer.service';
 import { GemRepository } from '@/payment/repository/gem.repository';
+import { GemPaymentService } from '@/payment/services/gem-payment.service';
 
 @Module({
   imports: [ConfigModule],
@@ -23,6 +24,7 @@ import { GemRepository } from '@/payment/repository/gem.repository';
     TicketRepository,
     UserRepository,
     GemProductViewer,
+    GemPaymentService,
     GemRepository,
   ],
   exports: [PayService, TicketService, TicketRepository],

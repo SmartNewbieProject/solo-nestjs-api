@@ -25,7 +25,7 @@ export const paymentStatusEnum = pgEnum('payment_status', [
 ]);
 
 export const gemPayments = pgTable('gem_payments', {
-  paymentId: uuid(),
+  id: uuid(),
   userId: varchar('user_id', { length: 128 })
     .references(() => users.id)
     .notNull(),
