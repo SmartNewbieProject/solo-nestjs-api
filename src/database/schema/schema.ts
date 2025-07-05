@@ -23,6 +23,12 @@ import { hotArticles } from './hot_articles';
 import { withdrawalReasons } from './withdrawal_reasons';
 import { matchingFailureLogs } from './matching_failure_logs';
 import { additionalPreferences } from './addtional_preferences';
+import { userGems } from './user_gems';
+import { gemProducts } from './gem_products';
+import { gemTransactions } from './gem_transactions';
+import { gemPayments } from './gem_payments';
+import { gemFeatureCosts } from './gem_feature_costs';
+import { gemDailyStats } from './gem_daily_stats';
 
 // 관계형 매핑 파일 가져오기
 import './relations';
@@ -59,6 +65,12 @@ export {
   hotArticles,
   matchingFailureLogs,
   additionalPreferences,
+  userGems,
+  gemProducts,
+  gemTransactions,
+  gemPayments,
+  gemFeatureCosts,
+  gemDailyStats,
 };
 
 // 모든 테이블 스키마를 배열로 내보내기
@@ -86,4 +98,10 @@ export const schemas = [
   hotArticles,
   matchingFailureLogs,
   additionalPreferences,
+  userGems,
+  gemProducts,
+  gemTransactions,
+  gemPayments,
+  gemFeatureCosts,
+  gemDailyStats,
 ];
