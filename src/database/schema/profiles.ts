@@ -29,5 +29,6 @@ export const profiles = pgTable('profiles', {
     .default('UNKNOWN')
     .notNull(),
   universityDetailId: varchar('university_detail_id', { length: 36 }),
+  statusAt: varchar('status_at', { length: 16 }),
   ...timestamps,
 });

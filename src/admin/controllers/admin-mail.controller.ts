@@ -17,6 +17,7 @@ export class AdminMailController {
   @ApiOperation({ summary: '어드민 - 사전가입 인증 메일 전송' })
   @Post('/pre-signup')
   async sendPreSignupEmail(@Body() { email, name }: PreSignUp) {
-    this.signService.sendPreWelcomeEmail(email, name, {} as SignupRequest);
+    // TODO: Pass 기반 회원가입으로 변경되어 사전가입 메일 기능 비활성화
+    // this.signService.sendPreWelcomeEmail(email, name, {} as SignupRequest);
   }
 }
