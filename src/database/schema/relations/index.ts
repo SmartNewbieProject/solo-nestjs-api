@@ -17,3 +17,6 @@ export * from './ticket.relations';
 export * from './image.relations';
 export * from './article-categories.relations';
 export * from './hot_articles.relations';
+export * from './user_gems.relations';
+export * from './gem_transactions.relations';
+export * from './gem_payments.relations';
