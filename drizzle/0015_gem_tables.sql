@@ -53,7 +53,7 @@ CREATE TABLE "gem_feature_costs" (
 );
 
 CREATE TABLE "gem_payments" (
-                                "paymentId" varchar(128) PRIMARY KEY NOT NULL,
+                                "id" varchar(128) PRIMARY KEY NOT NULL,
                                 "user_id" varchar(128) NOT NULL,
                                 "product_id" varchar(128) NOT NULL,
                                 "payment_method" "payment_method" NOT NULL,
