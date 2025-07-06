@@ -62,55 +62,68 @@ export class AuthService {
   ): Promise<PassLoginResponse> {
     const { impUid } = passLoginRequest;
 
-    const certification = await this.iamportService.getCertification(impUid);
-    const formattedPhoneNumber = this.formatPhoneNumber(certification.phone);
+    try {
+      const certification = await this.iamportService.getCertification(impUid);
+      const formattedPhoneNumber = this.formatPhoneNumber(certification.phone);
 
-    const existingUser =
-      await this.authRepository.findUserByPhoneNumber(formattedPhoneNumber);
+      const existingUser =
+        await this.authRepository.findUserByPhoneNumber(formattedPhoneNumber);
 
-    if (!existingUser) {
+      if (!existingUser) {
+        this.logger.log(`Pass login - 신규 사용자: ${certification.name} (${formattedPhoneNumber})`);
+        return {
+          accessToken: null,
+          refreshToken: null,
+          tokenType: null,
+          expiresIn: null,
+          role: null,
+          isNewUser: true,
+          certificationInfo: {
+            name: certification.name,
+            phone: formattedPhoneNumber,
+            gender: certification.gender === 'MALE' ? 'MALE' : 'FEMALE',
+            birthday: certification.birthday,
+          },
+        };
+      }
+
+      const genderResult = await this.authRepository.findGenderByUserId(
+        existingUser.id,
+      );
+
+      if (!genderResult) {
+        this.logger.error(`Pass login 실패 - 성별정보 없음: userId=${existingUser.id}, name=${existingUser.name}`);
+        throw new BadGatewayException('성별정보가 없습니다.');
+      }
+
+      const tokens = await this.generateTokens(
+        existingUser.id,
+        existingUser.email || '',
+        existingUser.name,
+        existingUser.role,
+        genderResult.gender,
+      );
+
+      await this.authRepository.saveRefreshToken(
+        existingUser.id,
+        tokens.refreshToken,
+      );
+
+      this.logger.log(`Pass login 성공 - 기존 사용자: ${existingUser.name} (userId=${existingUser.id})`);
       return {
-        accessToken: null,
-        refreshToken: null,
-        tokenType: null,
-        expiresIn: null,
-        role: null,
-        isNewUser: true,
-        certificationInfo: {
-          name: certification.name,
-          phone: formattedPhoneNumber,
-          gender: certification.gender === 'MALE' ? 'MALE' : 'FEMALE',
-          birthday: certification.birthday,
-        },
+        ...tokens,
+        role: existingUser.role,
+        isNewUser: false,
       };
+    } catch (error) {
+      if (error instanceof BadGatewayException || error instanceof UnauthorizedException) {
+        // 이미 로깅된 비즈니스 로직 에러는 다시 로깅하지 않음
+        throw error;
+      }
+
+      this.logger.error(`Pass login 실패 - impUid: ${impUid}, 에러: ${error.message}`);
+      throw error;
     }
-
-    const genderResult = await this.authRepository.findGenderByUserId(
-      existingUser.id,
-    );
-
-    if (!genderResult) {
-      throw new BadGatewayException('성별정보가 없습니다.');
-    }
-
-    const tokens = await this.generateTokens(
-      existingUser.id,
-      existingUser.email || '',
-      existingUser.name,
-      existingUser.role,
-      genderResult.gender,
-    );
-
-    await this.authRepository.saveRefreshToken(
-      existingUser.id,
-      tokens.refreshToken,
-    );
-
-    return {
-      ...tokens,
-      role: existingUser.role,
-      isNewUser: false,
-    };
   }
 
   async withdraw(userId: string, password: string) {
