@@ -24,5 +24,6 @@ export const profiles = pgTable('profiles', {
   introduction: varchar('introduction', { length: 255 }),
   rank: varchar('rank', { length: 7, enum: ['S', 'A', 'B', 'C', 'UNKNOWN'] }).default('UNKNOWN').notNull(),
   universityDetailId: varchar('university_detail_id', { length: 36 }),
+  statusAt: varchar('status_at', { length: 16 }),
   ...timestamps,
 });

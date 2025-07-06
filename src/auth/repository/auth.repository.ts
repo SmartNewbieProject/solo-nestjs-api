@@ -24,6 +24,15 @@ export class AuthRepository {
     return result.length > 0 ? result[0] : null;
   }
 
+  async findUserByPhoneNumber(phoneNumber: string) {
+    const result = await this.db.select()
+      .from(users)
+      .where(and(eq(users.phoneNumber, phoneNumber), isNull(users.deletedAt)))
+      .limit(1);
+
+    return result.length > 0 ? result[0] : null;
+  }
+
   async findGenderByUserId(userId: string) {
     const result = await this.db.select({
       gender: profiles.gender
