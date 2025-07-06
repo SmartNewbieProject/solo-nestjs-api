@@ -56,12 +56,13 @@ export class PaymentController {
     @Body() webhookData: PortoneWebhookDto,
     @Req() req: Request,
   ) {
-    await this.verifyPortoneWebhook(req, webhookId, webhookSignature, webhookTimestamp);
-    try {
-      return await this.payService.handlePaymentWebhook(webhookData);
-    } catch (error) {
-      return { success: false, error: error.message };
-    }
+    await this.verifyPortoneWebhook(
+      req,
+      webhookId,
+      webhookSignature,
+      webhookTimestamp,
+    );
+    return await this.payService.handlePaymentWebhook(webhookData);
   }
 
   private async verifyPortoneWebhook(
