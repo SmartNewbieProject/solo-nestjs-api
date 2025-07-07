@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, BadGatewayException, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadGatewayException,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import { SignupRepository } from '@auth/repository/signup.repository';
 import { SignupRequest } from '@/auth/dto';
 import UniversityRepository from '../repository/university.repository';
@@ -25,10 +31,15 @@ export class SignupService {
     private readonly smsService: SmsService,
     private readonly slackService: SlackService,
     private readonly mailService: MailService,
-  ) { }
-
+  ) {}
 
   async signup(signupRequest: SignupRequest) {
+    const exists = await this.checkExistsPhoneNumber(signupRequest.phoneNumber);
+
+    if (exists) {
+      throw new BadRequestException('이미 존재하는 번호입니다');
+    }
+
     const user = await this.createUser(signupRequest);
     await this.slackService.sendSignupNotification(signupRequest);
 
@@ -40,10 +51,13 @@ export class SignupService {
     };
   }
 
-
+  checkExistsPhoneNumber(phone: string) {
+    return this.signupRepository.existsPhoneNumber(phone);
+  }
 
   async sendVerificationcCode(phoneNumber: string) {
-    const isBlacklisted = await this.signupRepository.isPhoneNumberBlacklisted(phoneNumber);
+    const isBlacklisted =
+      await this.signupRepository.isPhoneNumberBlacklisted(phoneNumber);
     if (isBlacklisted) {
       throw new BadRequestException('해당 전화번호로는 가입할 수 없습니다.');
     }
@@ -56,33 +70,37 @@ export class SignupService {
       authorizationCode,
       phoneNumber: number,
       uniqueKey: id,
-    })
+    });
 
     await this.smsService.sendSms(
       number,
-      `[썸타임]\n회원가입을 위해 인증번호를 입력해주세요.\n인증번호: ${authorizationCode}`
+      `[썸타임]\n회원가입을 위해 인증번호를 입력해주세요.\n인증번호: ${authorizationCode}`,
     );
 
     return smsVerification[0].uniqueKey;
   }
 
   async matchVerificationCode(uniqueKey: string, authCode: string) {
-    const authorizationCode = await this.signupRepository.getAuthorizationCode(uniqueKey);
+    const authorizationCode =
+      await this.signupRepository.getAuthorizationCode(uniqueKey);
     if (!authorizationCode) {
       throw new NotFoundException('인증번호가 유효하지 않습니다.');
     }
 
-    const expirationTime = dayjs(authorizationCode.createdAt).add(10, 'minutes');
+    const expirationTime = dayjs(authorizationCode.createdAt).add(
+      10,
+      'minutes',
+    );
     const currentTime = dayUtils.create();
     const timeover = currentTime.isAfter(expirationTime);
 
     if (timeover) {
-      throw new BadRequestException("인증코드 유효시간이 지났습니다.");
+      throw new BadRequestException('인증코드 유효시간이 지났습니다.');
     }
 
     const matches = authorizationCode.authorizationCode === authCode;
     if (!matches) {
-      throw new BadGatewayException("인증코드가 일치하지 않습니다.");
+      throw new BadGatewayException('인증코드가 일치하지 않습니다.');
     }
 
     await this.signupRepository.approveAuthorizationCode(authorizationCode.id);
@@ -100,36 +118,40 @@ export class SignupService {
     try {
       const response = await axios.get(`https://www.instagram.com/${id}/`, {
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-          'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+          'User-Agent':
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+          Accept:
+            'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
           'Accept-Language': 'ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7',
           'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
-        }
+          Pragma: 'no-cache',
+        },
       });
 
       const notFoundIndicators = [
-        'Sorry, this page isn\'t available.',
+        "Sorry, this page isn't available.",
         'The link you followed may be broken',
         'Page Not Found',
-        'content="Instagram">\n<meta property="og:type" content="profile">'
+        'content="Instagram">\n<meta property="og:type" content="profile">',
       ];
 
-      const pageNotAvailable = notFoundIndicators.some(indicator =>
-        response.data.includes(indicator)
+      const pageNotAvailable = notFoundIndicators.some((indicator) =>
+        response.data.includes(indicator),
       );
 
       const hasProfileData = [
-        `"@${id}"`,                                // 사용자 ID
-        `"username":"${id}"`,                     // JSON 데이터에서 사용자명
-        'profile_pic_url',                         // 프로필 사진 URL
-        'full_name',                               // 전체 이름
-        `og:title" content="${id}`,                // 메타 태그의 사용자명
-        `<title>${id}</title>`,                    // 페이지 제목의 사용자명
-        'biography'                                // 자기소개
-      ].some(indicator => response.data.includes(indicator));
+        `"@${id}"`, // 사용자 ID
+        `"username":"${id}"`, // JSON 데이터에서 사용자명
+        'profile_pic_url', // 프로필 사진 URL
+        'full_name', // 전체 이름
+        `og:title" content="${id}`, // 메타 태그의 사용자명
+        `<title>${id}</title>`, // 페이지 제목의 사용자명
+        'biography', // 자기소개
+      ].some((indicator) => response.data.includes(indicator));
 
-      this.logger.debug(`Instagram validation for ${id}: hasProfileData=${hasProfileData}, pageNotAvailable=${pageNotAvailable}`);
+      this.logger.debug(
+        `Instagram validation for ${id}: hasProfileData=${hasProfileData}, pageNotAvailable=${pageNotAvailable}`,
+      );
 
       return hasProfileData && !pageNotAvailable;
     } catch (error) {
@@ -142,13 +164,19 @@ export class SignupService {
     const { profileImages } = signup;
 
     const user = await this.signupRepository.createUser(signup);
-    const university = await this.universityRepository.registerUniversity(user.id, {
-      universityName: signup.universityName,
-      department: signup.departmentName,
-      grade: signup.grade,
-      studentNumber: signup.studentNumber,
-    });
-    await this.signupRepository.updateUniversityId(user.profileId, university.id);
+    const university = await this.universityRepository.registerUniversity(
+      user.id,
+      {
+        universityName: signup.universityName,
+        department: signup.departmentName,
+        grade: signup.grade,
+        studentNumber: signup.studentNumber,
+      },
+    );
+    await this.signupRepository.updateUniversityId(
+      user.profileId,
+      university.id,
+    );
 
     const folder = `profiles/${user.id}`;
 
@@ -167,6 +195,4 @@ export class SignupService {
 
     return user;
   }
-
-
 }
