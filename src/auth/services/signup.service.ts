@@ -1,4 +1,10 @@
-import { Injectable, NotFoundException, BadGatewayException, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadGatewayException,
+  Logger,
+  BadRequestException,
+} from '@nestjs/common';
 import { SignupRepository } from '@auth/repository/signup.repository';
 import { SignupRequest } from '@/auth/dto';
 import UniversityRepository from '../repository/university.repository';
@@ -25,8 +31,7 @@ export class SignupService {
     private readonly smsService: SmsService,
     private readonly slackService: SlackService,
     private readonly mailService: MailService,
-  ) { }
-
+  ) {}
 
   async signup(signupRequest: SignupRequest) {
     const user = await this.createUser(signupRequest);
@@ -39,8 +44,6 @@ export class SignupService {
       createdAt: user.createdAt,
     };
   }
-
-
 
   async sendVerificationcCode(phoneNumber: string) {
     const isBlacklisted =
@@ -151,13 +154,19 @@ export class SignupService {
     const { profileImages } = signup;
 
     const user = await this.signupRepository.createUser(signup);
-    const university = await this.universityRepository.registerUniversity(user.id, {
-      universityName: signup.universityName,
-      department: signup.departmentName,
-      grade: signup.grade,
-      studentNumber: signup.studentNumber,
-    });
-    await this.signupRepository.updateUniversityId(user.profileId, university.id);
+    const university = await this.universityRepository.registerUniversity(
+      user.id,
+      {
+        universityName: signup.universityName,
+        department: signup.departmentName,
+        grade: signup.grade,
+        studentNumber: signup.studentNumber,
+      },
+    );
+    await this.signupRepository.updateUniversityId(
+      user.profileId,
+      university.id,
+    );
 
     const folder = `profiles/${user.id}`;
 
@@ -176,6 +185,4 @@ export class SignupService {
 
     return user;
   }
-
-
 }

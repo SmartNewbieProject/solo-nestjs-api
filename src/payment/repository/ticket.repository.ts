@@ -1,7 +1,7 @@
 import { tickets } from '@/database/schema/index';
 import { TicketStatus, TicketType } from '@/types/match';
 import { Injectable } from '@nestjs/common';
-import { eq, and, isNull, ne, desc } from 'drizzle-orm';
+import { eq, and, isNull, desc } from 'drizzle-orm';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { InjectDrizzle } from '@/common/decorators';
 import * as schema from '@/database/schema';

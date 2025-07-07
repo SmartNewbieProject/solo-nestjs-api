@@ -341,14 +341,14 @@ export class SlackService {
         type: 'section',
         fields: [
           {
-            type: "mrkdwn",
-            text: "*전화번호:*\n" + signupData.phoneNumber
+            type: 'mrkdwn',
+            text: '*전화번호:*\n' + signupData.phoneNumber,
           },
           {
-            type: "mrkdwn",
-            text: "*이름:*\n" + signupData.name
-          }
-        ]
+            type: 'mrkdwn',
+            text: '*이름:*\n' + signupData.name,
+          },
+        ],
       },
       {
         type: 'section',
@@ -393,13 +393,13 @@ export class SlackService {
 
     // 인스타그램 정보 추가
     blocks.push({
-      type: "section",
+      type: 'section',
       fields: [
         {
-          type: "mrkdwn",
-          text: "*인스타그램:*\n" + (signupData.instagramId || "없음")
-        }
-      ]
+          type: 'mrkdwn',
+          text: '*인스타그램:*\n' + (signupData.instagramId || '없음'),
+        },
+      ],
     });
 
     // 프로필 이미지 수 추가

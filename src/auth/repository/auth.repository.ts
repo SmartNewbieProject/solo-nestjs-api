@@ -26,7 +26,8 @@ export class AuthRepository {
   }
 
   async findUserByPhoneNumber(phoneNumber: string) {
-    const result = await this.db.select()
+    const result = await this.db
+      .select()
       .from(users)
       .where(and(eq(users.phoneNumber, phoneNumber), isNull(users.deletedAt)))
       .limit(1);

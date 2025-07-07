@@ -19,10 +19,15 @@ export default class UserService {
     const user = await this.userRepository.getUser(userId);
 
     if (!user.password) {
-      throw new BadRequestException('Pass 인증 사용자는 비밀번호 변경이 불가능합니다.');
+      throw new BadRequestException(
+        'Pass 인증 사용자는 비밀번호 변경이 불가능합니다.',
+      );
     }
 
-    const isPasswordCorrect = await bcrypt.compare(data.oldPassword, user.password);
+    const isPasswordCorrect = await bcrypt.compare(
+      data.oldPassword,
+      user.password,
+    );
     if (!isPasswordCorrect) {
       throw new BadRequestException('비밀번호가 일치하지 않습니다.');
     }
@@ -51,11 +56,11 @@ export default class UserService {
 
     const profileImages = Array.isArray(profile.profileImages)
       ? profile.profileImages.map((d: any) => ({
-        id: d.id,
-        order: d.imageOrder,
-        isMain: d.isMain,
-        url: d.image.s3Url,
-      }))
+          id: d.id,
+          order: d.imageOrder,
+          isMain: d.isMain,
+          url: d.image.s3Url,
+        }))
       : [];
 
     const instagramId = profile.instagramId ?? null;
@@ -81,5 +86,4 @@ export default class UserService {
   async deleteQdrantUser(userId: string) {
     await this.qdrantService.deletePoints('profiles', [userId]);
   }
-
 }
