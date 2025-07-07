@@ -1,8 +1,25 @@
-import { IsNotEmpty, IsNumber, IsString, IsOptional, Matches } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsOptional,
+  Matches,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { Gender } from '@/types/enum';
 import * as multer from 'multer';
+
+export class CheckPhoneNumber {
+  @ApiProperty({
+    example: '010-2655-4276',
+    description: '휴대폰 번호',
+  })
+  @Matches(/^010-?\d{3,4}-?\d{4}$/, {
+    message: '유효한 전화번호 형식이 아닙니다.',
+  })
+  phoneNumber: string;
+}
 
 export class SignupRequest {
   @ApiProperty({
@@ -38,8 +55,10 @@ export class SignupRequest {
   })
   @IsString()
   @IsNotEmpty({ message: '성별은 필수 입력 항목입니다.' })
-  @Matches(/^(MALE|FEMALE)$/, { message: '성별은 MALE 또는 FEMALE이어야 합니다.' })
-  @Transform(({ value }) => value === 'MALE' ? Gender.MALE : Gender.FEMALE)
+  @Matches(/^(MALE|FEMALE)$/, {
+    message: '성별은 MALE 또는 FEMALE이어야 합니다.',
+  })
+  @Transform(({ value }) => (value === 'MALE' ? Gender.MALE : Gender.FEMALE))
   gender: Gender;
 
   @ApiProperty({
@@ -102,5 +121,3 @@ export class SignupRequest {
   @IsOptional()
   profileImages: multer.File[];
 }
-
-
