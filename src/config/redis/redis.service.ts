@@ -121,4 +121,30 @@ export class RedisService {
   pipeline() {
     return this.redisClient.pipeline();
   }
+
+  /**
+   * JSON 객체 저장
+   * @param key Redis 키
+   * @param value 저장할 객체
+   * @param ttl TTL (초)
+   */
+  async setObject<T>(key: string, value: T, ttl?: number): Promise<string> {
+    return await this.set(key, JSON.stringify(value), ttl);
+  }
+
+  /**
+   * JSON 객체 조회
+   * @param key Redis 키
+   */
+  async getObject<T>(key: string): Promise<T | null> {
+    const value = await this.get(key);
+    if (!value) return null;
+    try {
+      const parsed: unknown = JSON.parse(value);
+      return parsed as T;
+    } catch (error) {
+      this.logger.error(`JSON 파싱 실패: ${key}`, error);
+      return null;
+    }
+  }
 }
