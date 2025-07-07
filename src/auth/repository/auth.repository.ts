@@ -10,6 +10,21 @@ import { WithdrawalReason } from '@/types/withdrawal';
 import { generateUuidV7 } from '@/database/schema/helper';
 import { Gender } from '@/types/enum';
 
+export interface CertificationUpdateInfo {
+  name: string;
+  phone: string;
+  gender: string;
+  birthday: string;
+}
+
+export interface UpdatedUserInfo {
+  name: string;
+  phone: string;
+  gender: string;
+  birthday: string;
+  age: number;
+}
+
 @Injectable()
 export class AuthRepository {
   constructor(
@@ -218,12 +233,10 @@ export class AuthRepository {
    * @param userId 사용자 ID
    * @param certificationInfo 본인인증 정보
    */
-  async updateUserWithCertification(userId: string, certificationInfo: {
-    name: string;
-    phone: string;
-    gender: string;
-    birthday: string;
-  }) {
+  async updateUserWithCertification(
+    userId: string,
+    certificationInfo: CertificationUpdateInfo
+  ): Promise<UpdatedUserInfo> {
     const age = this.calculateAge(certificationInfo.birthday);
     const now = new Date();
 

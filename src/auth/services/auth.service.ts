@@ -5,9 +5,9 @@ import * as bcrypt from 'bcryptjs';
 import { LoginRequest, TokenResponse } from '../dto';
 import { PassLoginRequest, PassLoginResponse } from '../dto/pass-login.dto';
 import { Role } from '../domain/user-role.enum';
-import { AuthRepository } from '../repository/auth.repository';
+import { AuthRepository, CertificationUpdateInfo, UpdatedUserInfo } from '../repository/auth.repository';
 import { Gender } from '@/types/enum';
-import { IamportService } from './iamport.service';
+import { IamportService, CertificationInfo } from './iamport.service';
 
 interface JwtPayload {
   email: string;
@@ -63,10 +63,10 @@ export class AuthService {
     const { impUid } = passLoginRequest;
 
     try {
-      const certification = await this.iamportService.getCertification(impUid);
+      const certification: CertificationInfo = await this.iamportService.getCertification(impUid);
       const formattedPhoneNumber = this.formatPhoneNumber(certification.phone);
 
-      const existingUser =
+      const existingUser: Awaited<ReturnType<typeof this.authRepository.findUserByPhoneNumber>> =
         await this.authRepository.findUserByPhoneNumber(formattedPhoneNumber);
 
       if (!existingUser) {
@@ -87,14 +87,16 @@ export class AuthService {
         };
       }
 
-      const updatedUserInfo = await this.authRepository.updateUserWithCertification(
+      const certificationUpdateInfo: CertificationUpdateInfo = {
+        name: certification.name,
+        phone: formattedPhoneNumber,
+        gender: certification.gender === 'MALE' ? 'MALE' : 'FEMALE',
+        birthday: certification.birthday,
+      };
+
+      const updatedUserInfo: UpdatedUserInfo = await this.authRepository.updateUserWithCertification(
         existingUser.id,
-        {
-          name: certification.name,
-          phone: formattedPhoneNumber,
-          gender: certification.gender === 'MALE' ? 'MALE' : 'FEMALE',
-          birthday: certification.birthday,
-        }
+        certificationUpdateInfo
       );
 
       const tokens = await this.generateTokens(

@@ -10,7 +10,6 @@ import {
   between,
   sql,
   isNotNull,
-  countDistinct,
 } from 'drizzle-orm';
 import { InjectDrizzle } from '@common/decorators';
 import { generateUuidV7 } from '@database/schema/helper';
@@ -210,7 +209,7 @@ export class SignupRepository {
         exists: sql`1`,
       })
       .from(schema.users)
-      .where(eq(schema.users.phoneNumber, phone))
+      .where(and(eq(schema.users.phoneNumber, phone), isNull(schema.users.deletedAt)))
       .limit(1);
 
     return results.length > 0;
