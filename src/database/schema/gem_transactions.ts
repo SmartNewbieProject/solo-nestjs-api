@@ -23,7 +23,7 @@ export const gemReferenceTypeEnum = pgEnum('gem_reference_type', [
 ]);
 
 export const gemTransactions = pgTable('gem_transactions', {
-  transactionId: uuid(),
+  id: uuid(),
   userId: varchar('user_id', { length: 128 })
     .references(() => users.id)
     .notNull(),
@@ -32,7 +32,6 @@ export const gemTransactions = pgTable('gem_transactions', {
   balanceBefore: integer('balance_before').notNull(),
   balanceAfter: integer('balance_after').notNull(),
   referenceType: gemReferenceTypeEnum('reference_type').notNull(),
-  referenceId: varchar('reference_id', { length: 128 }),
   description: text('description'),
   createdAt: timestamp('created_at', { mode: 'date', withTimezone: true })
     .defaultNow()
