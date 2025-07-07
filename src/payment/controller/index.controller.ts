@@ -25,6 +25,9 @@ import { Webhook } from '@portone/server-sdk';
 import { ConfigService } from '@nestjs/config';
 import { Request } from 'express';
 
+/**
+ * @deprecated 이전 재매칭권 내용
+ */
 @Controller('payments')
 @ApiTags('결제')
 export class PaymentController {
