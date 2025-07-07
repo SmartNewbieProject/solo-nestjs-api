@@ -87,21 +87,22 @@ export class AuthService {
         };
       }
 
-      const genderResult = await this.authRepository.findGenderByUserId(
+      const updatedUserInfo = await this.authRepository.updateUserWithCertification(
         existingUser.id,
+        {
+          name: certification.name,
+          phone: formattedPhoneNumber,
+          gender: certification.gender === 'MALE' ? 'MALE' : 'FEMALE',
+          birthday: certification.birthday,
+        }
       );
-
-      if (!genderResult) {
-        this.logger.error(`Pass login 실패 - 성별정보 없음: userId=${existingUser.id}, name=${existingUser.name}`);
-        throw new BadGatewayException('성별정보가 없습니다.');
-      }
 
       const tokens = await this.generateTokens(
         existingUser.id,
         existingUser.email || '',
-        existingUser.name,
+        updatedUserInfo.name,
         existingUser.role,
-        genderResult.gender,
+        updatedUserInfo.gender as Gender,
       );
 
       await this.authRepository.saveRefreshToken(
@@ -109,7 +110,7 @@ export class AuthService {
         tokens.refreshToken,
       );
 
-      this.logger.log(`Pass login 성공 - 기존 사용자: ${existingUser.name} (userId=${existingUser.id})`);
+      this.logger.log(`Pass login 성공 - 기존 사용자 정보 업데이트: ${updatedUserInfo.name} (userId=${existingUser.id}, age=${updatedUserInfo.age})`);
       return {
         ...tokens,
         role: existingUser.role,
