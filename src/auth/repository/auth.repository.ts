@@ -8,6 +8,7 @@ import { profiles } from '@database/schema';
 import { withdrawalReasons } from '@database/schema/withdrawal_reasons';
 import { WithdrawalReason } from '@/types/withdrawal';
 import { generateUuidV7 } from '@/database/schema/helper';
+import { Gender } from '@/types/enum';
 
 @Injectable()
 export class AuthRepository {
@@ -192,6 +193,69 @@ export class AuthRepository {
       );
 
     console.log(`리프레시 토큰 삭제 결과:`, result);
+  }
+
+  /**
+   * 생년월일로부터 만나이를 계산합니다.
+   * @param birthday YYYY-MM-DD 형식의 생년월일
+   * @returns 만나이
+   */
+  private calculateAge(birthday: string): number {
+    const today = new Date();
+    const birthDate = new Date(birthday);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+
+    return age;
+  }
+
+  /**
+   * 본인인증 정보로 사용자 정보를 업데이트합니다.
+   * @param userId 사용자 ID
+   * @param certificationInfo 본인인증 정보
+   */
+  async updateUserWithCertification(userId: string, certificationInfo: {
+    name: string;
+    phone: string;
+    gender: string;
+    birthday: string;
+  }) {
+    const age = this.calculateAge(certificationInfo.birthday);
+    const now = new Date();
+
+    return await this.db.transaction(async (tx) => {
+      // users 테이블 업데이트
+      await tx.update(users)
+        .set({
+          name: certificationInfo.name,
+          phoneNumber: certificationInfo.phone,
+          birthday: certificationInfo.birthday,
+          updatedAt: now,
+        })
+        .where(and(eq(users.id, userId), isNull(users.deletedAt)));
+
+      // profiles 테이블 업데이트
+      await tx.update(profiles)
+        .set({
+          name: certificationInfo.name,
+          gender: certificationInfo.gender as Gender,
+          age: age,
+          updatedAt: now,
+        })
+        .where(and(eq(profiles.userId, userId), isNull(profiles.deletedAt)));
+
+      return {
+        name: certificationInfo.name,
+        phone: certificationInfo.phone,
+        gender: certificationInfo.gender,
+        birthday: certificationInfo.birthday,
+        age: age,
+      };
+    });
   }
 
   /**
