@@ -12,7 +12,7 @@ import * as multer from 'multer';
 
 export class CheckPhoneNumber {
   @ApiProperty({
-    example: '010-2655-4276',
+    example: '010-1234-5678',
     description: '휴대폰 번호',
   })
   @Matches(/^010-?\d{3,4}-?\d{4}$/, {

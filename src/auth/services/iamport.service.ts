@@ -39,6 +39,14 @@ interface IamportCertificationResponse {
   };
 }
 
+export interface CertificationInfo {
+  name: string;
+  phone: string;
+  gender: string;
+  birthday: string;
+  certified: boolean;
+}
+
 @Injectable()
 export class IamportService {
   private readonly logger = new Logger(IamportService.name);
@@ -66,7 +74,7 @@ export class IamportService {
    * PortOne V2 본인인증 정보 조회
    * @param identityVerificationId PortOne 본인인증 고유번호
    */
-  async getCertification(identityVerificationId: string): Promise<any> {
+  async getCertification(identityVerificationId: string): Promise<CertificationInfo> {
     try {
       const response = await this.httpClient.get(
         `/identity-verifications/${identityVerificationId}`,
