@@ -119,7 +119,7 @@ export default class MatchRepository {
           isNull(schema.users.deletedAt),
           isNotNull(schema.profiles.age),
           isNotNull(schema.profiles.gender),
-          eq(schema.profiles.gender, Gender.FEMALE),
+          // eq(schema.profiles.gender, Gender.FEMALE),
         ),
       )
       .groupBy(schema.users.id, schema.profiles.id)
