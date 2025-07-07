@@ -87,7 +87,6 @@ export class AuthService {
         };
       }
 
-      // 기존 사용자의 본인인증 정보 업데이트
       const updatedUserInfo = await this.authRepository.updateUserWithCertification(
         existingUser.id,
         {

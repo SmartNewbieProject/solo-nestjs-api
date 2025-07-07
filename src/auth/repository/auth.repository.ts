@@ -228,7 +228,6 @@ export class AuthRepository {
     const now = new Date();
 
     return await this.db.transaction(async (tx) => {
-      // users 테이블 업데이트
       await tx.update(users)
         .set({
           name: certificationInfo.name,
@@ -238,7 +237,6 @@ export class AuthRepository {
         })
         .where(and(eq(users.id, userId), isNull(users.deletedAt)));
 
-      // profiles 테이블 업데이트
       await tx.update(profiles)
         .set({
           name: certificationInfo.name,
