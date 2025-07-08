@@ -31,10 +31,11 @@ import { ConfigService } from '@nestjs/config';
 @ApiBearerAuth('access-token')
 @Roles(Role.USER)
 export class GemController {
+  private readonly secretKey: string;
+
   constructor(
     private readonly gemProductViewer: GemProductViewer,
     private readonly gemPaymentService: GemPaymentService,
-    private readonly secretKey: string,
     private readonly configService: ConfigService,
   ) {
     this.secretKey = configService.get('PORTONE_WEBHOOK_SECRET') as string;
