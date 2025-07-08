@@ -52,9 +52,10 @@ export class ProfileSimilarFinderService {
       initialStrategy.must.push(ageFilter);
     }
 
-    const strictFilter = [drinkFilter, smokingFilter, tattooFilter]
-      .filter(r => r !== null)
-      .flat();
+    const strictFilter = null;
+    // const strictFilter = [drinkFilter, smokingFilter, tattooFilter]
+    //   .filter((r) => r !== null)
+    // .flat();
 
     if (strictFilter.length > 0) {
       initialStrategy.must_not.push({
