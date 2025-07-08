@@ -1,4 +1,11 @@
-import { Body, Controller, Post, UseInterceptors, UploadedFiles, BadRequestException } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  UseInterceptors,
+  UploadedFiles,
+  BadRequestException,
+} from '@nestjs/common';
 import { SignupService } from '../services/signup.service';
 import { InstagramId, SignupRequest } from '../dto';
 import { Public } from '@auth/decorators';
@@ -43,9 +50,6 @@ export class SignupController {
       profileImages: files,
     });
   }
-
-
-
 
   @Post('check/instagram')
   async existsInstagram(@Body() { instagramId }: InstagramId) {

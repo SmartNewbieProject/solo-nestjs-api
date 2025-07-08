@@ -1,4 +1,10 @@
-import { IsNotEmpty, IsNumber, IsString, IsOptional, Matches } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+  IsOptional,
+  Matches,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { Gender } from '@/types/enum';
@@ -104,5 +110,3 @@ export class SignupRequest {
   @IsOptional()
   profileImages: multer.File[];
 }
-
-

@@ -16,7 +16,7 @@ export const featureTypeEnum = pgEnum('feature_type', [
 ]);
 
 export const gemFeatureCosts = pgTable('gem_feature_costs', {
-  costId: uuid(),
+  id: uuid(),
   featureType: featureTypeEnum('feature_type').notNull().unique(),
   gemCost: integer('gem_cost').notNull(),
   description: text('description'),

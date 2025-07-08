@@ -49,7 +49,8 @@ export class SignupRepository {
       const userId = generateUuidV7();
       const preferenceId = generateUuidV7();
 
-      const { name, phoneNumber, gender, age, instagramId, birthday } = createUserDto;
+      const { name, phoneNumber, gender, age, instagramId, birthday } =
+        createUserDto;
 
       const [user] = await tx
         .insert(users)
@@ -74,7 +75,6 @@ export class SignupRepository {
           instagramId,
         })
         .returning();
-
 
       await tx
         .insert(schema.userPreferences)

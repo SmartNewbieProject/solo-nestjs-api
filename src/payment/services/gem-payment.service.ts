@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -10,6 +11,11 @@ import { PortOneClient } from '@portone/server-sdk';
 import { ConfigService } from '@nestjs/config';
 import { PaidPayment } from '@portone/server-sdk/dist/generated/payment';
 import { GemRepository } from '@/payment/repository/gem.repository';
+import {
+  PortonePaymentStatus,
+  PortoneWebhookDto,
+} from '@/payment/dto/webhook.dto';
+import { GemTransactionManager } from '@/payment/services/gem-transaction-manager';
 
 type CustomData = {
   productName: string;
@@ -19,11 +25,13 @@ type CustomData = {
 export class GemPaymentService {
   private readonly client: PortOneClient;
   private readonly storeId: string;
+  private readonly logger = new Logger(GemPaymentService.name);
 
   constructor(
     private readonly payRepository: PayRepository,
     private readonly configService: ConfigService,
     private readonly gemRepository: GemRepository,
+    private readonly transactionManager: GemTransactionManager,
   ) {
     const secretKey = configService.get('PORTONE_SECRET_KEY') as string;
     this.client = PortOneClient({ secret: secretKey });
@@ -39,6 +47,31 @@ export class GemPaymentService {
     return payment;
   }
 
+  async handleWebHook({ payment_id, status }: PortoneWebhookDto) {
+    if (status !== PortonePaymentStatus.PAID) {
+      this.logger.error(
+        `웹훅을 수신받았지만, ${payment_id} 에 대해 ${status} 상태임`,
+      );
+      return;
+    }
+    const payment = await this.getPayment(payment_id);
+    const history = await this.payRepository.findPayHistory(payment_id);
+    if (payment.status !== 'PAID' || !history) {
+      this.logger.error(`${payment_id} 가 결제된 상태가 아님`);
+      this.logger.error(payment.status);
+      return;
+    }
+    const product = await this.gemRepository.getProductByName(
+      payment.orderName,
+    );
+    if (!product) {
+      this.logger.error(`${payment.orderName} product가 존재하지 않습니다.`);
+      return;
+    }
+
+    await this.transactionManager.charge(history.userId, product.totalGems);
+  }
+
   private async validateAndGet(userId: string, orderId: string) {
     const history = await this.payRepository.findPayHistory(orderId);
     if (!history) {
@@ -49,6 +82,7 @@ export class GemPaymentService {
     }
 
     const payment = await this.getPayment(orderId);
+    // TODO: 간혹 결제해도 결제처리가 안되는 유저가 있는데, 여기 status 가 PAID 가 아닌 상태로 넘어올 가능성을 체크해봐야함
     if (payment.status !== 'PAID') {
       throw new BadRequestException('결제가 완료되지 않았습니다.');
     }
