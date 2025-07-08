@@ -45,7 +45,10 @@ const COMMON_CODES = [
 @Injectable()
 export default class ProfileRepository {
   private readonly SELF_CODES: string[] = ['INTEREST', ...COMMON_CODES];
-  private readonly PARTNER_CODES: string[] = [...COMMON_CODES];
+  private readonly PARTNER_CODES: string[] = [
+    'AGE_PREFERENCE',
+    ...COMMON_CODES,
+  ];
 
   constructor(
     @InjectDrizzle()
