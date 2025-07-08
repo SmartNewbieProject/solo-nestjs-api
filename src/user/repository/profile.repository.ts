@@ -5,6 +5,7 @@ import * as schema from '@database/schema';
 import { PreferenceTarget } from '@database/schema';
 import {
   and,
+  asc,
   eq,
   ExtractTablesWithRelations,
   inArray,
@@ -184,7 +185,8 @@ export default class ProfileRepository {
             ),
             eq(schema.userPreferenceOptions.preferenceTarget, who),
           ),
-        );
+        )
+        .orderBy(asc(schema.preferenceOptions.order));
     });
   }
 
@@ -217,7 +219,7 @@ export default class ProfileRepository {
           schema.preferenceTypes.id,
         ),
       )
-      .orderBy(schema.preferenceTypes.code)
+      .orderBy(schema.preferenceTypes.code, asc(schema.preferenceOptions.order))
       .where(inArray(schema.preferenceTypes.code, CASES));
   }
 
@@ -416,7 +418,8 @@ export default class ProfileRepository {
               PreferenceTarget.SELF,
             ),
           ),
-        );
+        )
+        .orderBy(asc(schema.preferenceOptions.order));
     });
   }
 
