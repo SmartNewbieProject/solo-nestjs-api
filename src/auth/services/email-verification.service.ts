@@ -20,7 +20,6 @@ import {
   SendEmailVerificationResponse,
   VerifyEmailCodeResponse
 } from '../dto/email-verification.dto';
-import { uuidv7 } from 'uuidv7';
 
 interface EmailVerificationData {
   email: string;
@@ -54,7 +53,6 @@ export class EmailVerificationService {
       throw new BadRequestException('이미 인증번호가 발송되었습니다. 3분 후에 다시 시도해주세요.');
     }
 
-    const requestId = uuidv7();
     const verificationCode = generateVerificationCode();
     const universityName = getUniversityNameFromEmail(normalizedEmail);
 
@@ -64,7 +62,7 @@ export class EmailVerificationService {
       createdAt: Date.now(),
     };
 
-    const verificationKey = `email_verification:${requestId}`;
+    const verificationKey = `email_verification:${normalizedEmail}`;
     await this.cacheManager.set(verificationKey, verificationData, 3 * 60 * 1000); // 3분
     await this.cacheManager.set(recentKey, true, 3 * 60 * 1000);
 
@@ -82,16 +80,20 @@ export class EmailVerificationService {
     }
 
     return {
-      requestId,
       message: '인증번호가 이메일로 발송되었습니다.',
       expiresInMinutes: 3,
     };
   }
 
   async verifyCode(request: VerifyEmailCodeRequest): Promise<VerifyEmailCodeResponse> {
-    const { requestId, verificationCode, userId } = request;
+    const { email, verificationCode, userId } = request;
+    const normalizedEmail = email.toLowerCase();
 
-    const verificationKey = `email_verification:${requestId}`;
+    if (!isValidUniversityEmail(normalizedEmail)) {
+      throw new BadRequestException('허용되지 않은 대학교 이메일입니다.');
+    }
+
+    const verificationKey = `email_verification:${normalizedEmail}`;
     const verificationData = await this.cacheManager.get<EmailVerificationData>(verificationKey);
 
     if (!verificationData) {
@@ -109,7 +111,6 @@ export class EmailVerificationService {
     verificationData.verifiedAt = Date.now();
     await this.cacheManager.set(verificationKey, verificationData, 3 * 60 * 1000);
 
-    // 사용자 테이블에 이메일 인증 정보 업데이트
     if (userId) {
       try {
         await this.authRepository.updateEmailVerification(userId, verificationData.email);

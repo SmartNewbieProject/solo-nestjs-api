@@ -12,11 +12,11 @@ export class SendEmailVerificationRequest {
 
 export class VerifyEmailCodeRequest {
   @ApiProperty({
-    description: '인증 요청 시 받은 요청 ID',
-    example: '01234567-89ab-cdef-0123-456789abcdef',
+    description: '인증받을 대학교 이메일 주소',
+    example: 'student@cnu.ac.kr',
   })
-  @IsString({ message: '요청 ID는 문자열이어야 합니다.' })
-  requestId: string;
+  @IsEmail({}, { message: '올바른 이메일 형식이 아닙니다.' })
+  email: string;
 
   @ApiProperty({
     description: '6자리 인증번호',
@@ -36,12 +36,6 @@ export class VerifyEmailCodeRequest {
 }
 
 export class SendEmailVerificationResponse {
-  @ApiProperty({
-    description: '인증 요청 ID',
-    example: '01234567-89ab-cdef-0123-456789abcdef',
-  })
-  requestId: string;
-
   @ApiProperty({
     description: '응답 메시지',
     example: '인증번호가 이메일로 발송되었습니다.',
