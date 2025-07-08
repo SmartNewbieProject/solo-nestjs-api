@@ -1,0 +1,1 @@
+ALTER TABLE "preference_options" ADD COLUMN "deprecated" boolean DEFAULT true NOT NULL;

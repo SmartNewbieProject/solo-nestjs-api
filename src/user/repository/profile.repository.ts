@@ -5,6 +5,7 @@ import * as schema from '@database/schema';
 import { PreferenceTarget } from '@database/schema';
 import {
   and,
+  asc,
   eq,
   ExtractTablesWithRelations,
   inArray,
@@ -183,8 +184,10 @@ export default class ProfileRepository {
               userPreference.id,
             ),
             eq(schema.userPreferenceOptions.preferenceTarget, who),
+            eq(schema.preferenceOptions.deprecated, false),
           ),
-        );
+        )
+        .orderBy(asc(schema.preferenceOptions.order));
     });
   }
 
@@ -217,8 +220,13 @@ export default class ProfileRepository {
           schema.preferenceTypes.id,
         ),
       )
-      .orderBy(schema.preferenceTypes.code)
-      .where(inArray(schema.preferenceTypes.code, CASES));
+      .orderBy(schema.preferenceTypes.code, asc(schema.preferenceOptions.order))
+      .where(
+        and(
+          inArray(schema.preferenceTypes.code, CASES),
+          eq(schema.preferenceOptions.deprecated, false),
+        ),
+      );
   }
 
   async updatePreferences(userId: string, data: PreferenceSave['data']) {
@@ -415,8 +423,10 @@ export default class ProfileRepository {
               schema.userPreferenceOptions.preferenceTarget,
               PreferenceTarget.SELF,
             ),
+            eq(schema.preferenceOptions.deprecated, false),
           ),
-        );
+        )
+        .orderBy(asc(schema.preferenceOptions.order));
     });
   }
 
