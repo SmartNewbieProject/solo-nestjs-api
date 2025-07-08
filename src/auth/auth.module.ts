@@ -23,7 +23,13 @@ import { EmailVerificationService } from './services/email-verification.service'
 
 @Module({
   imports: [SmsModule],
-  controllers: [SignupController, AuthController, UniversityController, AiTokenController, EmailVerificationController],
+  controllers: [
+    SignupController,
+    AuthController,
+    UniversityController,
+    AiTokenController,
+    EmailVerificationController,
+  ],
   providers: [
     SignupService,
     SignupRepository,
@@ -40,4 +46,4 @@ import { EmailVerificationService } from './services/email-verification.service'
   ],
   exports: [SignupService, AuthService, UniversityService, AiTokenService],
 })
-export class AuthModule { }
+export class AuthModule {}

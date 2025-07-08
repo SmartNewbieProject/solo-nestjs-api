@@ -9,7 +9,7 @@ export class MailService {
   constructor(
     private readonly mailerService: MailerService,
     private readonly configService: ConfigService,
-  ) { }
+  ) {}
 
   /**
    * 회원가입 환영 이메일을 전송합니다.
@@ -43,9 +43,18 @@ export class MailService {
    * @param data 추가 데이터
    */
   async sendPreSignupEmail(to: string, name: string, data: any = {}) {
-    const baseUrl = this.configService.get('BASE_URL', 'https://some-in-univ.com');
-    const supportEmail = this.configService.get('SUPPORT_EMAIL', 'notify@smartnewb.com');
-    const supportPhone = this.configService.get('SUPPORT_PHONE', '070-8065-4387');
+    const baseUrl = this.configService.get(
+      'BASE_URL',
+      'https://some-in-univ.com',
+    );
+    const supportEmail = this.configService.get(
+      'SUPPORT_EMAIL',
+      'notify@smartnewb.com',
+    );
+    const supportPhone = this.configService.get(
+      'SUPPORT_PHONE',
+      '070-8065-4387',
+    );
     const currentYear = new Date().getFullYear();
 
     try {
@@ -99,7 +108,11 @@ export class MailService {
    * @param verificationCode 6자리 인증번호
    * @param universityName 대학교 이름
    */
-  async sendUniversityVerificationEmail(to: string, verificationCode: string, universityName: string) {
+  async sendUniversityVerificationEmail(
+    to: string,
+    verificationCode: string,
+    universityName: string,
+  ) {
     try {
       const result = await this.mailerService.sendMail({
         to,
@@ -115,7 +128,10 @@ export class MailService {
       this.logger.log(`University verification email sent to ${to}`);
       return result;
     } catch (error) {
-      this.logger.error(`Failed to send university verification email to ${to}`, error);
+      this.logger.error(
+        `Failed to send university verification email to ${to}`,
+        error,
+      );
       throw error;
     }
   }

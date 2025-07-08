@@ -19,9 +19,10 @@ export class EmailVerificationController {
 
   @Post('send')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: '대학교 이메일 인증번호 발송',
-    description: '허용된 대학교 이메일로 6자리 인증번호를 발송합니다. 인증번호는 3분간 유효합니다.'
+    description:
+      '허용된 대학교 이메일로 6자리 인증번호를 발송합니다. 인증번호는 3분간 유효합니다.',
   })
   @ApiResponse({
     status: 200,
@@ -40,9 +41,9 @@ export class EmailVerificationController {
 
   @Post('verify')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ 
+  @ApiOperation({
     summary: '이메일 인증번호 검증',
-    description: '발송된 6자리 인증번호를 검증하여 이메일 인증을 완료합니다.'
+    description: '발송된 6자리 인증번호를 검증하여 이메일 인증을 완료합니다.',
   })
   @ApiResponse({
     status: 200,

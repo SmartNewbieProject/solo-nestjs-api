@@ -29,10 +29,11 @@ export interface UpdatedUserInfo {
 export class AuthRepository {
   constructor(
     @InjectDrizzle() private readonly db: NodePgDatabase<typeof schema>,
-  ) { }
+  ) {}
 
   async findUserByEmail(email: string) {
-    const result = await this.db.select()
+    const result = await this.db
+      .select()
       .from(users)
       .where(and(eq(users.email, email), isNull(users.deletedAt)))
       .limit(1);
@@ -41,7 +42,8 @@ export class AuthRepository {
   }
 
   async findUserByPhoneNumber(phoneNumber: string) {
-    const result = await this.db.select()
+    const result = await this.db
+      .select()
       .from(users)
       .where(and(eq(users.phoneNumber, phoneNumber), isNull(users.deletedAt)))
       .limit(1);
@@ -50,9 +52,10 @@ export class AuthRepository {
   }
 
   async findGenderByUserId(userId: string) {
-    const result = await this.db.select({
-      gender: profiles.gender
-    })
+    const result = await this.db
+      .select({
+        gender: profiles.gender,
+      })
       .from(schema.profiles)
       .where(and(eq(profiles.userId, userId), isNull(profiles.deletedAt)))
       .limit(1);
@@ -61,7 +64,8 @@ export class AuthRepository {
   }
 
   async findUserById(id: string) {
-    const result = await this.db.select()
+    const result = await this.db
+      .select()
       .from(users)
       .where(and(eq(users.id, id), isNull(users.deletedAt)))
       .limit(1);
@@ -70,9 +74,12 @@ export class AuthRepository {
   }
 
   async saveRefreshToken(userId: string, refreshToken: string) {
-    console.log(`리프레시 토큰 저장 - userId: ${userId}, 토큰 길이: ${refreshToken?.length}`);
+    console.log(
+      `리프레시 토큰 저장 - userId: ${userId}, 토큰 길이: ${refreshToken?.length}`,
+    );
 
-    const result = await this.db.update(users)
+    const result = await this.db
+      .update(users)
       .set({ refreshToken })
       .where(and(eq(users.id, userId), isNull(users.deletedAt)));
 
@@ -84,19 +91,19 @@ export class AuthRepository {
   }
 
   async findRefreshToken(userId: string, refreshToken: string) {
-    console.log(`리프레시 토큰 검색 - userId: ${userId}, 토큰 길이: ${refreshToken?.length}`);
+    console.log(
+      `리프레시 토큰 검색 - userId: ${userId}, 토큰 길이: ${refreshToken?.length}`,
+    );
     console.log(`입력된 토큰 처음 10자: ${refreshToken?.substring(0, 10)}`);
-    console.log(`입력된 토큰 마지막 10자: ${refreshToken?.substring(refreshToken.length - 10)}`);
+    console.log(
+      `입력된 토큰 마지막 10자: ${refreshToken?.substring(refreshToken.length - 10)}`,
+    );
 
     // 먼저 사용자 정보만 검색
-    const userOnly = await this.db.select()
+    const userOnly = await this.db
+      .select()
       .from(users)
-      .where(
-        and(
-          eq(users.id, userId),
-          isNull(users.deletedAt)
-        )
-      )
+      .where(and(eq(users.id, userId), isNull(users.deletedAt)))
       .limit(1);
 
     if (userOnly.length > 0) {
@@ -105,7 +112,9 @@ export class AuthRepository {
       if (storedToken) {
         console.log(`사용자 발견 - 저장된 토큰 길이: ${storedToken.length}`);
         console.log(`저장된 토큰 처음 10자: ${storedToken.substring(0, 10)}`);
-        console.log(`저장된 토큰 마지막 10자: ${storedToken.substring(storedToken.length - 10)}`);
+        console.log(
+          `저장된 토큰 마지막 10자: ${storedToken.substring(storedToken.length - 10)}`,
+        );
 
         // 저장된 토큰과 입력된 토큰이 동일한지 비교
         if (storedToken === refreshToken) {
@@ -120,7 +129,8 @@ export class AuthRepository {
           if (cleanStoredToken === cleanInputToken) {
             console.log('이상한 문자 제거 후 토큰 일치');
             // 이상한 문자가 제거된 토큰으로 저장된 토큰 업데이트
-            await this.db.update(users)
+            await this.db
+              .update(users)
               .set({ refreshToken: cleanStoredToken })
               .where(eq(users.id, userId));
             console.log('저장된 토큰 업데이트 완료');
@@ -136,18 +146,21 @@ export class AuthRepository {
     }
 
     // 사용자와 토큰 모두 일치하는지 검색
-    const result = await this.db.select()
+    const result = await this.db
+      .select()
       .from(users)
       .where(
         and(
           eq(users.id, userId),
           eq(users.refreshToken, refreshToken),
-          isNull(users.deletedAt)
-        )
+          isNull(users.deletedAt),
+        ),
       )
       .limit(1);
 
-    console.log(`리프레시 토큰 검색 결과: ${result.length > 0 ? '성공' : '실패'}`);
+    console.log(
+      `리프레시 토큰 검색 결과: ${result.length > 0 ? '성공' : '실패'}`,
+    );
 
     // 이상한 문자가 있는 경우 정제된 토큰으로 다시 시도
     if (result.length === 0) {
@@ -155,18 +168,21 @@ export class AuthRepository {
       if (cleanToken !== refreshToken) {
         console.log(`정제된 토큰으로 다시 시도 - 길이: ${cleanToken.length}`);
 
-        const cleanResult = await this.db.select()
+        const cleanResult = await this.db
+          .select()
           .from(users)
           .where(
             and(
               eq(users.id, userId),
               eq(users.refreshToken, cleanToken),
-              isNull(users.deletedAt)
-            )
+              isNull(users.deletedAt),
+            ),
           )
           .limit(1);
 
-        console.log(`정제된 토큰 검색 결과: ${cleanResult.length > 0 ? '성공' : '실패'}`);
+        console.log(
+          `정제된 토큰 검색 결과: ${cleanResult.length > 0 ? '성공' : '실패'}`,
+        );
         return cleanResult.length > 0 ? cleanResult[0] : null;
       }
     }
@@ -175,36 +191,44 @@ export class AuthRepository {
   }
   async updateRefreshToken(userId: string, oldToken: string, newToken: string) {
     console.log(`리프레시 토큰 업데이트 - userId: ${userId}`);
-    console.log(`이전 토큰 길이: ${oldToken?.length}, 새 토큰 길이: ${newToken?.length}`);
+    console.log(
+      `이전 토큰 길이: ${oldToken?.length}, 새 토큰 길이: ${newToken?.length}`,
+    );
 
-    const result = await this.db.update(users)
+    const result = await this.db
+      .update(users)
       .set({ refreshToken: newToken })
       .where(
         and(
           eq(users.id, userId),
           eq(users.refreshToken, oldToken),
-          isNull(users.deletedAt)
-        )
+          isNull(users.deletedAt),
+        ),
       );
 
     console.log(`리프레시 토큰 업데이트 결과:`, result);
 
     // 업데이트 후 확인
     const updatedUser = await this.findUserById(userId);
-    console.log(`업데이트 후 토큰 길이 확인: ${updatedUser?.refreshToken?.length}`);
+    console.log(
+      `업데이트 후 토큰 길이 확인: ${updatedUser?.refreshToken?.length}`,
+    );
   }
 
   async removeRefreshToken(userId: string, refreshToken: string) {
-    console.log(`리프레시 토큰 삭제 - userId: ${userId}, 토큰 길이: ${refreshToken?.length}`);
+    console.log(
+      `리프레시 토큰 삭제 - userId: ${userId}, 토큰 길이: ${refreshToken?.length}`,
+    );
 
-    const result = await this.db.update(users)
+    const result = await this.db
+      .update(users)
       .set({ refreshToken: null })
       .where(
         and(
           eq(users.id, userId),
           eq(users.refreshToken, refreshToken),
-          isNull(users.deletedAt)
-        )
+          isNull(users.deletedAt),
+        ),
       );
 
     console.log(`리프레시 토큰 삭제 결과:`, result);
@@ -221,7 +245,10 @@ export class AuthRepository {
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
 
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    if (
+      monthDiff < 0 ||
+      (monthDiff === 0 && today.getDate() < birthDate.getDate())
+    ) {
       age--;
     }
 
@@ -235,13 +262,14 @@ export class AuthRepository {
    */
   async updateUserWithCertification(
     userId: string,
-    certificationInfo: CertificationUpdateInfo
+    certificationInfo: CertificationUpdateInfo,
   ): Promise<UpdatedUserInfo> {
     const age = this.calculateAge(certificationInfo.birthday);
     const now = new Date();
 
     return await this.db.transaction(async (tx) => {
-      await tx.update(users)
+      await tx
+        .update(users)
         .set({
           name: certificationInfo.name,
           phoneNumber: certificationInfo.phone,
@@ -250,7 +278,8 @@ export class AuthRepository {
         })
         .where(and(eq(users.id, userId), isNull(users.deletedAt)));
 
-      await tx.update(profiles)
+      await tx
+        .update(profiles)
         .set({
           name: certificationInfo.name,
           gender: certificationInfo.gender as Gender,
@@ -277,7 +306,8 @@ export class AuthRepository {
   async updateEmailVerification(userId: string, email: string): Promise<void> {
     const now = new Date();
 
-    await this.db.update(users)
+    await this.db
+      .update(users)
       .set({
         email: email,
         emailVerifiedAt: now,
@@ -306,7 +336,9 @@ export class AuthRepository {
       // 서비스 사용 기간 계산 (일 단위)
       const now = new Date();
       const createdAt = new Date(user.createdAt);
-      const serviceDurationDays = Math.floor((now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+      const serviceDurationDays = Math.floor(
+        (now.getTime() - createdAt.getTime()) / (1000 * 60 * 60 * 24),
+      );
 
       // 탈퇴 사유 저장
       await tx.insert(withdrawalReasons).values({
@@ -316,7 +348,8 @@ export class AuthRepository {
       });
 
       // 사용자 탈퇴 처리
-      await tx.update(users)
+      await tx
+        .update(users)
         .set({ deletedAt: now })
         .where(eq(users.id, userId));
 

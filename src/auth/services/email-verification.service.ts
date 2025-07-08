@@ -3,7 +3,7 @@ import {
   BadRequestException,
   NotFoundException,
   Logger,
-  Inject
+  Inject,
 } from '@nestjs/common';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
@@ -12,13 +12,13 @@ import { AuthRepository } from '../repository/auth.repository';
 import { generateVerificationCode } from '../domain/code-generator';
 import {
   isValidUniversityEmail,
-  getUniversityNameFromEmail
+  getUniversityNameFromEmail,
 } from '@/shared/libs/univ';
 import {
   SendEmailVerificationRequest,
   VerifyEmailCodeRequest,
   SendEmailVerificationResponse,
-  VerifyEmailCodeResponse
+  VerifyEmailCodeResponse,
 } from '../dto/email-verification.dto';
 
 interface EmailVerificationData {
@@ -38,7 +38,9 @@ export class EmailVerificationService {
     private readonly authRepository: AuthRepository,
   ) {}
 
-  async sendVerificationCode(request: SendEmailVerificationRequest): Promise<SendEmailVerificationResponse> {
+  async sendVerificationCode(
+    request: SendEmailVerificationRequest,
+  ): Promise<SendEmailVerificationResponse> {
     const { email } = request;
     const normalizedEmail = email.toLowerCase();
 
@@ -50,7 +52,9 @@ export class EmailVerificationService {
     const recentVerification = await this.cacheManager.get(recentKey);
 
     if (recentVerification) {
-      throw new BadRequestException('이미 인증번호가 발송되었습니다. 3분 후에 다시 시도해주세요.');
+      throw new BadRequestException(
+        '이미 인증번호가 발송되었습니다. 3분 후에 다시 시도해주세요.',
+      );
     }
 
     const verificationCode = generateVerificationCode();
@@ -63,20 +67,26 @@ export class EmailVerificationService {
     };
 
     const verificationKey = `email_verification:${normalizedEmail}`;
-    await this.cacheManager.set(verificationKey, verificationData, 3 * 60 * 1000); // 3분
+    await this.cacheManager.set(
+      verificationKey,
+      verificationData,
+      3 * 60 * 1000,
+    ); // 3분
     await this.cacheManager.set(recentKey, true, 3 * 60 * 1000);
 
     try {
       await this.mailService.sendUniversityVerificationEmail(
         normalizedEmail,
         verificationCode,
-        universityName || '대학교'
+        universityName || '대학교',
       );
 
       this.logger.log(`이메일 인증번호 발송 완료: ${normalizedEmail}`);
     } catch (error) {
       this.logger.error(`이메일 발송 실패: ${normalizedEmail}`, error);
-      throw new BadRequestException('이메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요.');
+      throw new BadRequestException(
+        '이메일 발송에 실패했습니다. 잠시 후 다시 시도해주세요.',
+      );
     }
 
     return {
@@ -85,7 +95,9 @@ export class EmailVerificationService {
     };
   }
 
-  async verifyCode(request: VerifyEmailCodeRequest): Promise<VerifyEmailCodeResponse> {
+  async verifyCode(
+    request: VerifyEmailCodeRequest,
+  ): Promise<VerifyEmailCodeResponse> {
     const { email, verificationCode, userId } = request;
     const normalizedEmail = email.toLowerCase();
 
@@ -94,10 +106,13 @@ export class EmailVerificationService {
     }
 
     const verificationKey = `email_verification:${normalizedEmail}`;
-    const verificationData = await this.cacheManager.get<EmailVerificationData>(verificationKey);
+    const verificationData =
+      await this.cacheManager.get<EmailVerificationData>(verificationKey);
 
     if (!verificationData) {
-      throw new NotFoundException('인증 정보를 찾을 수 없거나 유효시간이 만료되었습니다.');
+      throw new NotFoundException(
+        '인증 정보를 찾을 수 없거나 유효시간이 만료되었습니다.',
+      );
     }
 
     if (verificationData.verifiedAt) {
@@ -109,14 +124,26 @@ export class EmailVerificationService {
     }
 
     verificationData.verifiedAt = Date.now();
-    await this.cacheManager.set(verificationKey, verificationData, 3 * 60 * 1000);
+    await this.cacheManager.set(
+      verificationKey,
+      verificationData,
+      3 * 60 * 1000,
+    );
 
     if (userId) {
       try {
-        await this.authRepository.updateEmailVerification(userId, verificationData.email);
-        this.logger.log(`사용자 테이블 이메일 인증 정보 업데이트 완료 (userId: ${userId}): ${verificationData.email}`);
+        await this.authRepository.updateEmailVerification(
+          userId,
+          verificationData.email,
+        );
+        this.logger.log(
+          `사용자 테이블 이메일 인증 정보 업데이트 완료 (userId: ${userId}): ${verificationData.email}`,
+        );
       } catch (error) {
-        this.logger.error(`사용자 테이블 업데이트 실패: ${verificationData.email}`, error);
+        this.logger.error(
+          `사용자 테이블 업데이트 실패: ${verificationData.email}`,
+          error,
+        );
       }
     }
 
