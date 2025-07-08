@@ -270,6 +270,23 @@ export class AuthRepository {
   }
 
   /**
+   * 사용자 ID로 이메일 인증 완료 처리
+   * @param userId 사용자 ID
+   * @param email 인증된 이메일 주소
+   */
+  async updateEmailVerification(userId: string, email: string): Promise<void> {
+    const now = new Date();
+
+    await this.db.update(users)
+      .set({
+        email: email,
+        emailVerifiedAt: now,
+        updatedAt: now,
+      })
+      .where(and(eq(users.id, userId), isNull(users.deletedAt)));
+  }
+
+  /**
    * 사용자를 탈퇴 처리하고 탈퇴 사유를 저장합니다.
    * @param userId 사용자 ID
    * @param reason 탈퇴 사유

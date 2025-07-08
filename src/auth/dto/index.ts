@@ -7,6 +7,12 @@ export { LoginRequest } from './login';
 export { TokenResponse } from './token';
 export { WithdrawRequest } from './withdraw.dto';
 export { PassLoginRequest, PassLoginResponse } from './pass-login.dto';
+export {
+  SendEmailVerificationRequest,
+  VerifyEmailCodeRequest,
+  SendEmailVerificationResponse,
+  VerifyEmailCodeResponse
+} from './email-verification.dto';
 
 export class InstagramId {
   @ApiProperty({

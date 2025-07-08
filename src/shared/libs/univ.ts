@@ -98,10 +98,100 @@ export const getUnivLogoByString = (universityString: string): string | null => 
  */
 export const getAllUniversityLogos = (): { [key: string]: string | null } => {
   const result: { [key: string]: string | null } = {};
-  
+
   Object.values(UniversityName).forEach(univ => {
     result[univ] = getUnivLogo(univ);
   });
-  
+
   return result;
+};
+
+/**
+ * 대학교 이메일 도메인 화이트리스트
+ */
+export const UNIVERSITY_EMAIL_DOMAINS = [
+  'kongju.ac.kr',        // 공주대학교
+  'gjue.ac.kr',          // 공주교육대학교
+  'chungbuk.ac.kr',      // 충북대학교
+  'cje.ac.kr',           // 청주교육대학교
+  'pcu.ac.kr',           // 배재대학교
+  'cnu.ac.kr',           // 충남대학교
+  'hit.ac.kr',           // 대전보건대학교
+  'dju.ac.kr',           // 대전대학교
+  'hanbat.ac.kr',        // 한밭대학교
+  'hannam.ac.kr',        // 한남대학교
+  'konyang.ac.kr',       // 건양대학교
+  'mokwon.ac.kr',        // 목원대학교
+  'wsu.ac.kr',           // 우송대학교
+  'eulji.ac.kr',         // 을지대학교
+  'korea.ac.kr',         // 고려대학교(세종)
+  'hongik.ac.kr',        // 홍익대학교(세종)
+  'knue.ac.kr',          // 한국교원대학교
+  'kaist.ac.kr',         // KAIST
+] as const;
+
+/**
+ * 대학교 도메인별 대학교 이름 매핑
+ */
+export const DOMAIN_TO_UNIVERSITY: { [key: string]: string } = {
+  'kongju.ac.kr': '공주대학교',
+  'gjue.ac.kr': '공주교육대학교',
+  'chungbuk.ac.kr': '충북대학교',
+  'cje.ac.kr': '청주교육대학교',
+  'pcu.ac.kr': '배재대학교',
+  'cnu.ac.kr': '충남대학교',
+  'hit.ac.kr': '대전보건대학교',
+  'dju.ac.kr': '대전대학교',
+  'hanbat.ac.kr': '한밭대학교',
+  'hannam.ac.kr': '한남대학교',
+  'konyang.ac.kr': '건양대학교',
+  'mokwon.ac.kr': '목원대학교',
+  'wsu.ac.kr': '우송대학교',
+  'eulji.ac.kr': '을지대학교',
+  'korea.ac.kr': '고려대학교 세종캠퍼스',
+  'hongik.ac.kr': '홍익대학교 세종캠퍼스',
+  'knue.ac.kr': '한국교원대학교',
+  'kaist.ac.kr': 'KAIST',
+};
+
+/**
+ * 이메일이 허용된 대학교 도메인인지 검증
+ */
+export const isValidUniversityEmail = (email: string): boolean => {
+  if (!email || !email.includes('@')) {
+    return false;
+  }
+
+  const domain = email.split('@')[1]?.toLowerCase();
+  if (!domain) {
+    return false;
+  }
+
+  // 화이트리스트 도메인이 이메일 도메인에 포함되어 있는지 확인
+  return UNIVERSITY_EMAIL_DOMAINS.some(allowedDomain =>
+    domain.includes(allowedDomain)
+  );
+};
+
+/**
+ * 이메일에서 대학교 이름 추출
+ */
+export const getUniversityNameFromEmail = (email: string): string | null => {
+  if (!isValidUniversityEmail(email)) {
+    return null;
+  }
+
+  const domain = email.split('@')[1]?.toLowerCase();
+  if (!domain) {
+    return null;
+  }
+
+  // 화이트리스트 도메인 중에서 이메일 도메인에 포함된 것을 찾아서 대학교 이름 반환
+  for (const allowedDomain of UNIVERSITY_EMAIL_DOMAINS) {
+    if (domain.includes(allowedDomain)) {
+      return DOMAIN_TO_UNIVERSITY[allowedDomain] || null;
+    }
+  }
+
+  return null;
 };

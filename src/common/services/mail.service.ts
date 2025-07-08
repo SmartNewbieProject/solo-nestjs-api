@@ -92,4 +92,31 @@ export class MailService {
       throw error;
     }
   }
+
+  /**
+   * 대학교 이메일 인증번호를 전송합니다.
+   * @param to 수신자 이메일
+   * @param verificationCode 6자리 인증번호
+   * @param universityName 대학교 이름
+   */
+  async sendUniversityVerificationEmail(to: string, verificationCode: string, universityName: string) {
+    try {
+      const result = await this.mailerService.sendMail({
+        to,
+        subject: `[썸타임] ${universityName} 이메일 인증번호`,
+        template: 'university-verification',
+        context: {
+          verification_code: verificationCode,
+          university_name: universityName,
+          email: to,
+          expires_in_minutes: 3,
+        },
+      });
+      this.logger.log(`University verification email sent to ${to}`);
+      return result;
+    } catch (error) {
+      this.logger.error(`Failed to send university verification email to ${to}`, error);
+      throw error;
+    }
+  }
 }
