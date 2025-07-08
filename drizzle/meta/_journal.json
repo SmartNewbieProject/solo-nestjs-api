@@ -120,6 +120,20 @@
       "when": 1751905726693,
       "tag": "0016_fixed_jackpot",
       "breakpoints": false
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1751967872900,
+      "tag": "0017_brave_silk_fever",
+      "breakpoints": false
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1751967958817,
+      "tag": "0018_calm_may_parker",
+      "breakpoints": false
     }
   ]
 }
