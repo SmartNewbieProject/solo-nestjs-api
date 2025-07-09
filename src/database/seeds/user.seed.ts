@@ -7,12 +7,7 @@ import * as bcrypt from 'bcryptjs';
 import { Pool, PoolClient } from 'pg';
 import { Gender } from '@/types/enum';
 import { UserRank } from '@/database/schema/profiles';
-import {
-  universities,
-  departmentsByUniversity,
-  grades,
-  studentIds,
-} from '@/auth/domain/university';
+import { universities, grades, studentIds } from '@/auth/domain/university';
 
 // code로 변경하고 이름을 더 명확하게 수정
 const PREFERENCE_TYPE_CODES = {
@@ -177,8 +172,7 @@ export class UserSeeder {
           // 대학 정보 생성
           const universityDetailId = uuidv4();
           const university = faker.helpers.arrayElement(universities);
-          const departmentsForUniversity =
-            departmentsByUniversity[university] || [];
+          const departmentsForUniversity = [];
           const department =
             departmentsForUniversity.length > 0
               ? faker.helpers.arrayElement(departmentsForUniversity)

@@ -66,7 +66,7 @@ export const grades: string[] = ['1학년', '2학년', '3학년', '4학년', '5�
  * @returns 대학명 목록
  */
 export function getUniversities(): string[] {
-  export const departmentsByUniversity: DepartmentsByUniversity = {
+  const departmentsByUniversity: DepartmentsByUniversity = {
     '건양대학교 메디컬캠퍼스': [
       '간호학과',
       '물리치료학과',
@@ -826,7 +826,7 @@ export function getUniversities(): string[] {
  * @returns 학과 목록
  */
 export function getDepartmentsByUniversity(universityName: string): string[] {
-  return departmentsByUniversity[universityName] || [];
+  return [];
 }
 
 /**
@@ -834,7 +834,7 @@ export function getDepartmentsByUniversity(universityName: string): string[] {
  * @returns 대학별 학과 정보
  */
 export function getAllUniversitiesAndDepartments(): DepartmentsByUniversity {
-  return departmentsByUniversity;
+  return { key: ['a'] };
 }
 
 /**
