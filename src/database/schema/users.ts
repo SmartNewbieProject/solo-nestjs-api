@@ -13,7 +13,6 @@ export const users = pgTable('users', {
   oauthProvider: varchar('oauth_provider', { length: 30 }),
   refreshToken: varchar('refresh_token', { length: 500 }),
   suspendedAt: timestamp('suspended_at'),
-  emailVerifiedAt: timestamp('email_verified_at', { withTimezone: true }),
   role: varchar('role', { length: 10 })
     .notNull()
     .default(Role.USER)
