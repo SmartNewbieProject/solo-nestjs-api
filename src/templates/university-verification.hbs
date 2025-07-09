@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>썸타임 대학교 이메일 인증</title>
+    <link href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333333;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+        .header {
+            background-color: #7C3AED;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .header img {
+            width: 120px;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            color: white;
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .content {
+            padding: 30px;
+        }
+        .verification-code {
+            background-color: #EDE9FE;
+            border: 2px solid #7C3AED;
+            border-radius: 8px;
+            padding: 25px;
+            text-align: center;
+            margin: 25px 0;
+        }
+        .code {
+            font-size: 36px;
+            font-weight: 700;
+            color: #7C3AED;
+            letter-spacing: 8px;
+            margin: 10px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .warning {
+            background-color: #FEF3C7;
+            border-left: 4px solid #F59E0B;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .warning-title {
+            font-weight: 600;
+            color: #92400E;
+            margin-bottom: 5px;
+        }
+        .footer {
+            background-color: #F3F4F6;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+        .university-info {
+            background-color: #F0F9FF;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .university-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0369A1;
+            margin-bottom: 5px;
+        }
+        .steps {
+            margin: 20px 0;
+        }
+        .step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+        .step-number {
+            background-color: #7C3AED;
+            color: white;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            flex-shrink: 0;
+            font-size: 12px;
+        }
+        .step-content {
+            flex: 1;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="text-align: center; margin-bottom: 15px;">
+                <img src="https://sometimes-resources.s3.ap-northeast-2.amazonaws.com/resources/sometime-logo.png" alt="썸타임 로고" style="max-width: 150px; height: auto;">
+            </div>
+            <h1>이메일 인증번호 🔐</h1>
+        </div>
+        
+        <div class="content">
+            <div class="university-info">
+                <div class="university-name">{{university_name}}</div>
+                <div style="color: #64748B; font-size: 14px;">{{email}}</div>
+            </div>
+            
+            <p style="font-size: 16px; margin-bottom: 20px;">
+                안녕하세요! 썸타임 대학교 이메일 인증을 위한 인증번호를 보내드립니다.
+            </p>
+            
+            <div class="verification-code">
+                <div style="font-size: 16px; margin-bottom: 10px; color: #64748B;">인증번호</div>
+                <div class="code">{{verification_code}}</div>
+                <div style="font-size: 14px; color: #64748B; margin-top: 10px;">
+                    위 6자리 숫자를 입력해주세요
+                </div>
+            </div>
+            
+            <div style="margin: 25px 0;">
+                <div style="font-size: 16px; font-weight: 600; margin-bottom: 10px;">📱 인증 방법</div>
+                <div class="steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">썸타임 앱 또는 웹사이트에서 이메일 인증 화면으로 이동</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">위의 6자리 인증번호를 정확히 입력</div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">인증 완료 후 썸타임 서비스 이용 시작</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="warning">
+                <div class="warning-title">⚠️ 중요 안내사항</div>
+                <ul style="margin: 5px 0; padding-left: 20px;">
+                    <li>이 인증번호는 <strong>{{expires_in_minutes}}분간</strong> 유효합니다</li>
+                    <li>인증번호를 타인에게 절대 알려주지 마세요</li>
+                    <li>본인이 요청하지 않은 인증이라면 이 이메일을 무시해주세요</li>
+                </ul>
+            </div>
+            
+            <div style="text-align: center; margin: 25px 0; padding: 20px; background-color: #F8FAFC; border-radius: 6px;">
+                <div style="font-size: 14px; color: #64748B; margin-bottom: 10px;">
+                    인증번호가 도착하지 않았나요?
+                </div>
+                <div style="font-size: 13px; color: #64748B;">
+                    스팸함을 확인하거나 3분 후 다시 요청해주세요<br>
+                    문제가 지속되면 고객센터로 문의해주세요
+                </div>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>
+                📧 <a href="mailto:notify@smartnewb.com" style="color: #7C3AED; text-decoration: none;">notify@smartnewb.com</a> | 
+                📞 010-8465-2476
+            </p>
+            <p style="margin: 10px 0; font-size: 12px; color: #999;">
+                본 이메일은 발신전용입니다. 썸타임 이메일 인증을 위해 발송되었습니다.
+            </p>
+            <p style="margin: 5px 0; font-size: 12px;">
+                © 2025 썸타임 | 
+                <a href="https://ruby-composer-6d2.notion.site/1cd1bbec5ba1805dbafbc9426a0aaa80?pvs=4" style="color: #666; text-decoration: none;">이용약관</a> | 
+                <a href="https://ruby-composer-6d2.notion.site/1cd1bbec5ba180a3a4bbdf9301683145?pvs=4" style="color: #666; text-decoration: none;">개인정보처리방침</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

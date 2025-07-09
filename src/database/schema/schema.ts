@@ -22,12 +22,12 @@ import { articleCategory } from './article_categories';
 import { hotArticles } from './hot_articles';
 import { withdrawalReasons } from './withdrawal_reasons';
 import { matchingFailureLogs } from './matching_failure_logs';
+import { universities } from './universities';
+import { departments } from './departments';
+import { universityInfo } from './university_info';
 
 // 관계형 매핑 파일 가져오기
 import './relations';
-
-// enum 타입 내보내기
-export * from './enums';
 
 // 관계형 매핑 내보내기
 export * from './relations';
@@ -57,6 +57,9 @@ export {
   articleCategory,
   hotArticles,
   matchingFailureLogs,
+  universities,
+  departments,
+  universityInfo,
 };
 
 // 모든 테이블 스키마를 배열로 내보내기
@@ -83,4 +86,7 @@ export const schemas = [
   articleCategory,
   hotArticles,
   matchingFailureLogs,
+  universities,
+  departments,
+  universityInfo,
 ];

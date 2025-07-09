@@ -18,10 +18,18 @@ import { AiTokenController } from './controller/ai-token.controller';
 import { AiTokenService } from './services/ai-token.service';
 import { AiUserSetupService } from './services/ai-user-setup.service';
 import { IamportService } from './services/iamport.service';
+import { EmailVerificationController } from './controller/email-verification.controller';
+import { EmailVerificationService } from './services/email-verification.service';
 
 @Module({
   imports: [SmsModule],
-  controllers: [SignupController, AuthController, UniversityController, AiTokenController],
+  controllers: [
+    SignupController,
+    AuthController,
+    UniversityController,
+    AiTokenController,
+    EmailVerificationController,
+  ],
   providers: [
     SignupService,
     SignupRepository,
@@ -34,7 +42,8 @@ import { IamportService } from './services/iamport.service';
     AiTokenService,
     AiUserSetupService,
     IamportService,
+    EmailVerificationService,
   ],
   exports: [SignupService, AuthService, UniversityService, AiTokenService],
 })
-export class AuthModule { }
+export class AuthModule {}

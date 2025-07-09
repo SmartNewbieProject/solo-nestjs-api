@@ -17,3 +17,6 @@ export * from './ticket.relations';
 export * from './image.relations';
 export * from './article-categories.relations';
 export * from './hot_articles.relations';
+export * from './universities.relations';
+export * from './departments.relations';
+export * from './university_info.relations';
