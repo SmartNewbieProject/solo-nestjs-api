@@ -80,7 +80,7 @@ export class EmailVerificationService {
       await this.mailService.sendUniversityVerificationEmail(
         normalizedEmail,
         verificationCode,
-        universityName || '대학교',
+        universityName as string,
       );
 
       this.logger.log(`이메일 인증번호 발송 완료: ${normalizedEmail}`);
@@ -158,7 +158,7 @@ export class EmailVerificationService {
       success: true,
       message: '이메일 인증이 완료되었습니다.',
       email: verificationData.email,
-      universityName: universityName || '대학교',
+      universityName: universityName as string,
     };
   }
 }
