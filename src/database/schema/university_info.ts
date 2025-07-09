@@ -15,6 +15,8 @@ export const universityInfo = pgTable('university_info', {
   departmentId: varchar('department_id', { length: 128 })
     .references(() => departments.id)
     .notNull(),
+  grade: varchar('grade', { length: 10 }).notNull(),
+  studentNumber: varchar('student_number', { length: 10 }).notNull(),
   verifiedAt: timestamp('verified_at', { withTimezone: true }),
   ...timestamps,
 });

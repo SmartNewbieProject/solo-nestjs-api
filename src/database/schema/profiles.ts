@@ -2,6 +2,7 @@ import { pgTable, varchar, integer, boolean } from 'drizzle-orm/pg-core';
 import { uuid, timestamps } from './helper';
 import { users } from './users';
 import { Gender } from '@/types/enum';
+import { universityInfo } from '@database/schema/university_info';
 
 export enum UserRank {
   S = 'S',
@@ -13,7 +14,10 @@ export enum UserRank {
 
 export const profiles = pgTable('profiles', {
   id: uuid(),
-  userId: varchar('user_id', { length: 128 }).references(() => users.id).notNull().unique(),
+  userId: varchar('user_id', { length: 128 })
+    .references(() => users.id)
+    .notNull()
+    .unique(),
   age: integer('age').notNull(),
   gender: varchar('gender', { length: 10 }).$type<Gender>().notNull(),
   name: varchar('name', { length: 15 }).notNull(),
@@ -22,8 +26,11 @@ export const profiles = pgTable('profiles', {
   instagramId: varchar('instagram_id', { length: 100 }),
   is_matching_enable: boolean('is_matching_enable').default(true).notNull(),
   introduction: varchar('introduction', { length: 255 }),
-  rank: varchar('rank', { length: 7, enum: ['S', 'A', 'B', 'C', 'UNKNOWN'] }).default('UNKNOWN').notNull(),
+  rank: varchar('rank', { length: 7, enum: ['S', 'A', 'B', 'C', 'UNKNOWN'] })
+    .default('UNKNOWN')
+    .notNull(),
   universityDetailId: varchar('university_detail_id', { length: 36 }),
   statusAt: varchar('status_at', { length: 16 }),
+  universityId: varchar({ length: 128 }).references(() => universityInfo.id),
   ...timestamps,
 });
