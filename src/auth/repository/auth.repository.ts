@@ -6,6 +6,7 @@ import { eq, and, isNull } from 'drizzle-orm';
 import { InjectDrizzle } from '@common/decorators';
 import { profiles } from '@database/schema';
 import { withdrawalReasons } from '@database/schema/withdrawal_reasons';
+import { universityInfo } from '@database/schema/university_info';
 import { WithdrawalReason } from '@/types/withdrawal';
 import { generateUuidV7 } from '@/database/schema/helper';
 import { Gender } from '@/types/enum';
@@ -299,21 +300,46 @@ export class AuthRepository {
   }
 
   /**
-   * 사용자 ID로 이메일 인증 완료 처리
-   * @param userId 사용자 ID
+   * 프로필 ID로 이메일 인증 완료 처리
+   * @param profileId 프로필 ID
    * @param email 인증된 이메일 주소
    */
-  async updateEmailVerification(userId: string, email: string): Promise<void> {
+  async updateEmailVerification(
+    profileId: string,
+    email: string,
+  ): Promise<void> {
     const now = new Date();
 
-    await this.db
-      .update(users)
-      .set({
-        email: email,
-        emailVerifiedAt: now,
-        updatedAt: now,
-      })
-      .where(and(eq(users.id, userId), isNull(users.deletedAt)));
+    const profile = await this.db.query.profiles.findFirst({
+      where: and(eq(profiles.id, profileId), isNull(profiles.deletedAt)),
+      columns: { userId: true },
+    });
+
+    if (!profile) {
+      throw new Error('프로필을 찾을 수 없습니다.');
+    }
+
+    await this.db.transaction(async (tx) => {
+      await tx
+        .update(users)
+        .set({
+          email: email,
+        })
+        .where(and(eq(users.id, profile.userId), isNull(users.deletedAt)));
+
+      await tx
+        .update(universityInfo)
+        .set({
+          verifiedAt: now,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(universityInfo.profileId, profileId),
+            isNull(universityInfo.deletedAt),
+          ),
+        );
+    });
   }
 
   /**

@@ -45,6 +45,7 @@ export class EmailVerificationService {
     const normalizedEmail = email.toLowerCase();
 
     if (!isValidUniversityEmail(normalizedEmail)) {
+      this.logger.warn(`허용되지 않은 대학교 이메일 시도: ${normalizedEmail}`);
       throw new BadRequestException('허용되지 않은 대학교 이메일입니다.');
     }
 
@@ -52,6 +53,7 @@ export class EmailVerificationService {
     const recentVerification = await this.cacheManager.get(recentKey);
 
     if (recentVerification) {
+      this.logger.warn(`중복 인증번호 발송 시도: ${normalizedEmail}`);
       throw new BadRequestException(
         '이미 인증번호가 발송되었습니다. 3분 후에 다시 시도해주세요.',
       );
@@ -98,7 +100,7 @@ export class EmailVerificationService {
   async verifyCode(
     request: VerifyEmailCodeRequest,
   ): Promise<VerifyEmailCodeResponse> {
-    const { email, verificationCode, userId } = request;
+    const { email, verificationCode, profileId } = request;
     const normalizedEmail = email.toLowerCase();
 
     if (!isValidUniversityEmail(normalizedEmail)) {
@@ -130,18 +132,19 @@ export class EmailVerificationService {
       3 * 60 * 1000,
     );
 
-    if (userId) {
+    if (profileId) {
       try {
         await this.authRepository.updateEmailVerification(
-          userId,
+          profileId,
           verificationData.email,
         );
+
         this.logger.log(
-          `사용자 테이블 이메일 인증 정보 업데이트 완료 (userId: ${userId}): ${verificationData.email}`,
+          `이메일 정보 업데이트 완료 (profileId: ${profileId}): ${verificationData.email}`,
         );
       } catch (error) {
         this.logger.error(
-          `사용자 테이블 업데이트 실패: ${verificationData.email}`,
+          `이메일 정보 업데이트 실패: ${verificationData.email}`,
           error,
         );
       }

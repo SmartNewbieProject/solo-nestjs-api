@@ -28,11 +28,11 @@ export class VerifyEmailCodeRequest {
   verificationCode: string;
 
   @ApiProperty({
-    description: '사용자 ID (이메일 인증 완료 시 업데이트할 사용자)',
+    description: '프로필 ID (이메일 인증 완료 시 업데이트할 사용자)',
     example: '01234567-89ab-cdef-0123-456789abcdef',
   })
-  @IsString({ message: '사용자 ID는 문자열이어야 합니다.' })
-  userId: string;
+  @IsString({ message: '프로필 ID는 문자열이어야 합니다.' })
+  profileId: string;
 }
 
 export class SendEmailVerificationResponse {
