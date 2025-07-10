@@ -20,9 +20,10 @@ import { AiUserSetupService } from './services/ai-user-setup.service';
 import { IamportService } from './services/iamport.service';
 import { EmailVerificationController } from './controller/email-verification.controller';
 import { EmailVerificationService } from './services/email-verification.service';
+import { AppleLoginModule } from './apple-login.module';
 
 @Module({
-  imports: [SmsModule],
+  imports: [SmsModule, AppleLoginModule],
   controllers: [
     SignupController,
     AuthController,
