@@ -305,15 +305,6 @@ export class AuthService {
       },
     );
 
-    try {
-      const decoded = this.jwtService.decode(refreshToken);
-      this.logger.log(
-        `생성된 리프레시 토큰 디코딩: ${JSON.stringify(decoded)}`,
-      );
-    } catch (error) {
-      this.logger.error(`생성된 토큰 디코딩 실패: ${error.message}`);
-    }
-
     return {
       accessToken,
       refreshToken,
