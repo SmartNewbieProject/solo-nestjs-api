@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import { InjectDrizzle } from '@/common';
 import * as schema from '@database/schema';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
@@ -12,7 +12,10 @@ export class AppleLoginRepository {
 
   async findUnsuspendedUserByEmail(phoneNumber: string) {
     return this.db.query.users.findFirst({
-      where: eq(schema.users.phoneNumber, phoneNumber),
+      where: and(
+        eq(schema.users.phoneNumber, phoneNumber),
+        isNull(schema.users.deletedAt),
+      ),
     });
   }
 }
