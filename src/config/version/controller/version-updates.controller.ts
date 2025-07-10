@@ -40,7 +40,7 @@ export default class VersionUpdatesController {
   @ApiOperation({ summary: '새 버전 생성 (Admin 전용)' })
   @ApiResponse({ status: 201, description: '새 버전 생성 성공' })
   async createVersion(
-    @Body() body: { version: string; metadata?: Metadata; shouldUpdate?: boolean },
+    @Body() body: { version: string; metadata: Metadata; shouldUpdate?: boolean },
   ) {
     return await this.versionUpdatesService.createVersion(
       body.version,
