@@ -25,6 +25,7 @@ import { matchingFailureLogs } from './matching_failure_logs';
 import { universities } from './universities';
 import { departments } from './departments';
 import { universityInfo } from './university_info';
+import { versionUpdates } from './version_updates';
 
 // 관계형 매핑 파일 가져오기
 import './relations';
@@ -60,6 +61,7 @@ export {
   universities,
   departments,
   universityInfo,
+  versionUpdates,
 };
 
 // 모든 테이블 스키마를 배열로 내보내기
@@ -89,4 +91,5 @@ export const schemas = [
   universities,
   departments,
   universityInfo,
+  versionUpdates,
 ];
