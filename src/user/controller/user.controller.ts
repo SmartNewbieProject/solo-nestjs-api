@@ -17,12 +17,15 @@ export default class UserController {
     private readonly userService: UserService,
   ) { }
 
-  @ApiOperation({ summary: '간단한 유저 정보 조회', description: '권한, id, 이름만 전달됩니다. 간단한 신원확인 목적으로만 활용하세요.' })
+  @ApiOperation({ summary: '간단한 유저 정보 조회', description: '권한, id, profileId, 이름만 전달됩니다. 간단한 신원확인 목적으로만 활용하세요.' })
   @Get()
   async getSimpleUser(@CurrentUser() user: AuthenticationUser) {
+    const profileInfo = await this.userService.getProfileIdByUserId(user.id);
+
     return {
       role: user.role,
       id: user.id,
+      profileId: profileInfo?.id || null,
       name: user.name,
     };
   }

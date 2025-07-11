@@ -26,6 +26,10 @@ export default class UserService {
     await this.userRepository.updatePassword(userId, hashedPassword);
   }
 
+  async getProfileIdByUserId(userId: string) {
+    return await this.userRepository.getProfileIdByUserId(userId);
+  }
+
   async getUserDetails(userId: string): Promise<UserDetails> {
     const userRaw = await this.userRepository.getMyDetails(userId);
 

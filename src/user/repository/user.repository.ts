@@ -24,6 +24,20 @@ export default class UserRepository {
     return results[0];
   }
 
+  async getProfileIdByUserId(userId: string) {
+    const results = await this.db.select({
+      id: schema.users.profileId,
+    })
+      .from(schema.users)
+      .where(and(
+        eq(schema.users.id, userId),
+        isNull(schema.users.deletedAt),
+      ))
+      .limit(1);
+
+    return results[0];
+  }
+
   async updatePassword(userId: string, newPassword: string) {
     await this.db.update(schema.users).set({
       password: newPassword,

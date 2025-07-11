@@ -6,6 +6,7 @@ import { Gender } from "./enum";
  */
 export interface AuthenticationUser {
   id: string;
+  profile_id: string;
   name: string;
   email: string;
   gender: Gender;
